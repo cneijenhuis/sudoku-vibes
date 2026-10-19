@@ -7,9 +7,10 @@
 
 ## 2. Puzzle generation
 
-- [x] 2.1 Implement grade-capped digging that preserves uniqueness (`src/generator/generate.ts`); verify unique solution and consistent givens/solution tests for each level
+- [x] 2.1 Implement dig-to-minimal then restore givens (uniqueness preserved) (`src/generator/generate.ts`); verify unique solution and consistent givens/solution tests for each level
 - [x] 2.2 Implement target acceptance, retries, time budget with injectable clock, and closest-level fallback with `exact` flag; verify tests for each of the five levels with fixed seeds, the seeded-reproducibility scenario and the budget-exhausted scenario
 - [x] 2.3 Measure generation time per level over 20 seeds and record typical/worst times in `design.md`; verify Easy–Extreme finish well within budget
+- [ ] 2.4 Enforce per-level minimum-givens floors (Easy 36, Medium 32, Hard 28, Extreme 25) in the restore phase while keeping the exact grade; verify per-level floor tests and re-measure time and exact-rate in `design.md`
 
 ## 3. Background generation
 

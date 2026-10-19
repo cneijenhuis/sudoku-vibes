@@ -27,6 +27,17 @@ The generator SHALL return a puzzle that grades exactly as the requested level w
 - **WHEN** puzzles are generated for Easy, Medium, Hard, Extreme and Almost Impossible
 - **THEN** each grades as the level that was requested
 
+### Requirement: Minimum givens per level
+Puzzles for Easy, Medium, Hard and Extreme SHALL have at least 36, 32, 28 and 25 givens respectively, so lower levels are not sparse for human players. Almost Impossible has no minimum.
+
+#### Scenario: Easy is not sparse
+- **WHEN** an Easy puzzle is generated
+- **THEN** it has at least 36 givens
+
+#### Scenario: Floor and grade together
+- **WHEN** a Hard puzzle is generated
+- **THEN** it has at least 28 givens and still grades as Hard
+
 ### Requirement: Randomness
 Successive generations SHALL produce different puzzles, and the generator SHALL accept a seed so the same seed and level reproduce the same puzzle.
 
