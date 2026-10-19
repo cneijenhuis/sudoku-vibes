@@ -20,7 +20,11 @@ function buildScreen(state: AppState, router: Router): MountedScreen<HTMLElement
         onComplete: ({ elapsedMs, mistakes }) => router.navigate({ screen: 'results', game: state.game, elapsedMs, mistakes }),
       });
     case 'results':
-      return resultsScreen(state.game, state.elapsedMs, state.mistakes, toMenu);
+      return resultsScreen(state.game, state.elapsedMs, state.mistakes, {
+        onSame: (d) => router.startGame(d),
+        onNext: (d) => router.startGame(d),
+        onMenu: toMenu,
+      });
   }
 }
 

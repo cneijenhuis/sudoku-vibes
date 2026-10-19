@@ -28,5 +28,5 @@ export const LEVELS: readonly Level[] = [
 /** The level one step harder than `d`, or `null` after the hardest level. */
 export function nextDifficulty(d: Difficulty): Difficulty | null {
   const i = LEVELS.findIndex((l) => l.difficulty === d);
-  return i >= 0 && i < LEVELS.length - 1 ? LEVELS[i + 1].difficulty : null;
+  return LEVELS[i + 1]?.difficulty ?? null;
 }

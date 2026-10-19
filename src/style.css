@@ -274,12 +274,53 @@ button:focus-visible {
   background: #3f6bc9;
 }
 
-/* Results (placeholder) */
+/* Results */
+.results-screen {
+  gap: 18px;
+  background: radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%);
+}
+
+.results-hero,
+.results-body {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.results-body {
+  gap: 18px;
+}
+
+.results-hero .status-text h2 {
+  font-size: 2rem;
+  letter-spacing: 0.01em;
+}
+
+.results-message {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.level-chip {
+  display: inline-block;
+  margin: 12px 0 0;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+  font-weight: 650;
+  font-size: 0.95rem;
+}
+
 .stats {
   display: flex;
   gap: 12px;
   width: 100%;
-  max-width: 320px;
 }
 
 .stat {
@@ -304,6 +345,156 @@ button:focus-visible {
   font-size: 2rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+
+.results-screen .actions {
+  gap: 10px;
+}
+
+.btn.cta {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #121826;
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.btn.cta:active:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 82%, #000);
+}
+
+.btn.ghost {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--accent) 70%, transparent);
+  color: var(--fg);
+}
+
+.btn.ghost:active:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.btn.text {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Celebration: a badge that pops in, two expanding rings and a ring of sparks. CSS only. */
+.celebrate {
+  position: relative;
+  width: 168px;
+  height: 168px;
+  margin-block: -12px;
+  flex: none;
+  display: grid;
+  place-items: center;
+}
+
+.badge {
+  position: relative;
+  z-index: 1;
+  width: 84px;
+  height: 84px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #121826;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--accent) 70%, #fff), var(--accent) 70%);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 22%, transparent), 0 8px 28px color-mix(in srgb, var(--accent) 45%, transparent);
+  animation: badge-pop 700ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.burst {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.burst > i {
+  position: absolute;
+  display: block;
+}
+
+.ring {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border: 3px solid var(--accent);
+  opacity: 0;
+  animation: ring-out 1.5s ease-out 120ms both;
+}
+
+.ring.r2 {
+  animation-delay: 400ms;
+}
+
+.spark {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0;
+  animation: spark-out 1.4s cubic-bezier(0.15, 0.7, 0.3, 1) var(--delay, 0ms) both;
+}
+
+.spark.big {
+  width: 12px;
+  height: 12px;
+  background: #fff;
+}
+
+@keyframes badge-pop {
+  from {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes ring-out {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes spark-out {
+  0% {
+    transform: rotate(var(--a)) translateY(0) scale(0.4);
+    opacity: 0;
+  }
+  15%,
+  55% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(var(--a)) translateY(calc(var(--d) * -1)) scale(1);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge,
+  .ring,
+  .spark {
+    animation: none;
+  }
+  .burst {
+    display: none;
+  }
 }
 
 /* Game screen */
@@ -779,5 +970,104 @@ button:focus-visible {
   }
   .level-hint {
     display: none;
+  }
+}
+
+/* Short portrait phones (e.g. 320x568): tighter hero so everything fits without scrolling. */
+@media (max-height: 620px) {
+  .results-screen {
+    gap: 12px;
+    padding-block: 10px;
+  }
+  .celebrate {
+    width: 120px;
+    height: 120px;
+    margin-block: -8px;
+  }
+  .badge,
+  .ring {
+    width: 60px;
+    height: 60px;
+  }
+  .badge svg {
+    width: 30px;
+    height: 30px;
+  }
+  .results-hero {
+    gap: 8px;
+  }
+  .results-hero .status-text h2 {
+    font-size: 1.7rem;
+  }
+  .level-chip {
+    margin-top: 8px;
+  }
+  .results-body {
+    gap: 12px;
+  }
+  .stat {
+    padding: 10px 8px;
+  }
+  .stat-value {
+    font-size: 1.7rem;
+  }
+  .results-screen .actions {
+    gap: 8px;
+  }
+  .results-screen .btn {
+    min-height: 48px;
+  }
+}
+
+/* Short landscape results: hero on the left, stats and actions on the right. */
+@media (max-height: 520px) and (orientation: landscape) {
+  .results-screen {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-content: center;
+    align-items: center;
+    justify-items: center;
+    column-gap: 24px;
+  }
+  .results-hero,
+  .results-body {
+    max-width: 300px;
+  }
+  .results-body {
+    gap: 12px;
+  }
+  .celebrate {
+    width: 112px;
+    height: 112px;
+  }
+  .badge {
+    width: 56px;
+    height: 56px;
+  }
+  .badge svg {
+    width: 28px;
+    height: 28px;
+  }
+  .ring {
+    width: 56px;
+    height: 56px;
+  }
+  .results-hero {
+    gap: 8px;
+  }
+  .results-hero .status-text h2 {
+    font-size: 1.6rem;
+  }
+  .level-chip {
+    margin-top: 8px;
+  }
+  .stat {
+    padding: 8px;
+  }
+  .stat-value {
+    font-size: 1.6rem;
+  }
+  .btn {
+    min-height: 46px;
   }
 }
