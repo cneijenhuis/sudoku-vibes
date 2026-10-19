@@ -523,8 +523,108 @@ button:focus-visible {
   cursor: pointer;
 }
 
+/*
+ * Number-first. Three layers on a pad button: ::before is the fill (rises from the bottom while
+ * the button is held), ::after repeats the digit in dark ink clipped to the same rising edge so
+ * the numeral stays readable on both the filled and unfilled parts, and .lock is the padlock
+ * shown once the mode is on. The fill uses a fast-in easing, so a quick tap barely registers.
+ */
 .digit {
   position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  --fill: #f0c24e;
+  --ink: #2a2208;
+  --hold-ease: cubic-bezier(0.4, 0, 1, 1);
+}
+
+.digit::before,
+.digit::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.digit::before {
+  z-index: -1;
+  background: linear-gradient(to top, var(--fill), color-mix(in srgb, var(--fill) 82%, #fff));
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 140ms ease-out;
+}
+
+.digit:not(:disabled)::after {
+  content: attr(data-digit);
+  display: grid;
+  place-items: center;
+  color: var(--ink);
+  clip-path: inset(100% 0 0 0);
+  transition: clip-path 140ms ease-out;
+}
+
+.digit.holding::before {
+  transform: scaleY(1);
+  transition: transform var(--hold-ms, 450ms) var(--hold-ease);
+}
+
+.digit.holding:not(:disabled)::after {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path var(--hold-ms, 450ms) var(--hold-ease);
+}
+
+.digit .lock {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  display: none;
+  margin-left: -5.5px;
+  color: var(--ink);
+  line-height: 0;
+  pointer-events: none;
+}
+
+/* Locked in: solid gold, dark numeral, padlock. Holding it again drains the gold upwards. */
+.digit.locked {
+  border-color: var(--fill);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--fill) 35%, transparent), 0 0 14px color-mix(in srgb, var(--fill) 40%, transparent);
+}
+
+.digit.locked::before {
+  transform: scaleY(1);
+  transition: none;
+}
+
+.digit.locked:not(:disabled)::after {
+  clip-path: inset(0 0 0 0);
+  transition: none;
+}
+
+.digit.locked .lock {
+  display: block;
+}
+
+.digit.locked.holding::before {
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform var(--hold-ms, 450ms) var(--hold-ease);
+}
+
+.digit.locked.holding:not(:disabled)::after {
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path var(--hold-ms, 450ms) var(--hold-ease);
+}
+
+/* Number-first mode is visible from the board and the pad without reading the buttons. */
+.game-screen[data-mode='number-first'] .board {
+  border-color: #f0c24e;
+  box-shadow: 0 0 0 3px rgba(240, 194, 78, 0.22), 0 6px 24px rgba(0, 0, 0, 0.35), inset 0 0 28px rgba(240, 194, 78, 0.09);
+}
+
+.pad[data-mode='number-first'] {
+  background: linear-gradient(to bottom, rgba(240, 194, 78, 0.1), transparent 70%);
+  border-top: 2px solid rgba(240, 194, 78, 0.55);
+  border-radius: 12px 12px 0 0;
 }
 
 .digit:active:not(:disabled) {
@@ -608,6 +708,27 @@ button:focus-visible {
   .icon-btn:active:not(:disabled),
   .digit:active:not(:disabled) {
     transform: none;
+  }
+  /* No rising fill: the held button just lights up. */
+  .digit.holding:not(.locked)::before,
+  .digit.holding:not(.locked)::after,
+  .digit.locked.holding::before,
+  .digit.locked.holding::after {
+    transition: none;
+  }
+  .digit.holding:not(.locked)::before {
+    transform: scaleY(1);
+    opacity: 0.55;
+  }
+  .digit.holding:not(.locked):not(:disabled)::after {
+    clip-path: inset(0 0 0 0);
+  }
+  .digit.locked.holding::before {
+    transform: scaleY(1);
+    opacity: 0.55;
+  }
+  .digit.locked.holding:not(:disabled)::after {
+    clip-path: inset(0 0 0 0);
   }
 }
 

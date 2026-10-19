@@ -1,20 +1,23 @@
 import { DIFFICULTY_LABELS } from '../engine/grading';
 import {
   CELLS,
+  activeMode,
   canUndo,
   completedDigits,
   createGame,
   effectiveHighlight,
   isComplete,
   isMistakeCell,
+  longPressDigit,
   pressDigit,
-  select,
+  tapCell,
   undo,
   type GameState,
 } from '../game/state';
 import { createStopwatch, formatTime } from '../game/timer';
 import type { GeneratedPuzzle } from '../generator/generate';
 import { h } from './dom';
+import { createLongPress, LONG_PRESS_MS, type LongPress } from './longpress';
 import type { MountedScreen } from './router';
 
 export interface GameResult {
@@ -36,6 +39,11 @@ export interface GameEnv {
 }
 
 const TICK_MS = 250;
+/** How far outside a pad button (px) a held finger may drift before the press is cancelled. */
+const SLOP_PX = 10;
+
+const LOCK_ICON =
+  '<svg viewBox="0 0 16 16" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M5 7V5a3 3 0 0 1 6 0v2h.5A1.5 1.5 0 0 1 13 8.5v5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 3 13.5v-5A1.5 1.5 0 0 1 4.5 7H5Zm1.8 0h2.4V5a1.2 1.2 0 0 0-2.4 0v2Z"/></svg>';
 
 const UNDO_ICON =
   '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>';
@@ -92,8 +100,12 @@ export function gameScreen(
 
   const digitBtns: HTMLButtonElement[] = [];
   const pad = h('div', { class: 'pad', attrs: { role: 'group', 'aria-label': 'Number pad' } });
+  pad.style.setProperty('--hold-ms', `${LONG_PRESS_MS}ms`);
   for (let d = 1; d <= 9; d++) {
     const b = h('button', { class: 'digit', text: String(d), attrs: { type: 'button', 'data-digit': String(d), 'aria-label': `${d}`, 'aria-pressed': 'false' } });
+    const lock = h('span', { class: 'lock', attrs: { 'aria-hidden': 'true' } });
+    lock.innerHTML = LOCK_ICON; // static markup defined above
+    b.append(lock);
     digitBtns.push(b);
     pad.append(b);
   }
@@ -120,6 +132,9 @@ export function gameScreen(
     const sel = state.selected;
     const hl = effectiveHighlight(state) ?? 0;
     const done = completedDigits(state);
+    const numberFirst = activeMode(state) === 'number-first';
+    el.dataset.mode = numberFirst ? 'number-first' : 'cell-first';
+    pad.dataset.mode = el.dataset.mode;
     for (let i = 0; i < CELLS; i++) {
       const v = state.cells[i] ?? 0;
       const given = (state.givens[i] ?? 0) !== 0;
@@ -146,9 +161,12 @@ export function gameScreen(
       const complete = done[d] === true;
       b.disabled = complete;
       b.classList.toggle('done', complete);
-      b.classList.toggle('active', !complete && d === hl);
-      b.setAttribute('aria-pressed', String(!complete && d === hl));
-      b.setAttribute('aria-label', complete ? `${d}, all placed` : String(d));
+      const isActive = !complete && d === hl;
+      const locked = isActive && numberFirst;
+      b.classList.toggle('active', isActive && !numberFirst);
+      b.classList.toggle('locked', locked);
+      b.setAttribute('aria-pressed', String(isActive));
+      b.setAttribute('aria-label', complete ? `${d}, all placed` : locked ? `${d}, number mode on. Long press to leave` : String(d));
     });
     undoBtn.disabled = paused || finished || !canUndo(state);
     const n = state.mistakes;
@@ -169,6 +187,7 @@ export function gameScreen(
   function pause(): void {
     if (paused || finished || disposed) return;
     paused = true;
+    cancelPresses();
     sw.pause();
     stopTick();
     pausedTime.textContent = formatTime(sw.elapsed());
@@ -209,13 +228,60 @@ export function gameScreen(
   board.addEventListener('click', (e) => {
     if (!active()) return;
     const target = (e.target as Element).closest<HTMLElement>('[data-i]');
-    if (target) apply(select(state, Number(target.dataset.i)));
+    if (target) apply(tapCell(state, Number(target.dataset.i)));
   });
-  pad.addEventListener('click', (e) => {
-    if (!active()) return;
-    const target = (e.target as Element).closest<HTMLElement>('[data-digit]');
-    if (target) apply(pressDigit(state, Number(target.dataset.digit)));
+
+  // Pad buttons use pointer events through the long-press controller. The `click` that follows
+  // a pointer gesture has detail >= 1 and is ignored; keyboard / assistive activation has
+  // detail 0 and counts as a tap, so nothing fires twice.
+  const presses: LongPress[] = [];
+  digitBtns.forEach((btn, k) => {
+    const digit = k + 1;
+    const lp = createLongPress({
+      onProgress: (holding) => btn.classList.toggle('holding', holding),
+      onTap: () => {
+        if (active()) apply(pressDigit(state, digit));
+      },
+      onLongPress: () => {
+        if (active()) apply(longPressDigit(state, digit));
+      },
+    });
+    presses.push(lp);
+    const inside = (e: PointerEvent): boolean => {
+      const r = btn.getBoundingClientRect();
+      return (
+        e.clientX >= r.left - SLOP_PX &&
+        e.clientX <= r.right + SLOP_PX &&
+        e.clientY >= r.top - SLOP_PX &&
+        e.clientY <= r.bottom + SLOP_PX
+      );
+    };
+    btn.addEventListener('pointerdown', (e) => {
+      if (!active() || !e.isPrimary || e.button !== 0 || btn.disabled) return;
+      try {
+        btn.setPointerCapture(e.pointerId);
+      } catch {
+        /* capture is best effort */
+      }
+      lp.down(e.pointerId);
+    });
+    btn.addEventListener('pointermove', (e) => {
+      if (lp.pressed && !inside(e)) lp.cancel(e.pointerId);
+    });
+    btn.addEventListener('pointerup', (e) => {
+      if (inside(e)) lp.up(e.pointerId);
+      else lp.cancel(e.pointerId);
+    });
+    btn.addEventListener('pointercancel', (e) => lp.cancel(e.pointerId));
+    btn.addEventListener('lostpointercapture', (e) => lp.cancel(e.pointerId));
+    btn.addEventListener('click', (e) => {
+      if (e.detail === 0 && active()) apply(pressDigit(state, digit));
+    });
   });
+  function cancelPresses(): void {
+    for (const lp of presses) lp.cancel();
+  }
+  el.addEventListener('contextmenu', (e) => e.preventDefault());
   undoBtn.addEventListener('click', () => {
     if (active()) apply(undo(state));
   });
@@ -238,6 +304,7 @@ export function gameScreen(
     el,
     dispose() {
       disposed = true;
+      cancelPresses();
       stopTick();
       sw.stop();
       doc.removeEventListener('visibilitychange', onVisibility);
