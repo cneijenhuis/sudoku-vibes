@@ -27,8 +27,8 @@ The layout SHALL respect device safe-area insets so content is not obscured by n
 - **THEN** controls are inset so that none are covered by the notch or home indicator
 
 ### Requirement: Placeholder screen
-Until game screens exist, the shell SHALL render a visible title screen identifying the app.
+On load, the shell SHALL render the start menu, which shows the app title "Sudoku".
 
 #### Scenario: First load
 - **WHEN** the page loads
-- **THEN** the text "Sudoku" is visible and no console errors are logged
+- **THEN** the start menu is shown, the text "Sudoku" is visible and no console errors are logged
