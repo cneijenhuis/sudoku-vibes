@@ -7,10 +7,10 @@
 
 ## 2. UI
 
-- [ ] 2.1 Wire the pad to the controller (pointer events, keyboard click path, contextmenu suppression), the fill animation and reduced-motion variant, locked-in button styling, `data-mode` board tint and aria state; verify with Playwright (real pointer down/up with timed holds): animation visible mid-hold, long press enters mode, early release is a tap, long press on the active digit exits
-- [ ] 2.2 Wire board taps through `tapCell`, pause/resume preserving the mode, controller cleanup in `dispose()`; verify with Playwright on a seeded puzzle: tap-fill several cells, wrong placement shows a mistake and blocks, undo restores, switching via pad and via filled cell, mode ends when the digit completes, pause/resume keeps the mode
-- [ ] 2.3 Take screenshots at 375x667, 320x568 and 667x375 for cell-first, mid-hold and number-first states and review them; verify nothing clips and the modes are visually distinguishable
+- [x] 2.1 Wire the pad to the controller (pointer events, keyboard click path, contextmenu suppression), the fill animation and reduced-motion variant, locked-in button styling, `data-mode` board tint and aria state; verify with Playwright (real pointer down/up with timed holds): animation visible mid-hold, long press enters mode, early release is a tap, long press on the active digit exits
+- [x] 2.2 Wire board taps through `tapCell`, pause/resume preserving the mode, controller cleanup in `dispose()`; verify with Playwright on a seeded puzzle: tap-fill several cells, wrong placement shows a mistake and blocks, undo restores, switching via pad and via filled cell, mode ends when the digit completes, pause/resume keeps the mode
+- [x] 2.3 Take screenshots at 375x667, 320x568 and 667x375 for cell-first, mid-hold and number-first states and review them; verify nothing clips and the modes are visually distinguishable
 
 ## 3. Integration
 
-- [ ] 3.1 Verify `npm run typecheck`, `npm test`, `npm run build` and `openspec validate --all --strict` pass; verify the built site works from a sub-path with no console errors; update `README.md` with how to use number-first mode
+- [x] 3.1 Verify `npm run typecheck`, `npm test`, `npm run build` and `openspec validate --all --strict` pass; verify the built site works from a sub-path with no console errors; update `README.md` with how to use number-first mode
