@@ -2,9 +2,9 @@
 
 ## 1. Board and solver
 
-- [ ] 1.1 Implement board model, parse/serialise and peer/unit tables in `src/engine/board.ts`; verify round-trip and invalid-input tests pass
-- [ ] 1.2 Implement conflict detection; verify tests for row, column and box duplicates pass
-- [ ] 1.3 Implement backtracking `solve` and `countSolutions` with limit; verify tests on known unique, multi-solution, empty and unsolvable boards pass
+- [x] 1.1 Implement board model, parse/serialise and peer/unit tables in `src/engine/board.ts`; verify round-trip and invalid-input tests pass
+- [x] 1.2 Implement conflict detection; verify tests for row, column and box duplicates pass
+- [x] 1.3 Implement backtracking `solve` and `countSolutions` with limit; verify tests on known unique, multi-solution, empty and unsolvable boards pass
 
 ## 2. Technique solver
 
