@@ -25,3 +25,8 @@
 
 - [Seeded fixture needed for e2e] → reuse the Worker-override approach from earlier checks; no hooks in production code.
 - [Landscape with five stacked elements] → allow the stats and actions to sit in two columns in short viewports.
+
+## Implementation notes (added after review)
+
+- Result buttons ignore clicks during the first 400 ms after the screen mounts (`GHOST_CLICK_MS`): the completing tap fires on pointer-up and a trailing compatibility click could otherwise land on the Menu button under the finger. Keyboard and screen-reader activation after that window is unaffected. A sturdier alternative (require a pointerdown on the result button before honouring a pointer-originated click) is noted as a future refinement.
+- If generation fell back to a different level than requested (`exact: false`), "Same difficulty" and "Next difficulty" are based on the level actually played.
