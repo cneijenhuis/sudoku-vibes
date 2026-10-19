@@ -2,7 +2,7 @@
 
 ## 1. Save and resume
 
-- [ ] 1.1 Implement `serialize`/`restore` with strict validation and a throwing-safe `SaveStore` in `src/storage/`, plus `restoreGame` in `src/game/state.ts`; verify unit tests: round-trip equality of cells/history/mistakes, a table of invalid or tampered saves returning null, storage that throws on read and write, and undo after restore
+- [x] 1.1 Implement `serialize`/`restore` with strict validation and a throwing-safe `SaveStore` in `src/storage/`, plus `restoreGame` in `src/game/state.ts`; verify unit tests: round-trip equality of cells/history/mistakes, a table of invalid or tampered saves returning null, storage that throws on read and write, and undo after restore
 - [ ] 1.2 Wire saving (after board changes, on pause, on `visibilitychange` hidden and `pagehide`), clearing on completion, Quit keeping the save, and `resumeGame` opening the game paused; verify with Playwright: enter digits, reload, Resume shows the same board/mistakes/time and starts paused, undo works, completion clears the save
 - [ ] 1.3 Add the Resume card and the replace-confirmation sheet to the menu; verify with Playwright: confirm replaces, decline keeps, no Resume card without a save, and the menu fits 375x667 and 320x568 with the card shown
 

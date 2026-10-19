@@ -22,6 +22,20 @@ describe('formatTime', () => {
 });
 
 describe('stopwatch', () => {
+  it('can start from an earlier elapsed time and stay paused', () => {
+    const c = clock();
+    const sw = createStopwatch(c.now);
+    sw.start(272_000);
+    sw.pause();
+    c.advance(10_000);
+    expect(sw.elapsed()).toBe(272_000);
+    sw.resume();
+    c.advance(1000);
+    expect(sw.elapsed()).toBe(273_000);
+    sw.start(-5);
+    expect(sw.elapsed()).toBe(0);
+  });
+
   it('is idle at zero until started', () => {
     const c = clock();
     const sw = createStopwatch(c.now);

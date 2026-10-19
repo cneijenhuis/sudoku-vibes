@@ -54,6 +54,28 @@ export function createGame(puzzle: string, solution: string): GameState {
   };
 }
 
+/**
+ * Rebuild a game from a validated save: givens plus the entries in order. Entries are applied
+ * directly rather than through `enter`, which would refuse legitimate saved sequences (e.g. a
+ * trailing mistake). The result starts cell-first with no selection or highlight; `previous` is
+ * always 0 because only empty cells can be filled.
+ */
+export function restoreGame(saved: {
+  puzzle: string;
+  solution: string;
+  moves: readonly (readonly [number, number])[];
+  mistakes: number;
+}): GameState {
+  const game = createGame(saved.puzzle, saved.solution);
+  const cells = Uint8Array.from(game.cells);
+  const history: Move[] = [];
+  for (const [index, value] of saved.moves) {
+    cells[index] = value;
+    history.push({ index, previous: 0, value });
+  }
+  return { ...game, cells, history, mistakes: saved.mistakes };
+}
+
 /** Number of cells holding the correct digit, per digit (index 1-9; index 0 unused). */
 function correctCounts(state: GameState): number[] {
   const counts = new Array<number>(10).fill(0);

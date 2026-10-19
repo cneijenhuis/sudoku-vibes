@@ -1,7 +1,7 @@
 /** Stopwatch driven by an injected clock; accrues only while running. */
 export interface Stopwatch {
-  /** Reset to zero and start running. */
-  start(): void;
+  /** Reset to `initialMs` (default zero) and start running. */
+  start(initialMs?: number): void;
   pause(): void;
   /** Continue after `pause`; no effect once stopped. */
   resume(): void;
@@ -25,8 +25,8 @@ export function createStopwatch(now: () => number = () => performance.now()): St
   };
 
   return {
-    start() {
-      accrued = 0;
+    start(initialMs = 0) {
+      accrued = Math.max(0, initialMs);
       stopped = false;
       startedAt = now();
     },
