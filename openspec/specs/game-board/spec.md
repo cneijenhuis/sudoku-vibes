@@ -1,10 +1,9 @@
-# Spec Delta
+# game-board Specification
 
 ## Purpose
-
 Defines what the player sees while playing: the board, top bar and number pad, and how the game recognises it has been won.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Screen layout
 The game screen SHALL show, top to bottom, a bar with an undo button on the left, the running time in the centre and a pause button on the right; the 9x9 board centred in the remaining space; and the digits 1 to 9 in a row at the bottom (see "Fits any viewport" for short landscape screens).
@@ -19,6 +18,13 @@ The board SHALL be a square sized to the largest size that fits the space betwee
 #### Scenario: Small or landscape screens
 - **WHEN** the viewport is 320x568 or 667x375
 - **THEN** nothing is clipped or scrolls, the board is fully visible and the undo, pause and digit buttons are at least 44px tall
+
+### Requirement: Live status line
+Below the time the top bar SHALL show the difficulty name and the number of mistakes made so far, highlighted once the count is above zero.
+
+#### Scenario: Mistake count shown
+- **WHEN** the player has made one mistake
+- **THEN** the status line reads "<Difficulty> · 1 mistake" in a highlighted style
 
 ### Requirement: Cell rendering
 Given digits SHALL be visually distinct from digits entered by the player, 3x3 boxes SHALL be visually separated, and each cell SHALL expose an accessible label with its row, column and value.

@@ -28,3 +28,9 @@
 - [Landscape layout cramped] → first iteration accepts a smaller board; refine in a polish change.
 - [`cqw/cqh` container query units need modern browsers] → supported in all current mobile browsers; fall back to `min(100vw, 60dvh)` if needed.
 - [Blocking after a mistake may feel strict] → matches the requested behaviour; selection stays available so the player can inspect the board.
+
+## Implementation notes (added after review)
+
+- In short landscape viewports the number pad becomes a 3x3 keypad beside the board (bigger board than a row below); portrait keeps the single row of nine.
+- Nine digit buttons in one row are at least 44px tall but only about 30-39px wide on phones; this is a deliberate exception to the 44px rule, kept because the user asked for the digits in a row.
+- Undo selects the cell it cleared so the replacement digit can be entered immediately.
