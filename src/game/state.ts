@@ -2,8 +2,11 @@
 
 export const CELLS = 81;
 
-/** Input modes; number-first will add a variant later without changing the state shape. */
-export type InputMode = 'cell-first';
+/**
+ * Input modes. In 'number-first' the active digit is `highlight` (non-null and not complete,
+ * see `activeMode`) and tapping an empty cell places it.
+ */
+export type InputMode = 'cell-first' | 'number-first';
 
 /** One entry made by the player, recorded so it can be undone. */
 export interface Move {
@@ -116,11 +119,20 @@ export function canUndo(state: GameState): boolean {
  */
 export function enter(state: GameState, digit: number): GameState {
   const i = state.selected;
-  if (i === null || !Number.isInteger(digit) || digit < 1 || digit > 9) return state;
+  if (i === null) return state;
+  return place(state, i, digit);
+}
+
+/**
+ * Put `digit` into empty cell `i` (no entry when a mistake is on the board), record it, highlight
+ * the digit and clear the selection. Completing the digit ends number-first mode.
+ */
+function place(state: GameState, i: number, digit: number): GameState {
+  if (!Number.isInteger(digit) || digit < 1 || digit > 9) return state;
   if (state.cells[i] !== 0 || hasMistake(state)) return state;
   const cells = Uint8Array.from(state.cells);
   cells[i] = digit;
-  return {
+  const next: GameState = {
     ...state,
     cells,
     selected: null,
@@ -128,6 +140,7 @@ export function enter(state: GameState, digit: number): GameState {
     history: [...state.history, { index: i, previous: 0, value: digit }],
     mistakes: state.mistakes + (digit === state.solution[i] ? 0 : 1),
   };
+  return completedDigits(next)[digit] ? { ...next, mode: 'cell-first' } : next;
 }
 
 /** Whether a tap on a digit button would place the digit rather than highlight it. */
@@ -139,19 +152,68 @@ export function canEnter(state: GameState): boolean {
 /**
  * Handle a tap on a digit button: place the digit when an empty cell is selected and entry
  * is allowed, otherwise highlight it (tapping the highlighted digit clears the highlight).
- * Complete digits are ignored.
+ * Complete digits are ignored. In number-first mode it makes the digit the active one instead
+ * (tapping the active digit changes nothing).
  */
 export function pressDigit(state: GameState, digit: number): GameState {
   if (!Number.isInteger(digit) || digit < 1 || digit > 9 || completedDigits(state)[digit]) return state;
+  if (activeMode(state) === 'number-first') {
+    return state.highlight === digit ? state : { ...state, highlight: digit };
+  }
   if (canEnter(state)) return enter(state, digit);
   return { ...state, highlight: effectiveHighlight(state) === digit ? null : digit };
 }
 
-/** Revert the most recent entry and select its cell; the mistake count is kept. */
+/**
+ * Revert the most recent entry; the mistake count is kept. Cell-first mode selects the freed
+ * cell, number-first mode keeps the mode and selects nothing.
+ */
 export function undo(state: GameState): GameState {
   const move = state.history[state.history.length - 1];
   if (!move) return state;
   const cells = Uint8Array.from(state.cells);
   cells[move.index] = move.previous;
-  return { ...state, cells, selected: move.index, history: state.history.slice(0, -1) };
+  return { ...state, cells, selected: state.mode === 'number-first' ? null : move.index, history: state.history.slice(0, -1) };
+}
+
+/** The mode to act on: number-first only while its active digit is set and not yet complete. */
+export function activeMode(state: GameState): InputMode {
+  const d = state.highlight;
+  if (state.mode !== 'number-first' || d === null || completedDigits(state)[d]) return 'cell-first';
+  return 'number-first';
+}
+
+/**
+ * Switch to number-first mode with `digit` active (also switches the digit when already in the
+ * mode). Clears the selection; does nothing for a complete or invalid digit.
+ */
+export function startNumberFirst(state: GameState, digit: number): GameState {
+  if (!Number.isInteger(digit) || digit < 1 || digit > 9 || completedDigits(state)[digit]) return state;
+  return { ...state, mode: 'number-first', selected: null, highlight: digit };
+}
+
+/** Back to cell-first mode with nothing selected; the highlight stays. */
+export function exitNumberFirst(state: GameState): GameState {
+  if (state.mode === 'cell-first' && state.selected === null) return state;
+  return { ...state, mode: 'cell-first', selected: null };
+}
+
+/** A long press on a digit button: leave the mode on the active digit, otherwise (re)start it. */
+export function longPressDigit(state: GameState, digit: number): GameState {
+  if (activeMode(state) === 'number-first' && state.highlight === digit) return exitNumberFirst(state);
+  return startNumberFirst(state, digit);
+}
+
+/**
+ * A tap on a board cell. Cell-first: select it. Number-first: an empty cell receives the active
+ * digit (unselected; blocked while a mistake is on the board), a filled cell makes its digit
+ * the active one unless that digit is complete.
+ */
+export function tapCell(state: GameState, index: number): GameState {
+  if (activeMode(state) === 'cell-first') return select(state, index);
+  if (!Number.isInteger(index) || index < 0 || index >= CELLS) return state;
+  const v = state.cells[index] ?? 0;
+  if (v === 0) return place(state, index, state.highlight ?? 0);
+  if (completedDigits(state)[v] || v === state.highlight) return state;
+  return { ...state, highlight: v };
 }

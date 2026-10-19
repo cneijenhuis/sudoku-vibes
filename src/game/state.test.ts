@@ -1,16 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import {
+  activeMode,
   canEnter,
   canUndo,
   completedDigits,
   createGame,
   effectiveHighlight,
   enter,
+  exitNumberFirst,
   hasMistake,
   isComplete,
   isMistakeCell,
+  longPressDigit,
   pressDigit,
   select,
+  startNumberFirst,
+  tapCell,
   undo,
   type GameState,
 } from './state';
@@ -306,5 +311,131 @@ describe('completedDigits', () => {
     expect(effectiveHighlight(g)).toBeNull();
     g = undo(g);
     expect(effectiveHighlight(g)).toBe(5);
+  });
+});
+
+describe('number-first mode', () => {
+  // ROW_PUZZLE: rows 0 and 1 empty; the 5s are missing at cells 0 and 14.
+  const nf = (d = 5) => startNumberFirst(row(), d);
+  const cellsOf = (g: GameState) => Array.from(g.cells);
+
+  it('starts with the digit active, highlighted and the selection cleared', () => {
+    const g = startNumberFirst(select(row(), 3), 5);
+    expect(g.mode).toBe('number-first');
+    expect(activeMode(g)).toBe('number-first');
+    expect(g.selected).toBeNull();
+    expect(effectiveHighlight(g)).toBe(5);
+  });
+
+  it('cannot start for a complete or invalid digit', () => {
+    const done = completeFive(row());
+    expect(startNumberFirst(done, 5)).toBe(done);
+    const g = row();
+    for (const d of [0, 10, 1.5, NaN]) expect(startNumberFirst(g, d)).toBe(g);
+  });
+
+  it('places the active digit in a tapped empty cell without selecting', () => {
+    const g = tapCell(nf(), 0);
+    expect(g.cells[0]).toBe(5);
+    expect(g.selected).toBeNull();
+    expect(g.mode).toBe('number-first');
+    expect(effectiveHighlight(g)).toBe(5);
+    expect(g.history).toEqual([{ index: 0, previous: 0, value: 5 }]);
+    expect(g.mistakes).toBe(0);
+  });
+
+  it('a wrong placement is a counted mistake, and blocks further placing until undone', () => {
+    let g = tapCell(nf(), 1); // 5 does not belong at cell 1 (solution 3)
+    expect(g.cells[1]).toBe(5);
+    expect(isMistakeCell(g, 1)).toBe(true);
+    expect(g.mistakes).toBe(1);
+    const blocked = tapCell(g, 0);
+    expect(blocked).toBe(g);
+    g = undo(g);
+    expect(g.cells[1]).toBe(0);
+    expect(g.mistakes).toBe(1);
+    expect(tapCell(g, 0).cells[0]).toBe(5);
+  });
+
+  it('undo keeps the mode and the digit and selects nothing', () => {
+    const g = undo(tapCell(nf(), 0));
+    expect(g.cells[0]).toBe(0);
+    expect(g.mode).toBe('number-first');
+    expect(g.highlight).toBe(5);
+    expect(g.selected).toBeNull();
+  });
+
+  it('cell-first undo still selects the freed cell', () => {
+    expect(undo(enter(select(row(), 0), 5)).selected).toBe(0);
+  });
+
+  it('switches digit by pad tap; tapping the active digit changes nothing', () => {
+    const g = nf();
+    const seven = pressDigit(g, 7);
+    expect(seven.mode).toBe('number-first');
+    expect(effectiveHighlight(seven)).toBe(7);
+    expect(pressDigit(g, 5)).toBe(g);
+  });
+
+  it('switches digit by tapping a filled cell (given or entered), board unchanged', () => {
+    const g = nf();
+    const given = tapCell(g, 18); // solution[18] = 1, a given
+    expect(effectiveHighlight(given)).toBe(Number(SOLUTION[18]));
+    expect(given.mode).toBe('number-first');
+    expect(cellsOf(given)).toEqual(cellsOf(g));
+    const placed = tapCell(g, 0);
+    const back = tapCell(pressDigit(placed, 7), 0);
+    expect(effectiveHighlight(back)).toBe(5);
+    expect(tapCell(given, 18)).toBe(given); // already active
+  });
+
+  it('a long press on another digit switches; on the active digit it exits', () => {
+    const g = nf();
+    const seven = longPressDigit(g, 7);
+    expect(seven.mode).toBe('number-first');
+    expect(effectiveHighlight(seven)).toBe(7);
+    const out = longPressDigit(g, 5);
+    expect(out.mode).toBe('cell-first');
+    expect(out.selected).toBeNull();
+    expect(effectiveHighlight(out)).toBe(5);
+    expect(longPressDigit(out, 5).mode).toBe('number-first');
+  });
+
+  it('exitNumberFirst keeps the highlight and is a no-op in cell-first', () => {
+    const g = exitNumberFirst(nf());
+    expect(g.mode).toBe('cell-first');
+    expect(g.highlight).toBe(5);
+    const plain = row();
+    expect(exitNumberFirst(plain)).toBe(plain);
+  });
+
+  it('placing the last instance ends the mode, highlights nothing and ignores further starts', () => {
+    const g = tapCell(tapCell(nf(), 0), 14);
+    expect(completedDigits(g)[5]).toBe(true);
+    expect(g.mode).toBe('cell-first');
+    expect(activeMode(g)).toBe('cell-first');
+    expect(effectiveHighlight(g)).toBeNull();
+    expect(startNumberFirst(g, 5)).toBe(g);
+    // undoing the completing entry does not resurrect the mode
+    const u = undo(g);
+    expect(u.mode).toBe('cell-first');
+    expect(u.selected).toBe(14);
+  });
+
+  it('tapping a cell of a complete digit does not switch to it', () => {
+    let g = completeFive(row());
+    g = startNumberFirst(g, 7);
+    const five = [...SOLUTION].findIndex((c, i) => c === '5' && i >= 18);
+    expect(tapCell(g, five)).toBe(g);
+  });
+
+  it('cell-first tapCell behaves as select', () => {
+    const g = row();
+    expect(tapCell(g, 4)).toEqual(select(g, 4));
+  });
+
+  it('ignores out-of-range taps', () => {
+    const g = nf();
+    for (const i of [-1, 81, 1.5]) expect(tapCell(g, i)).toBe(g);
   });
 });
