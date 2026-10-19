@@ -1,5 +1,17 @@
 import { DIFFICULTY_LABELS } from '../engine/grading';
-import { CELLS, canUndo, createGame, enter, isComplete, isMistakeCell, select, undo, type GameState } from '../game/state';
+import {
+  CELLS,
+  canUndo,
+  completedDigits,
+  createGame,
+  effectiveHighlight,
+  isComplete,
+  isMistakeCell,
+  pressDigit,
+  select,
+  undo,
+  type GameState,
+} from '../game/state';
 import { createStopwatch, formatTime } from '../game/timer';
 import type { GeneratedPuzzle } from '../generator/generate';
 import { h } from './dom';
@@ -81,7 +93,7 @@ export function gameScreen(
   const digitBtns: HTMLButtonElement[] = [];
   const pad = h('div', { class: 'pad', attrs: { role: 'group', 'aria-label': 'Number pad' } });
   for (let d = 1; d <= 9; d++) {
-    const b = h('button', { class: 'digit', text: String(d), attrs: { type: 'button', 'data-digit': String(d), 'aria-label': `Enter ${d}` } });
+    const b = h('button', { class: 'digit', text: String(d), attrs: { type: 'button', 'data-digit': String(d), 'aria-label': `${d}`, 'aria-pressed': 'false' } });
     digitBtns.push(b);
     pad.append(b);
   }
@@ -106,13 +118,14 @@ export function gameScreen(
 
   function render(): void {
     const sel = state.selected;
-    const selDigit = sel === null ? 0 : (state.cells[sel] ?? 0);
+    const hl = effectiveHighlight(state) ?? 0;
+    const done = completedDigits(state);
     for (let i = 0; i < CELLS; i++) {
       const v = state.cells[i] ?? 0;
       const given = (state.givens[i] ?? 0) !== 0;
       const mistake = isMistakeCell(state, i);
       const isSel = i === sel;
-      const same = !isSel && selDigit !== 0 && v === selDigit;
+      const same = !isSel && hl !== 0 && v === hl;
       const key = `${v}|${given ? 'g' : ''}${mistake ? 'm' : ''}${isSel ? 's' : ''}${same ? 'h' : ''}`;
       if (cache[i] === key) continue;
       cache[i] = key;
@@ -122,12 +135,21 @@ export function gameScreen(
       b.classList.toggle('entry', !given && v !== 0);
       b.classList.toggle('mistake', mistake);
       b.classList.toggle('selected', isSel);
-      b.classList.toggle('same', same);
+      b.classList.toggle('hl', same);
       b.setAttribute('aria-pressed', String(isSel));
       const where = `Row ${Math.floor(i / 9) + 1}, column ${(i % 9) + 1}`;
       const what = v === 0 ? 'empty' : String(v);
       b.setAttribute('aria-label', `${where}, ${what}${given ? ', given' : ''}${mistake ? ', mistake' : ''}`);
     }
+    digitBtns.forEach((b, k) => {
+      const d = k + 1;
+      const complete = done[d] === true;
+      b.disabled = complete;
+      b.classList.toggle('done', complete);
+      b.classList.toggle('active', !complete && d === hl);
+      b.setAttribute('aria-pressed', String(!complete && d === hl));
+      b.setAttribute('aria-label', complete ? `${d}, all placed` : String(d));
+    });
     undoBtn.disabled = paused || finished || !canUndo(state);
     const n = state.mistakes;
     subEl.textContent = `${DIFFICULTY_LABELS[game.difficulty]} · ${n} ${n === 1 ? 'mistake' : 'mistakes'}`;
@@ -192,7 +214,7 @@ export function gameScreen(
   pad.addEventListener('click', (e) => {
     if (!active()) return;
     const target = (e.target as Element).closest<HTMLElement>('[data-digit]');
-    if (target) apply(enter(state, Number(target.dataset.digit)));
+    if (target) apply(pressDigit(state, Number(target.dataset.digit)));
   });
   undoBtn.addEventListener('click', () => {
     if (active()) apply(undo(state));

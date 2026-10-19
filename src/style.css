@@ -8,11 +8,13 @@
   --surface-hi: #333d56;
   --border: #3d486a;
   --muted: #aab3c7;
-  --c0: #4cc38a;
-  --c1: #5b8def;
-  --c2: #e8b04a;
-  --c3: #f07a52;
-  --c4: #d070e8;
+  /* One accent per Difficulty value: Super Easy, Easy, Medium, Hard, Extreme, Almost Impossible. */
+  --c0: #38c8d8;
+  --c1: #4cc38a;
+  --c2: #5b8def;
+  --c3: #e8b04a;
+  --c4: #f07a52;
+  --c5: #d070e8;
 }
 
 *,
@@ -88,6 +90,7 @@ button,
 .level-2, .accent-2 { --accent: var(--c2); }
 .level-3, .accent-3 { --accent: var(--c3); }
 .level-4, .accent-4 { --accent: var(--c4); }
+.level-5, .accent-5 { --accent: var(--c5); }
 
 button {
   font: inherit;
@@ -119,14 +122,14 @@ button:focus-visible {
   max-width: 420px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .level {
   flex: 0 0 auto;
   width: 100%;
-  min-height: 60px;
-  padding: 10px 16px 10px 14px;
+  min-height: 56px;
+  padding: 8px 16px 8px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -310,7 +313,8 @@ button:focus-visible {
   --board-bg: #252d42;
   --entry: #86b0ff;
   --sel-bg: #3b568f;
-  --same-bg: #323f63;
+  --hl-bg: #4d4120;
+  --hl-fg: #ffd97a;
   --bad: #ff8d8d;
   --bad-bg: #5a2c3a;
   position: relative;
@@ -453,13 +457,11 @@ button:focus-visible {
   font-weight: 600;
 }
 
-.cell.same {
-  background: var(--same-bg);
-}
-
-.cell.same.given,
-.cell.same.entry {
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--entry) 55%, transparent);
+/* Highlighted digit: warm gold, clearly apart from the cool blue selection. */
+.cell.hl {
+  background: var(--hl-bg);
+  color: var(--hl-fg);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--hl-fg) 45%, transparent);
 }
 
 .cell.selected {
@@ -521,9 +523,39 @@ button:focus-visible {
   cursor: pointer;
 }
 
-.digit:active {
+.digit {
+  position: relative;
+}
+
+.digit:active:not(:disabled) {
   background: var(--surface-hi);
   transform: scale(0.94);
+}
+
+/* The digit whose cells are highlighted on the board. */
+.digit.active {
+  background: var(--hl-bg);
+  border-color: var(--hl-fg);
+  color: var(--hl-fg);
+}
+
+/* All nine placed: dimmed, dashed outline and a small tick. */
+.digit:disabled {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--muted);
+  opacity: 0.45;
+  cursor: default;
+}
+
+.digit:disabled::after {
+  content: '\2713';
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 /* Pause: the board and pad are hidden (not just covered) and an opaque overlay takes over. */
@@ -574,7 +606,7 @@ button:focus-visible {
 
 @media (prefers-reduced-motion: reduce) {
   .icon-btn:active:not(:disabled),
-  .digit:active {
+  .digit:active:not(:disabled) {
     transform: none;
   }
 }
@@ -635,9 +667,6 @@ button:focus-visible {
   .level {
     min-height: 52px;
     padding-block: 6px;
-  }
-  .level:last-child {
-    grid-column: 1 / -1;
   }
   .level-hint {
     display: none;
