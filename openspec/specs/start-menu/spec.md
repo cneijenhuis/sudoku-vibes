@@ -6,18 +6,18 @@ Gives the player a clear first screen to choose how hard their game will be.
 ## Requirements
 
 ### Requirement: Difficulty choices
-The start menu SHALL show the game title and exactly five buttons, in order: Easy, Medium, Hard, Extreme, Almost Impossible.
+The start menu SHALL show the game title and exactly six buttons, in order: Super Easy, Easy, Medium, Hard, Extreme, Almost Impossible.
 
 #### Scenario: Menu contents
 - **WHEN** the app loads
-- **THEN** the start menu is shown with the five labelled buttons in that order
+- **THEN** the start menu is shown with the six labelled buttons in that order
 
 ### Requirement: Touch-friendly layout
 Each difficulty button SHALL be at least 44 CSS pixels tall and the whole menu SHALL fit a 375x667 viewport without scrolling.
 
 #### Scenario: Small phone
 - **WHEN** the menu is shown at 375x667 CSS pixels
-- **THEN** all five buttons are fully visible and tappable without scrolling
+- **THEN** all six buttons are fully visible and tappable without scrolling
 
 ### Requirement: Starting a game
 Tapping a difficulty button SHALL start a new game at that difficulty.

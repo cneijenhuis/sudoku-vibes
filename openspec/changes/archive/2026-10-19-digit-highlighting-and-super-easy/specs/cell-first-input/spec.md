@@ -15,7 +15,7 @@ When no empty cell is selected, tapping a digit button SHALL highlight every cel
 
 #### Scenario: Blocked entry still highlights
 - **WHEN** a mistake is on the board, an empty cell is selected and the player taps a digit button
-- **THEN** no digit is placed and that digit becomes the highlighted digit
+- **THEN** no digit is placed and the tap acts as a pad tap: that digit becomes the highlighted digit, or the highlight is cleared if it was already that digit
 
 ## MODIFIED Requirements
 

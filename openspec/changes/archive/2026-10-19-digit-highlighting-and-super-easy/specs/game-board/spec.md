@@ -17,6 +17,10 @@ When all nine instances of a digit are present and correct, its digit button SHA
 - **WHEN** 4 is complete and the player undoes the last 4 they entered
 - **THEN** the 4 button is enabled again
 
+#### Scenario: Undo restores a hidden highlight
+- **WHEN** 4 was highlighted, the ninth 4 completed it, and the player undoes that entry
+- **THEN** the 4 button is enabled and the cells containing 4 are highlighted again
+
 ## MODIFIED Requirements
 
 ### Requirement: Selection and same-number highlight

@@ -241,6 +241,13 @@ describe('highlight', () => {
     expect(effectiveHighlight(next)).toBe(3);
   });
 
+  it('a blocked tap on the already highlighted digit clears the highlight', () => {
+    const g = select(enter(select(row(), 0), wrongRow(0)), 1);
+    const once = pressDigit(g, 3);
+    expect(effectiveHighlight(once)).toBe(3);
+    expect(effectiveHighlight(pressDigit(once, 3))).toBeNull();
+  });
+
   it('a wrong entry highlights the entered digit', () => {
     const g = enter(select(row(), 0), wrongRow(0));
     expect(effectiveHighlight(g)).toBe(wrongRow(0));
