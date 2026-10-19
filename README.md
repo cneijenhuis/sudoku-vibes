@@ -2,6 +2,14 @@
 
 Mobile-first Sudoku game in TypeScript (Vite, plain DOM). No runtime dependencies.
 
+## Screens
+
+The app opens on a start menu with the five difficulty levels (Easy, Medium, Hard,
+Extreme, Almost Impossible). Choosing one shows a loading screen (with Cancel) while a
+puzzle is generated in a Web Worker, then the game screen (a placeholder for now). Errors
+offer Retry / Back to menu. Navigation lives in `src/ui/router.ts`. In dev, `?smoke`
+runs a generator smoke test (not included in production builds).
+
 ## Commands
 
 ```sh

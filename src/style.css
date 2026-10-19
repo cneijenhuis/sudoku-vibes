@@ -4,6 +4,15 @@
   --fg: #f2f4f8;
   --accent: #5b8def;
   --tap: 44px;
+  --surface: #2a3247;
+  --surface-hi: #333d56;
+  --border: #3d486a;
+  --muted: #aab3c7;
+  --c0: #4cc38a;
+  --c1: #5b8def;
+  --c2: #e8b04a;
+  --c3: #f07a52;
+  --c4: #d070e8;
 }
 
 *,
@@ -43,9 +52,10 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: safe center;
   gap: 16px;
   padding: 16px;
+  overflow-y: auto;
 }
 
 h1 {
@@ -70,4 +80,251 @@ button,
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   touch-action: manipulation;
+}
+
+/* Accent per difficulty (decorative; labels carry the meaning). */
+.level-0, .accent-0 { --accent: var(--c0); }
+.level-1, .accent-1 { --accent: var(--c1); }
+.level-2, .accent-2 { --accent: var(--c2); }
+.level-3, .accent-3 { --accent: var(--c3); }
+.level-4, .accent-4 { --accent: var(--c4); }
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+button:focus-visible {
+  outline: 3px solid var(--fg);
+  outline-offset: 2px;
+}
+
+/* Start menu */
+.menu-screen {
+  gap: 20px;
+}
+
+.menu-head {
+  text-align: center;
+}
+
+.tagline {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.menu-list {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.level {
+  flex: 0 0 auto;
+  width: 100%;
+  min-height: 60px;
+  padding: 10px 16px 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 6px solid var(--accent);
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.level:active:not(:disabled) {
+  background: var(--surface-hi);
+  transform: scale(0.985);
+}
+
+.level:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.level-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.level-name {
+  font-size: 1.15rem;
+  font-weight: 650;
+}
+
+.level-hint {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.pips {
+  display: flex;
+  gap: 4px;
+  flex: none;
+}
+
+.pips i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.pips i.on {
+  background: var(--accent);
+}
+
+/* Loading, error, game */
+.loading-screen,
+.error-screen,
+.game-screen {
+  text-align: center;
+  gap: 20px;
+}
+
+.status-text h2,
+.game-level {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.game-level {
+  color: var(--accent);
+}
+
+.status-level {
+  margin: 6px 0 0;
+  font-size: 1.1rem;
+  color: var(--accent, var(--muted));
+  font-weight: 600;
+}
+
+.error-screen .status-level {
+  color: var(--muted);
+}
+
+.error-message {
+  margin: 12px auto 0;
+  max-width: 320px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 5px solid var(--border);
+  border-top-color: var(--accent);
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 3s;
+  }
+  .level:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.btn {
+  min-height: 52px;
+  padding: 0 24px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-weight: 600;
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+
+.btn:active {
+  background: var(--surface-hi);
+}
+
+.btn.primary {
+  background: #4a7ae0;
+  border-color: #4a7ae0;
+  color: #fff;
+}
+
+.btn.primary:active {
+  background: #3f6bc9;
+}
+
+.givens-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.givens {
+  display: block;
+  max-width: 320px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border-radius: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0.08em;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+
+/* Short landscape screens: two-column menu so it still fits */
+@media (max-height: 480px) and (orientation: landscape) {
+  .screen {
+    padding: 8px 16px;
+    gap: 10px;
+  }
+  h1 {
+    font-size: 2rem;
+  }
+  .menu-screen {
+    gap: 14px;
+  }
+  .tagline {
+    display: none;
+  }
+  .menu-list {
+    max-width: 640px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .level {
+    min-height: 52px;
+    padding-block: 6px;
+  }
+  .level:last-child {
+    grid-column: 1 / -1;
+  }
+  .level-hint {
+    display: none;
+  }
 }
