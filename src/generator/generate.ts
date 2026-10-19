@@ -1,7 +1,7 @@
 import { CELLS, serialize, type Board } from '../engine/board';
 import { countSolutions } from '../engine/solver';
 import { analyze } from '../engine/techniques';
-import { Difficulty, countClues, difficultyOf } from '../engine/grading';
+import { DIFFICULTY_LABELS, Difficulty, countClues, difficultyOf } from '../engine/grading';
 import { randomFullGrid } from './grid';
 import { mulberry32, randomSeed, shuffle, type Random } from './random';
 
@@ -81,6 +81,7 @@ function gradeUnique(puzzle: Board): Difficulty {
  * attempt always completes, so a puzzle is always returned.
  */
 export function generatePuzzle(target: Difficulty, options: GenerateOptions = {}): GeneratedPuzzle {
+  if (!(target in DIFFICULTY_LABELS)) throw new RangeError(`Unknown difficulty: ${String(target)}`);
   const rng = options.rng ?? mulberry32(options.seed ?? randomSeed());
   const now = options.now ?? (() => Date.now());
   const deadline = now() + (options.budgetMs ?? DEFAULT_BUDGET_MS);
