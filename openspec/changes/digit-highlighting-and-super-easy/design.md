@@ -26,3 +26,18 @@
 - [Enum renumbering breaks tests that use raw numbers] → search for numeric usages; update tests to use enum names.
 - [Menu crowding on 320x568] → verify at 320x568 and landscape; reduce paddings if needed.
 - [A persistent highlight may confuse players who expect it to clear] → the pad toggle and the deselect-by-tapping-the-highlighted-digit behaviour make clearing one tap; revisit after play-testing.
+
+## Measured generation timings
+
+20 seeds (1-20) per level, `generatePuzzle(level, { seed })` with the default 8 s budget, run under Vitest on the dev container (node, single thread). All 120 puzzles were exact, unique and graded as requested.
+
+| Level | Mean | Median | Max | Givens |
+|---|---|---|---|---|
+| Super Easy | 5 ms | 2 ms | 28 ms | 44 (exactly) |
+| Easy | 3 ms | 2 ms | 8 ms | 36 |
+| Medium | 183 ms | 113 ms | 600 ms | 32-38 |
+| Hard | 921 ms | 590 ms | 4893 ms | 28-33 |
+| Extreme | 66 ms | 41 ms | 261 ms | 25-32 |
+| Almost Impossible | 22 ms | 18 ms | 60 ms | 22-27 |
+
+Super Easy digs a fresh grid down to exactly 44 givens and keeps it (no restore, since restoring would add givens); at 44 givens the puzzle is essentially always singles-only, so retries are rare. Easy restores at most up to 43 givens (`maxClues`), so it can never regrade as Super Easy. The pre-existing slow tail is Hard.

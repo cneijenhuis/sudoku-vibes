@@ -8,7 +8,7 @@ context: |
   asset URLs must be relative / use Vite's base).
   Touch is the primary input: touch targets >= 44px, no double-tap zoom,
   no text selection or context menu on long-press, respect safe-area insets.
-  Five difficulty levels: Easy, Medium, Hard, Extreme, Almost Impossible.
+  Six difficulty levels: Super Easy, Easy, Medium, Hard, Extreme, Almost Impossible.
   Generated puzzles must always have exactly one solution.
 
 # Project context (optional)

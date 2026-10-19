@@ -4,10 +4,12 @@ Mobile-first Sudoku game in TypeScript (Vite, plain DOM). No runtime dependencie
 
 ## Screens
 
-The app opens on a start menu with the five difficulty levels (Easy, Medium, Hard,
-Extreme, Almost Impossible). Choosing one shows a loading screen (with Cancel) while a
+The app opens on a start menu with the six difficulty levels (Super Easy, Easy, Medium,
+Hard, Extreme, Almost Impossible). Choosing one shows a loading screen (with Cancel) while a
 puzzle is generated in a Web Worker, then the game screen: top bar (undo, timer, pause),
-the board and a 1-9 number pad. Input is cell-first: tap a cell, then a digit. Wrong digits
+the board and a 1-9 number pad. Input is cell-first: tap a cell, then a digit. Tapping a digit with no empty cell selected
+highlights every cell holding it (tap again to clear); entering a digit keeps that digit
+highlighted, and once all nine are placed correctly its pad button is greyed out. Wrong digits
 show immediately as mistakes, block further entry until undone, and are counted; undo is
 unlimited. Pausing (or backgrounding the page) hides the board. Finishing the puzzle shows
 a placeholder results screen with time and mistakes. Errors offer Retry / Back to menu.
