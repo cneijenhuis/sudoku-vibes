@@ -1,24 +1,34 @@
 import { generatePuzzleAsync, disposeGenerator } from '../generator/client';
+import { createSaves } from '../storage/save';
 import { gameScreen } from './game';
 import { menuScreen } from './menu';
 import { resultsScreen } from './results';
 import { bindScreens, createRouter, type AppState, type MountedScreen, type Router } from './router';
 import { errorScreen, loadingScreen } from './status';
 
+const saves = createSaves();
+
 function buildScreen(state: AppState, router: Router): MountedScreen<HTMLElement> {
   const toMenu = () => router.navigate({ screen: 'menu' });
   switch (state.screen) {
     case 'menu':
-      return menuScreen((d) => router.startGame(d));
+      return menuScreen({ saved: saves.load(), onChoose: (d) => router.startGame(d), onResume: (s) => router.resumeGame(s) });
     case 'loading':
       return loadingScreen(state.difficulty, () => router.cancel());
     case 'error':
       return errorScreen(state.difficulty, state.message, () => router.startGame(state.difficulty), toMenu);
     case 'game':
-      return gameScreen(state.game, {
-        onQuit: toMenu,
-        onComplete: ({ elapsedMs, mistakes }) => router.navigate({ screen: 'results', game: state.game, elapsedMs, mistakes }),
-      });
+      return gameScreen(
+        { game: state.game, resume: state.resume },
+        {
+          onQuit: toMenu,
+          onComplete: ({ elapsedMs, mistakes }) => {
+            saves.clear(); // a finished game is never resumable
+            router.navigate({ screen: 'results', game: state.game, elapsedMs, mistakes });
+          },
+          onSave: (game, elapsedMs) => saves.save(game, state.game.difficulty, elapsedMs),
+        },
+      );
     case 'results':
       return resultsScreen(state.game, state.elapsedMs, state.mistakes, {
         onSame: (d) => router.startGame(d),

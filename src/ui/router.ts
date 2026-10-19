@@ -1,13 +1,14 @@
 import type { Difficulty } from '../engine/grading';
 import { Disposed, Superseded } from '../generator/client';
 import type { GeneratedPuzzle } from '../generator/generate';
+import type { SavedGame } from '../storage/save';
 
 /** Every screen the app can show. */
 export type AppState =
   | { screen: 'menu' }
   | { screen: 'loading'; difficulty: Difficulty }
   | { screen: 'error'; difficulty: Difficulty; message: string }
-  | { screen: 'game'; game: GeneratedPuzzle }
+  | { screen: 'game'; game: GeneratedPuzzle; resume?: SavedGame }
   | { screen: 'results'; game: GeneratedPuzzle; elapsedMs: number; mistakes: number };
 
 export interface RouterDeps {
@@ -22,6 +23,8 @@ export interface Router {
   navigate(state: AppState): void;
   /** Request a puzzle and go loading -> game (or error). Ignored while already loading. */
   startGame(difficulty: Difficulty): void;
+  /** Open a saved game (paused). Only acts from the menu. */
+  resumeGame(saved: SavedGame): void;
   /** Abort loading and return to the menu; no game starts from the cancelled request. */
   cancel(): void;
   /** Called after every state change; returns an unsubscribe function. */
@@ -57,6 +60,12 @@ export function createRouter(deps: RouterDeps): Router {
     );
   }
 
+  function resumeGame(saved: SavedGame): void {
+    if (state.screen !== 'menu') return;
+    const game: GeneratedPuzzle = { puzzle: saved.puzzle, solution: saved.solution, difficulty: saved.difficulty, exact: true };
+    navigate({ screen: 'game', game, resume: saved });
+  }
+
   function cancel(): void {
     if (state.screen !== 'loading') return;
     navigate({ screen: 'menu' }); // bumps the token first, so late results are ignored
@@ -69,6 +78,7 @@ export function createRouter(deps: RouterDeps): Router {
     },
     navigate,
     startGame,
+    resumeGame,
     cancel,
     subscribe(listener) {
       listeners.add(listener);

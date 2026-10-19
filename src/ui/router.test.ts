@@ -32,6 +32,25 @@ function setup() {
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
 describe('router', () => {
+  it('resumeGame opens the saved game with its resume payload, only from the menu', () => {
+    const { router, generate } = setup();
+    const saved = {
+      puzzle: '0'.repeat(81),
+      solution: '1'.repeat(81),
+      difficulty: Difficulty.Hard,
+      moves: [] as [number, number][],
+      mistakes: 2,
+      elapsedMs: 5000,
+      savedAt: 1,
+    };
+    router.resumeGame(saved);
+    expect(router.state).toMatchObject({ screen: 'game', resume: saved, game: { puzzle: saved.puzzle, difficulty: Difficulty.Hard } });
+    const before = router.state;
+    router.resumeGame({ ...saved, mistakes: 9 });
+    expect(router.state).toBe(before);
+    expect(generate).not.toHaveBeenCalled();
+  });
+
   it('starts on the menu', () => {
     expect(setup().router.state).toEqual({ screen: 'menu' });
   });

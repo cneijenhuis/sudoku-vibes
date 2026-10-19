@@ -1071,3 +1071,174 @@ button:focus-visible {
     min-height: 46px;
   }
 }
+
+/* Resume card and replace-confirmation sheet */
+.resume {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 420px;
+  min-height: 60px;
+  padding: 8px 16px 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  border-radius: 14px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
+  cursor: pointer;
+}
+
+.resume:active:not(:disabled) {
+  background: var(--surface-hi);
+  transform: scale(0.985);
+}
+
+.resume:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.resume-play {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: #0f1522;
+}
+
+.resume-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.resume-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.resume-sub {
+  font-size: 0.9rem;
+  color: var(--accent);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  background: rgba(8, 11, 20, 0.66);
+}
+
+.sheet-backdrop[hidden] {
+  display: none;
+}
+
+.sheet {
+  width: 100%;
+  max-width: 420px;
+  padding: 20px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.4);
+}
+
+.sheet h2 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.sheet-text {
+  margin: 0 0 6px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.sheet .actions {
+  max-width: none;
+}
+
+.btn.danger {
+  background: #c24a56;
+  border-color: #c24a56;
+  color: #fff;
+}
+
+.btn.danger:active:not(:disabled) {
+  background: #a83c47;
+}
+
+/* Menu: compact spacing on shorter phones so Resume card + haptics toggle still fit unscrolled */
+@media (max-height: 720px) and (orientation: portrait) {
+  .menu-screen {
+    gap: 12px;
+    padding-block: 12px;
+  }
+  .menu-screen h1 {
+    font-size: 2.4rem;
+  }
+  .menu-screen .tagline {
+    margin-top: 2px;
+  }
+  .menu-screen .menu-list {
+    gap: 8px;
+  }
+  .menu-screen .level {
+    min-height: 50px;
+    padding-block: 5px;
+  }
+  .menu-screen .level-hint {
+    font-size: 0.8rem;
+  }
+  .menu-screen .resume {
+    min-height: 54px;
+    padding-block: 5px;
+  }
+  .menu-screen .resume-play {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-height: 620px) and (orientation: portrait) {
+  .menu-screen {
+    gap: 8px;
+    padding-block: 10px;
+  }
+  .menu-screen h1 {
+    font-size: 2rem;
+  }
+  .menu-screen .tagline {
+    font-size: 0.9rem;
+  }
+  .menu-screen .menu-list {
+    gap: 6px;
+  }
+  .menu-screen .level {
+    min-height: 46px;
+    padding-block: 3px;
+  }
+  .menu-screen .level-name {
+    font-size: 1.1rem;
+  }
+  .menu-screen .level-text {
+    gap: 0;
+  }
+}

@@ -10,12 +10,14 @@ import {
   isMistakeCell,
   longPressDigit,
   pressDigit,
+  restoreGame,
   tapCell,
   undo,
   type GameState,
 } from '../game/state';
 import { createStopwatch, formatTime } from '../game/timer';
 import type { GeneratedPuzzle } from '../generator/generate';
+import type { SavedGame } from '../storage/save';
 import { h } from './dom';
 import { createLongPress, LONG_PRESS_MS, type LongPress } from './longpress';
 import type { MountedScreen } from './router';
@@ -30,6 +32,17 @@ export interface GameHandlers {
   onQuit: () => void;
   /** The last cell was filled correctly. */
   onComplete: (result: GameResult) => void;
+  /**
+   * The game should be persisted now: after each entry or undo, on pause, when the page is
+   * hidden or closing and when the screen is left mid-game. Never called once finished.
+   */
+  onSave?: (state: GameState, elapsedMs: number) => void;
+}
+
+/** What the screen starts from: a fresh puzzle, or a saved game to resume (opens paused). */
+export interface GameStart {
+  game: GeneratedPuzzle;
+  resume?: SavedGame;
 }
 
 /** Injection points for tests; production uses the defaults. */
@@ -58,13 +71,13 @@ function iconButton(cls: string, label: string, svg: string): HTMLButtonElement 
 
 /** The playing screen: top bar, board and number pad, plus the pause overlay. */
 export function gameScreen(
-  game: GeneratedPuzzle,
+  { game, resume: saved }: GameStart,
   handlers: GameHandlers,
   env: GameEnv = {},
 ): MountedScreen<HTMLElement> {
   const doc = env.doc ?? document;
   const sw = createStopwatch(env.now);
-  let state: GameState = createGame(game.puzzle, game.solution);
+  let state: GameState = saved ? restoreGame(saved) : createGame(game.puzzle, game.solution);
   let paused = false;
   let finished = false;
   let disposed = false;
@@ -184,12 +197,19 @@ export function gameScreen(
     tick = null;
   }
 
-  function pause(): void {
+  /** Hand the current game to the persistence callback (storage failures are its business). */
+  function persist(): void {
+    if (finished || disposed) return;
+    handlers.onSave?.(state, sw.elapsed());
+  }
+
+  function pause(save = true): void {
     if (paused || finished || disposed) return;
     paused = true;
     cancelPresses();
     sw.pause();
     stopTick();
+    if (save) persist();
     pausedTime.textContent = formatTime(sw.elapsed());
     el.classList.add('paused');
     overlay.hidden = false;
@@ -213,6 +233,7 @@ export function gameScreen(
 
   function apply(next: GameState): void {
     if (next === state) return;
+    const boardChanged = next.cells !== state.cells;
     state = next;
     if (isComplete(state)) {
       finished = true;
@@ -223,6 +244,7 @@ export function gameScreen(
       return;
     }
     render();
+    if (boardChanged) persist();
   }
 
   board.addEventListener('click', (e) => {
@@ -285,29 +307,43 @@ export function gameScreen(
   undoBtn.addEventListener('click', () => {
     if (active()) apply(undo(state));
   });
-  pauseBtn.addEventListener('click', pause);
+  pauseBtn.addEventListener('click', () => pause());
   resumeBtn.addEventListener('click', resume);
   quitBtn.addEventListener('click', () => {
     if (!disposed) handlers.onQuit();
   });
 
+  const win = doc.defaultView;
   const onVisibility = (): void => {
-    if (doc.visibilityState === 'hidden') pause();
+    if (doc.visibilityState !== 'hidden') return;
+    if (paused) persist();
+    else pause(); // saves
   };
+  const onPageHide = (): void => persist();
   doc.addEventListener('visibilitychange', onVisibility);
+  win?.addEventListener('pagehide', onPageHide);
 
-  sw.start();
-  startTick();
+  if (saved) {
+    // Resuming opens paused with the saved time; the save on disk is already current.
+    sw.start(saved.elapsedMs);
+    pause(false);
+  } else {
+    sw.start();
+    startTick();
+    persist(); // a fresh game replaces any older save straight away
+  }
   render();
 
   return {
     el,
     dispose() {
+      persist(); // leaving mid-game (Quit, Back) keeps the latest state and time
       disposed = true;
       cancelPresses();
       stopTick();
       sw.stop();
       doc.removeEventListener('visibilitychange', onVisibility);
+      win?.removeEventListener('pagehide', onPageHide);
     },
   };
 }
