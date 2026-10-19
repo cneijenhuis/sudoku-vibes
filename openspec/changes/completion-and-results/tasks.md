@@ -12,4 +12,4 @@
 
 ## 3. Integration
 
-- [ ] 3.1 Verify `npm run typecheck`, `npm test`, `npm run build` and `openspec validate --all --strict` pass, the built site works from a sub-path with no console errors, and update `README.md`
+- [x] 3.1 Verify `npm run typecheck`, `npm test`, `npm run build` and `openspec validate --all --strict` pass, the built site works from a sub-path with no console errors, and update `README.md`

@@ -21,8 +21,11 @@ button again to leave the mode; it also ends when the digit is complete. Mistake
 placing until undone, exactly as in cell-first mode, and undo does not select a cell.
 Pad buttons use pointer events (`src/ui/longpress.ts`); keyboard Enter/Space still taps.
 
-Pausing (or backgrounding the page) hides the board. Finishing the puzzle shows
-a placeholder results screen with time and mistakes. Errors offer Retry / Back to menu.
+Pausing (or backgrounding the page) hides the board. Finishing the puzzle shows a
+congratulations screen (a CSS-only celebration, toned down under reduced motion) with the level,
+time and mistakes (a flawless run gets its own message), and three actions: **Next difficulty**
+(one level harder; not offered after Almost Impossible), **Same difficulty** and **Menu**. The
+two start actions use the normal loading / Cancel / error flow. Errors offer Retry / Back to menu.
 Navigation lives in `src/ui/router.ts`; DOM-free game logic (state, stopwatch) lives in
 `src/game/`. In dev, `?smoke`
 runs a generator smoke test (not included in production builds).
