@@ -7,6 +7,7 @@ export interface Level {
 }
 
 const HINTS: Record<Difficulty, string> = {
+  [Difficulty.SuperEasy]: 'Gentle first steps',
   [Difficulty.Easy]: 'Relaxed and friendly',
   [Difficulty.Medium]: 'A steady workout',
   [Difficulty.Hard]: 'Needs real technique',
@@ -14,8 +15,9 @@ const HINTS: Record<Difficulty, string> = {
   [Difficulty.AlmostImpossible]: 'Only for the fearless',
 };
 
-/** The menu's choices, in display order (Easy to Almost Impossible). */
+/** The menu's choices, in display order (Super Easy to Almost Impossible). */
 export const LEVELS: readonly Level[] = [
+  Difficulty.SuperEasy,
   Difficulty.Easy,
   Difficulty.Medium,
   Difficulty.Hard,

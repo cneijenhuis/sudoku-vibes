@@ -25,7 +25,14 @@ export async function runSmoke(): Promise<SmokeReport> {
     last = now;
   }, 50);
 
-  for (const level of [0, 1, 2, 3, 4] as Difficulty[]) {
+  for (const level of [
+    Difficulty.SuperEasy,
+    Difficulty.Easy,
+    Difficulty.Medium,
+    Difficulty.Hard,
+    Difficulty.Extreme,
+    Difficulty.AlmostImpossible,
+  ]) {
     const t = performance.now();
     const r = await generatePuzzleAsync(level);
     const row = {

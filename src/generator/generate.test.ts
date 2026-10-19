@@ -5,6 +5,7 @@ import { DIFFICULTY_LABELS, Difficulty, grade } from '../engine/grading';
 import { MIN_GIVENS, generatePuzzle } from './generate';
 
 const LEVELS = [
+  Difficulty.SuperEasy,
   Difficulty.Easy,
   Difficulty.Medium,
   Difficulty.Hard,
@@ -30,12 +31,15 @@ describe.each(LEVELS)('generatePuzzle (%s)', (level) => {
       expect(grade(puzzle)).toBe(r.difficulty);
       expect(r.difficulty).toBe(level);
       expect(r.exact).toBe(true);
-      expect(r.puzzle.replace(/0/g, '').length).toBeGreaterThanOrEqual(MIN_GIVENS[level]);
+      const givens = r.puzzle.replace(/0/g, '').length;
+      expect(givens).toBeGreaterThanOrEqual(MIN_GIVENS[level]);
+      if (level === Difficulty.SuperEasy) expect(givens).toBe(44);
+      if (level === Difficulty.Easy) expect(givens).toBeLessThan(44);
     }
   });
 
   it(`${label}: respects the minimum givens`, () => {
-    const floors: Record<string, number> = { Easy: 36, Medium: 32, Hard: 28, Extreme: 25, 'Almost Impossible': 0 };
+    const floors: Record<string, number> = { 'Super Easy': 44, Easy: 36, Medium: 32, Hard: 28, Extreme: 25, 'Almost Impossible': 0 };
     expect(MIN_GIVENS[level]).toBe(floors[label] ?? -1);
   });
 });

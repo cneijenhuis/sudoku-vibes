@@ -1,7 +1,7 @@
 import { CELLS, serialize, type Board } from '../engine/board';
 import { countSolutions } from '../engine/solver';
 import { analyze } from '../engine/techniques';
-import { DIFFICULTY_LABELS, Difficulty, countClues, difficultyOf } from '../engine/grading';
+import { DIFFICULTY_LABELS, Difficulty, SUPER_EASY_GIVENS, countClues, difficultyOf } from '../engine/grading';
 import { randomFullGrid } from './grid';
 import { mulberry32, randomSeed, shuffle, type Random } from './random';
 
@@ -38,8 +38,12 @@ interface Candidate {
   difficulty: Difficulty;
 }
 
-/** Minimum number of givens per level (Almost Impossible has none). */
+/**
+ * Minimum number of givens per level (Almost Impossible has none). Super Easy is also
+ * the exact number: it digs down to this floor and never restores.
+ */
 export const MIN_GIVENS: Record<Difficulty, number> = {
+  [Difficulty.SuperEasy]: SUPER_EASY_GIVENS,
   [Difficulty.Easy]: 36,
   [Difficulty.Medium]: 32,
   [Difficulty.Hard]: 28,
@@ -68,15 +72,17 @@ function dig(solution: Board, floor: number, rng: Random, expired: () => boolean
  * Put givens of `solution` back into `minimal` in random order until the technique
  * solver finishes within `target`. The first such state is returned, so it grades
  * at the target whenever it needs a target-level technique. Adding givens keeps
- * the solution unique.
+ * the solution unique. Restoring stops at `maxClues` givens (the puzzle is then left
+ * unsolved by `target`-level techniques and the caller rejects it).
  */
-function restore(minimal: Board, solution: Board, target: Difficulty, rng: Random): Board {
+function restore(minimal: Board, solution: Board, target: Difficulty, rng: Random, maxClues: number): Board {
   const puzzle = Uint8Array.from(minimal);
   const empty = shuffle(
     Array.from({ length: CELLS }, (_, i) => i).filter((i) => puzzle[i] === 0),
     rng,
   );
   for (const cell of empty) {
+    if (countClues(puzzle) >= maxClues) break;
     const a = analyze(puzzle);
     if (a.solved && difficultyOf(a, countClues(puzzle)) <= target) break;
     puzzle[cell] = solution[cell] ?? 0;
@@ -113,11 +119,14 @@ export function generatePuzzle(target: Difficulty, options: GenerateOptions = {}
     const solution = randomFullGrid(rng);
     // Once something is in hand, let the deadline cut digging short.
     const minimal = dig(solution, MIN_GIVENS[target], rng, () => best !== null && expired());
-    // Almost Impossible keeps the minimal puzzle; other levels try several restore orders,
-    // which is much cheaper than digging a fresh grid.
-    const tries = target === Difficulty.AlmostImpossible ? 1 : RESTORES_PER_DIG;
+    // Super Easy and Almost Impossible keep the dug puzzle (exactly 44 givens / minimal);
+    // other levels try several restore orders, which is much cheaper than digging a fresh
+    // grid. Easy never restores up to 44 givens, as that would regrade as Super Easy.
+    const keep = target === Difficulty.AlmostImpossible || target === Difficulty.SuperEasy;
+    const maxClues = target === Difficulty.Easy ? SUPER_EASY_GIVENS - 1 : CELLS;
+    const tries = keep ? 1 : RESTORES_PER_DIG;
     for (let k = 0; k < tries; k++) {
-      const puzzle = target === Difficulty.AlmostImpossible ? minimal : restore(minimal, solution, target, rng);
+      const puzzle = keep ? minimal : restore(minimal, solution, target, rng, maxClues);
       const candidate: Candidate = { puzzle, solution, difficulty: gradeUnique(puzzle) };
       if (candidate.difficulty === target) return finish(candidate, true);
       if (best === null || dist(candidate) < dist(best)) best = candidate;

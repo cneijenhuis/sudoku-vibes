@@ -2,8 +2,9 @@ import { findConflicts, CELLS, type Board } from './board';
 import { countSolutions } from './solver';
 import { analyze, Technique, type Analysis } from './techniques';
 
-/** The five ordered difficulty levels. */
+/** The six ordered difficulty levels. */
 export enum Difficulty {
+  SuperEasy,
   Easy,
   Medium,
   Hard,
@@ -12,6 +13,7 @@ export enum Difficulty {
 }
 
 export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
+  [Difficulty.SuperEasy]: 'Super Easy',
   [Difficulty.Easy]: 'Easy',
   [Difficulty.Medium]: 'Medium',
   [Difficulty.Hard]: 'Hard',
@@ -39,6 +41,12 @@ export const TECHNIQUE_DIFFICULTY: Record<Technique, Difficulty> = {
 };
 
 /**
+ * A puzzle needing only singles grades Super Easy with at least this many givens,
+ * Easy with fewer.
+ */
+export const SUPER_EASY_GIVENS = 44;
+
+/**
  * A puzzle that the technique solver finishes at Extreme level but which has
  * at most this many givens is promoted to Almost Impossible (fewest-clues rule).
  */
@@ -55,6 +63,7 @@ export function difficultyOf(analysis: Analysis, clues: number): Difficulty {
   if (!analysis.solved) return Difficulty.AlmostImpossible;
   const level = analysis.hardest === null ? Difficulty.Easy : TECHNIQUE_DIFFICULTY[analysis.hardest];
   if (level >= Difficulty.Extreme && clues <= ALMOST_IMPOSSIBLE_MAX_CLUES) return Difficulty.AlmostImpossible;
+  if (level === Difficulty.Easy && clues >= SUPER_EASY_GIVENS) return Difficulty.SuperEasy;
   return level;
 }
 
