@@ -32,7 +32,7 @@ In number-first mode, tapping an empty cell SHALL place the active digit in it i
 - **THEN** the 5 is placed and shown as a mistake and the mistake count increases by one
 
 ### Requirement: Active digit indication
-In number-first mode the active digit's button SHALL be visibly locked in, distinct from the plain highlight of cell-first mode, and the pad SHALL indicate that number-first mode is on.
+In number-first mode the active digit's button SHALL be visibly locked in, distinct from the plain highlight of cell-first mode, and no other part of the screen (board border, pad background) SHALL change appearance.
 
 #### Scenario: Locked-in indicator
 - **WHEN** number-first mode is active with 5

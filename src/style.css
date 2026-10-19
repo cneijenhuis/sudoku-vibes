@@ -615,18 +615,6 @@ button:focus-visible {
   transition: clip-path var(--hold-ms, 450ms) var(--hold-ease);
 }
 
-/* Number-first mode is visible from the board and the pad without reading the buttons. */
-.game-screen[data-mode='number-first'] .board {
-  border-color: #f0c24e;
-  box-shadow: 0 0 0 3px rgba(240, 194, 78, 0.22), 0 6px 24px rgba(0, 0, 0, 0.35), inset 0 0 28px rgba(240, 194, 78, 0.09);
-}
-
-.pad[data-mode='number-first'] {
-  background: linear-gradient(to bottom, rgba(240, 194, 78, 0.1), transparent 70%);
-  border-top: 2px solid rgba(240, 194, 78, 0.55);
-  border-radius: 12px 12px 0 0;
-}
-
 .digit:active:not(:disabled) {
   background: var(--surface-hi);
   transform: scale(0.94);
