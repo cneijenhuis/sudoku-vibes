@@ -22,7 +22,7 @@ Holding a digit button on the number pad for about half a second SHALL switch th
 - **THEN** number-first mode starts and no cell is selected
 
 ### Requirement: Placing digits by tapping cells
-In number-first mode, tapping an empty cell SHALL place the active digit in it immediately, without selecting the cell. Tapping the same empty cell would place it again only if undone first.
+In number-first mode, tapping an empty cell SHALL place the active digit in it immediately, without selecting the cell.
 
 #### Scenario: Place the active digit
 - **WHEN** number-first mode is active with 5 and the player taps an empty cell where 5 belongs
