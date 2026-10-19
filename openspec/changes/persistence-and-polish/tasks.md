@@ -22,4 +22,4 @@
 
 ## 5. Integration
 
-- [ ] 5.1 Verify `npm run typecheck`, `npm test`, `npm run build` and `openspec validate --all --strict` pass; verify the production bundle has no test hooks, the built site has no console errors from a sub-path, and update `README.md` (resume, install, offline, haptics, Back)
+- [x] 5.1 Verify `npm run typecheck`, `npm test`, `npm run build` and `openspec validate --all --strict` pass; verify the production bundle has no test hooks, the built site has no console errors from a sub-path, and update `README.md` (resume, install, offline, haptics, Back)

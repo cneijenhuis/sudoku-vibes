@@ -30,6 +30,51 @@ Navigation lives in `src/ui/router.ts`; DOM-free game logic (state, stopwatch) l
 `src/game/`. In dev, `?smoke`
 runs a generator smoke test (not included in production builds).
 
+## Saving, resuming and the Back button
+
+The game in progress is saved automatically in the browser (`localStorage`, key
+`sudoku-vibes:game`, about 1 KB): after every entry or undo, on pause, when the page is hidden or
+closed, and when you leave mid-game. The menu then shows a **Resume** card (difficulty and elapsed
+time); resuming opens the game **paused** with the board, undo history, mistakes and time restored.
+Quit to menu and the Back button keep the save; finishing the puzzle clears it. Starting a new game
+while a save exists asks first (an in-app sheet) and only replaces the save once confirmed. Saved
+data is never trusted: it is validated strictly (version, 81-digit puzzle/solution, valid solution
+grid, givens matching it, entries only on empty cells, plausible mistakes and time) and silently
+discarded if anything is off. If storage is blocked or full the game simply plays without saving.
+Code: `src/storage/` (pure `serialize`/`restore`, never-throwing key-value wrapper) and
+`restoreGame` in `src/game/state.ts`.
+
+The browser/Android **Back** button returns from loading, error, game and results to the menu
+(cancelling generation or saving the game) and leaves the page from the menu. `src/ui/history.ts`
+keeps at most one extra history entry, so any number of games in a row still needs a single Back
+to leave. Reloading always shows the menu (one extra Back after a reload taken mid-game, because
+the pre-reload history entry still exists).
+
+## Install, offline and updates
+
+The app is an installable PWA: `public/manifest.webmanifest` (relative `start_url`/`scope`, so it
+works from a sub-path like `/sudoku-vibes/`) plus icons in `public/icons/` (192, 512, maskable 512
+and an Apple touch icon). The icons are rendered from the SVG sources in `icons-src/` with
+`CHROMIUM_PATH=<chromium> NODE_PATH=<dir with playwright> node icons-src/render.mjs` (a one-off
+tool, not part of the build).
+
+`npm run build` also emits `dist/sw.js` (`build/sw-plugin.ts`, template in `src/pwa/sw-source.ts`;
+no Workbox). It precaches every built file, including the puzzle-generator worker, into a cache
+named from a hash of the file list and contents, so after one online visit the app starts and plays
+offline. Page loads are network-first (revalidated, 3 s timeout) with the cached page as fallback,
+everything else is cache-first. A new deploy shows up on the next online visit; its worker waits
+until the old pages are closed (no `skipWaiting`, so an open page never mixes old and new files)
+and then deletes the old cache. The worker is registered only in production builds
+(`src/pwa/register.ts`) and every failure is swallowed: the game never depends on it.
+
+## Haptics
+
+Where `navigator.vibrate` exists (Android browsers; not iOS Safari) the app vibrates briefly on a
+mistake, when number-first mode starts or ends, and with a longer pattern when a puzzle is
+completed. A **Vibration** switch in the menu (shown only where supported, on by default, remembered
+in `localStorage`) turns it off. Nothing vibrates while the game is paused or the page is hidden
+(`src/ui/haptics.ts`).
+
 ## Commands
 
 ```sh
