@@ -8,7 +8,7 @@
 
 ## 2. Back button
 
-- [ ] 2.1 Implement the history sync in the router (single marker entry, replaceState between non-menu screens, popstate leaves the screen safely); verify fake-History unit tests and a Playwright run: Back from game/loading/results goes to the menu, Back on the menu leaves the page, three games in a row need one Back to leave, and the game is saved after Back
+- [x] 2.1 Implement the history sync in the router (single marker entry, replaceState between non-menu screens, popstate leaves the screen safely); verify fake-History unit tests and a Playwright run: Back from game/loading/results goes to the menu, Back on the menu leaves the page, three games in a row need one Back to leave, and the game is saved after Back
 
 ## 3. Haptics
 

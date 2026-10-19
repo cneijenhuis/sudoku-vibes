@@ -32,6 +32,26 @@ function setup() {
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
 describe('router', () => {
+  it('exit leaves loading (cancelling), game, results and error for the menu; no-op on the menu', async () => {
+    const a = setup();
+    a.router.exit();
+    expect(a.router.state).toEqual({ screen: 'menu' });
+    expect(a.cancelGeneration).not.toHaveBeenCalled();
+    a.router.startGame(Difficulty.Easy);
+    a.router.exit();
+    expect(a.router.state).toEqual({ screen: 'menu' });
+    expect(a.cancelGeneration).toHaveBeenCalledOnce();
+    for (const s of [
+      { screen: 'game', game: puzzle(Difficulty.Easy) },
+      { screen: 'results', game: puzzle(Difficulty.Easy), elapsedMs: 1, mistakes: 0 },
+      { screen: 'error', difficulty: Difficulty.Easy, message: 'x' },
+    ] as AppState[]) {
+      a.router.navigate(s);
+      a.router.exit();
+      expect(a.router.state).toEqual({ screen: 'menu' });
+    }
+  });
+
   it('resumeGame opens the saved game with its resume payload, only from the menu', () => {
     const { router, generate } = setup();
     const saved = {

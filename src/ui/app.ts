@@ -1,6 +1,7 @@
 import { generatePuzzleAsync, disposeGenerator } from '../generator/client';
 import { createSaves } from '../storage/save';
 import { gameScreen } from './game';
+import { syncHistory } from './history';
 import { menuScreen } from './menu';
 import { resultsScreen } from './results';
 import { bindScreens, createRouter, type AppState, type MountedScreen, type Router } from './router';
@@ -42,5 +43,6 @@ function buildScreen(state: AppState, router: Router): MountedScreen<HTMLElement
 export function startApp(root: HTMLElement): Router {
   const router = createRouter({ generate: generatePuzzleAsync, cancelGeneration: disposeGenerator });
   bindScreens(router, (s) => buildScreen(s, router), (el) => root.replaceChildren(el));
+  syncHistory(router, window.history, window);
   return router;
 }

@@ -27,6 +27,8 @@ export interface Router {
   resumeGame(saved: SavedGame): void;
   /** Abort loading and return to the menu; no game starts from the cancelled request. */
   cancel(): void;
+  /** Leave whatever screen is showing for the menu (cancelling generation when loading). No-op on the menu. */
+  exit(): void;
   /** Called after every state change; returns an unsubscribe function. */
   subscribe(listener: (state: AppState) => void): () => void;
 }
@@ -72,6 +74,11 @@ export function createRouter(deps: RouterDeps): Router {
     deps.cancelGeneration();
   }
 
+  function exit(): void {
+    if (state.screen === 'loading') cancel();
+    else if (state.screen !== 'menu') navigate({ screen: 'menu' });
+  }
+
   return {
     get state() {
       return state;
@@ -80,6 +87,7 @@ export function createRouter(deps: RouterDeps): Router {
     startGame,
     resumeGame,
     cancel,
+    exit,
     subscribe(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);
