@@ -8,10 +8,10 @@
 
 ## 2. Technique solver
 
-- [ ] 2.1 Implement candidate bitmasks and singles (naked/hidden); verify an easy puzzle solves with only singles
-- [ ] 2.2 Implement locked candidates and naked/hidden pairs; verify against published example grids
-- [ ] 2.3 Implement triples/quads and X-Wing; verify against published example grids
-- [ ] 2.4 Implement Swordfish and XY-Wing; verify against published example grids
+- [x] 2.1 Implement candidate bitmasks and singles (naked/hidden); verify an easy puzzle solves with only singles
+- [x] 2.2 Implement locked candidates and naked/hidden pairs; verify against published example grids
+- [x] 2.3 Implement triples/quads and X-Wing; verify against published example grids
+- [x] 2.4 Implement Swordfish and XY-Wing; verify against published example grids
 
 ## 3. Grading
 
