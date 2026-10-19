@@ -42,6 +42,10 @@ The undo button SHALL revert the most recent entry, repeatedly, back to the init
 - **WHEN** a mistake is on the board and the player taps undo
 - **THEN** the mistake is removed and entry is possible again
 
+#### Scenario: Undo reselects the cell
+- **WHEN** the player taps undo
+- **THEN** the cell that was cleared is selected, so a replacement digit can be entered immediately
+
 #### Scenario: Nothing to undo
 - **WHEN** no digit has been entered
 - **THEN** the undo button is disabled
