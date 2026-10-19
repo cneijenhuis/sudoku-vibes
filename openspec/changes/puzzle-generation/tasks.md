@@ -14,4 +14,4 @@
 ## 3. Background generation
 
 - [x] 3.1 Implement the worker module and promise client with request ids, superseding and error rejection; verify unit tests with a fake Worker for resolve, superseded and error cases
-- [ ] 3.2 Wire a dev smoke page/log in `main.ts` that requests a puzzle through the real worker; verify with Playwright that a puzzle arrives for each level while the main thread stays responsive (e.g. a timer keeps ticking) and `npm run build` bundles the worker
+- [x] 3.2 Wire a dev smoke page/log in `main.ts` that requests a puzzle through the real worker; verify with Playwright that a puzzle arrives for each level while the main thread stays responsive (e.g. a timer keeps ticking) and `npm run build` bundles the worker

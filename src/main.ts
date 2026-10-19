@@ -18,3 +18,8 @@ export function titleScreen(): HTMLElement {
 
 const root = document.getElementById('app');
 if (root) mount(titleScreen, root);
+
+// Dev smoke hook: `?smoke` runs one puzzle per level through the real worker.
+if (new URLSearchParams(location.search).has('smoke')) {
+  void import('./generator/smoke').then((m) => m.runSmoke());
+}
