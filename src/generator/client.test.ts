@@ -62,6 +62,18 @@ describe('generator client', () => {
     await expect(second).resolves.toEqual(puzzle('2'));
   });
 
+  it('ignores errors from a superseded worker', async () => {
+    const { workers, client } = setup();
+    const first = client.generate(Difficulty.Easy);
+    const second = client.generate(Difficulty.Medium);
+    await expect(first).rejects.toBeInstanceOf(Superseded);
+    workers[0]!.onerror?.({ message: 'stale err' });
+    workers[0]!.onmessageerror?.({});
+    expect(workers[1]!.terminated).toBe(false);
+    workers[1]!.reply({ id: 2, result: puzzle('2') });
+    await expect(second).resolves.toEqual(puzzle('2'));
+  });
+
   it('dispose rejects a pending request and the next request respawns', async () => {
     const { workers, client } = setup();
     const p = client.generate(Difficulty.Easy);

@@ -75,8 +75,8 @@ export function createGeneratorClient(createWorker: () => WorkerLike): Generator
       if ('error' in msg) p.reject(new Error(msg.error));
       else p.resolve(msg.result);
     };
-    w.onmessageerror = () => fail(new Error('Puzzle generator worker sent an unreadable message'));
-    w.onerror = (event) => fail(new Error(event.message || 'Puzzle generator worker failed'));
+    w.onmessageerror = () => w === worker && fail(new Error('Puzzle generator worker sent an unreadable message'));
+    w.onerror = (event) => w === worker && fail(new Error(event.message || 'Puzzle generator worker failed'));
     return w;
   }
 
