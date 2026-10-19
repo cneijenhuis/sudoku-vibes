@@ -136,6 +136,18 @@ describe('router', () => {
     expect(router.state).toEqual({ screen: 'menu' });
   });
 
+  it('completing a game navigates to results carrying time and mistakes', async () => {
+    const { router, reqs } = setup();
+    router.startGame(Difficulty.Easy);
+    const p = puzzle(Difficulty.Easy);
+    reqs[0]!.resolve(p);
+    await flush();
+    router.navigate({ screen: 'results', game: p, elapsedMs: 65_000, mistakes: 2 });
+    expect(router.state).toEqual({ screen: 'results', game: p, elapsedMs: 65_000, mistakes: 2 });
+    router.navigate({ screen: 'menu' });
+    expect(router.state).toEqual({ screen: 'menu' });
+  });
+
   it('a result arriving after navigating away from loading is ignored', async () => {
     const { router, reqs } = setup();
     router.startGame(Difficulty.Easy);
@@ -161,5 +173,21 @@ describe('bindScreens', () => {
     expect(log.at(-1)).toBe('dispose loading');
     router.navigate({ screen: 'menu' });
     expect(log.at(-1)).toBe('dispose loading');
+  });
+
+  it('disposes the game screen when the game completes or is quit', () => {
+    const { router } = setup();
+    const p = puzzle(Difficulty.Easy);
+    const log: string[] = [];
+    bindScreens<string>(
+      router,
+      (s: AppState) => ({ el: s.screen, dispose: () => log.push(`dispose ${s.screen}`) }),
+      () => {},
+    );
+    router.navigate({ screen: 'game', game: p });
+    router.navigate({ screen: 'results', game: p, elapsedMs: 1000, mistakes: 0 });
+    router.navigate({ screen: 'game', game: p });
+    router.navigate({ screen: 'menu' });
+    expect(log).toEqual(['dispose menu', 'dispose game', 'dispose results', 'dispose game']);
   });
 });

@@ -185,19 +185,14 @@ button:focus-visible {
 /* Loading, error, game */
 .loading-screen,
 .error-screen,
-.game-screen {
+.results-screen {
   text-align: center;
   gap: 20px;
 }
 
-.status-text h2,
-.game-level {
+.status-text h2 {
   margin: 0;
   font-size: 1.5rem;
-}
-
-.game-level {
-  color: var(--accent);
 }
 
 .status-level {
@@ -276,24 +271,344 @@ button:focus-visible {
   background: #3f6bc9;
 }
 
-.givens-label {
-  margin: 0;
+/* Results (placeholder) */
+.stats {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.stat-label {
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
 
-.givens {
-  display: block;
-  max-width: 320px;
-  padding: 12px 14px;
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Game screen */
+.screen.game-screen {
+  --line: #7683a8;
+  --cell-line: #3a4565;
+  --board-bg: #252d42;
+  --entry: #86b0ff;
+  --sel-bg: #3b568f;
+  --same-bg: #323f63;
+  --bad: #ff8d8d;
+  --bad-bg: #5a2c3a;
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  justify-content: stretch;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  text-align: center;
+}
+
+.topbar {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 52px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 4px;
+}
+
+.icon-btn {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  display: grid;
+  place-items: center;
   background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.icon-btn:active:not(:disabled) {
+  background: var(--surface-hi);
+  transform: scale(0.94);
+}
+
+.icon-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.clock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.15;
+  min-width: 0;
+}
+
+.time {
+  font-size: 1.7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.sub {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.sub.has-mistakes {
+  color: var(--bad);
+}
+
+.board-region {
+  min-height: 0;
+  min-width: 0;
+  padding: 8px;
+  display: grid;
+  place-items: center;
+  container-type: size;
+}
+
+.board {
+  --side: min(100cqw, 100cqh, 560px);
+  width: var(--side);
+  width: round(down, var(--side), 9px);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  grid-template-rows: repeat(9, minmax(0, 1fr));
+  container-type: inline-size;
+  background: var(--board-bg);
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+
+.cell {
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: 0;
+  border-right: 1px solid var(--cell-line);
+  border-bottom: 1px solid var(--cell-line);
+  border-radius: 0;
+  font-size: calc(100cqw / 9 * 0.62);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.cell:nth-child(9n) {
+  border-right: 0;
+}
+
+.cell:nth-child(n + 73) {
+  border-bottom: 0;
+}
+
+.cell.box-r {
+  border-right: 2px solid var(--line);
+}
+
+.cell.box-b {
+  border-bottom: 2px solid var(--line);
+}
+
+.cell.given {
+  color: var(--fg);
+  font-weight: 700;
+}
+
+.cell.entry {
+  color: var(--entry);
+  font-weight: 600;
+}
+
+.cell.same {
+  background: var(--same-bg);
+}
+
+.cell.same.given,
+.cell.same.entry {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--entry) 55%, transparent);
+}
+
+.cell.selected {
+  background: var(--sel-bg);
+  box-shadow: inset 0 0 0 2.5px var(--fg);
+}
+
+/* Mistakes: red tint, wavy underline and a corner mark, so colour is not the only cue. */
+.cell.mistake {
+  position: relative;
+  background: var(--bad-bg);
+  color: var(--bad);
+  font-weight: 700;
+  text-decoration: underline wavy var(--bad);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.12em;
+}
+
+.cell.mistake::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-style: solid;
+  border-width: 0 calc(100cqw / 9 * 0.28) calc(100cqw / 9 * 0.28) 0;
+  border-color: transparent var(--bad) transparent transparent;
+}
+
+.cell.mistake.selected {
+  background: #7a3447;
+}
+
+.cell:focus-visible {
+  outline: 3px solid var(--fg);
+  outline-offset: -3px;
+}
+
+.pad {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 4px;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 8px 8px 12px;
+}
+
+.digit {
+  min-width: 0;
+  height: 60px;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  letter-spacing: 0.08em;
-  overflow-wrap: anywhere;
-  line-height: 1.5;
+  font-size: 1.65rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--entry);
+  cursor: pointer;
+}
+
+.digit:active {
+  background: var(--surface-hi);
+  transform: scale(0.94);
+}
+
+/* Pause: the board and pad are hidden (not just covered) and an opaque overlay takes over. */
+.game-screen.paused .board-region,
+.game-screen.paused .pad {
+  visibility: hidden;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: var(--bg);
+}
+
+.overlay[hidden] {
+  display: none;
+}
+
+.overlay-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.overlay-card h2 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.paused-time {
+  margin: -8px 0 4px;
+  font-size: 2.4rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.overlay .actions {
+  max-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icon-btn:active:not(:disabled),
+  .digit:active {
+    transform: none;
+  }
+}
+
+/* Short landscape: number pad moves beside the board as a 3x3 keypad. */
+@media (max-height: 520px) and (orientation: landscape) {
+  .screen.game-screen {
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .topbar {
+    grid-column: 1 / -1;
+    padding-block: 4px 0;
+  }
+  .board-region {
+    padding: 6px;
+  }
+  .pad {
+    grid-template-columns: repeat(3, 64px);
+    grid-auto-rows: 1fr;
+    align-content: center;
+    align-self: stretch;
+    width: auto;
+    margin: 0;
+    padding: 6px 16px 6px 6px;
+    gap: 6px;
+  }
+  .digit {
+    height: auto;
+    min-height: 56px;
+  }
+  .time {
+    font-size: 1.4rem;
+  }
 }
 
 /* Short landscape screens: two-column menu so it still fits */

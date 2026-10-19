@@ -2,13 +2,13 @@ import type { Difficulty } from '../engine/grading';
 import { Disposed, Superseded } from '../generator/client';
 import type { GeneratedPuzzle } from '../generator/generate';
 
-/** Every screen the app can show; `results` is a typed slot for a later change. */
+/** Every screen the app can show. */
 export type AppState =
   | { screen: 'menu' }
   | { screen: 'loading'; difficulty: Difficulty }
   | { screen: 'error'; difficulty: Difficulty; message: string }
   | { screen: 'game'; game: GeneratedPuzzle }
-  | { screen: 'results'; game: GeneratedPuzzle };
+  | { screen: 'results'; game: GeneratedPuzzle; elapsedMs: number; mistakes: number };
 
 export interface RouterDeps {
   generate: (difficulty: Difficulty) => Promise<GeneratedPuzzle>;

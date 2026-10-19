@@ -1,6 +1,7 @@
 import { generatePuzzleAsync, disposeGenerator } from '../generator/client';
 import { gameScreen } from './game';
 import { menuScreen } from './menu';
+import { resultsScreen } from './results';
 import { bindScreens, createRouter, type AppState, type MountedScreen, type Router } from './router';
 import { errorScreen, loadingScreen } from './status';
 
@@ -14,8 +15,12 @@ function buildScreen(state: AppState, router: Router): MountedScreen<HTMLElement
     case 'error':
       return errorScreen(state.difficulty, state.message, () => router.startGame(state.difficulty), toMenu);
     case 'game':
-    case 'results': // results screen arrives in a later change; show the game placeholder meanwhile
-      return gameScreen(state.game, toMenu);
+      return gameScreen(state.game, {
+        onQuit: toMenu,
+        onComplete: ({ elapsedMs, mistakes }) => router.navigate({ screen: 'results', game: state.game, elapsedMs, mistakes }),
+      });
+    case 'results':
+      return resultsScreen(state.game, state.elapsedMs, state.mistakes, toMenu);
   }
 }
 

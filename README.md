@@ -6,8 +6,13 @@ Mobile-first Sudoku game in TypeScript (Vite, plain DOM). No runtime dependencie
 
 The app opens on a start menu with the five difficulty levels (Easy, Medium, Hard,
 Extreme, Almost Impossible). Choosing one shows a loading screen (with Cancel) while a
-puzzle is generated in a Web Worker, then the game screen (a placeholder for now). Errors
-offer Retry / Back to menu. Navigation lives in `src/ui/router.ts`. In dev, `?smoke`
+puzzle is generated in a Web Worker, then the game screen: top bar (undo, timer, pause),
+the board and a 1-9 number pad. Input is cell-first: tap a cell, then a digit. Wrong digits
+show immediately as mistakes, block further entry until undone, and are counted; undo is
+unlimited. Pausing (or backgrounding the page) hides the board. Finishing the puzzle shows
+a placeholder results screen with time and mistakes. Errors offer Retry / Back to menu.
+Navigation lives in `src/ui/router.ts`; DOM-free game logic (state, stopwatch) lives in
+`src/game/`. In dev, `?smoke`
 runs a generator smoke test (not included in production builds).
 
 ## Commands
