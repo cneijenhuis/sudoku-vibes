@@ -1,5 +1,16 @@
 schema: spec-driven
 
+context: |
+  Browser-based, mobile-first Sudoku game written in TypeScript.
+  Minimise dependencies: zero runtime dependencies; dev dependencies limited
+  to Vite, TypeScript and Vitest. UI is plain DOM, no framework.
+  Deployed as a static site to GitHub Pages (served from a sub-path, so all
+  asset URLs must be relative / use Vite's base).
+  Touch is the primary input: touch targets >= 44px, no double-tap zoom,
+  no text selection or context menu on long-press, respect safe-area insets.
+  Five difficulty levels: Easy, Medium, Hard, Extreme, Almost Impossible.
+  Generated puzzles must always have exactly one solution.
+
 # Project context (optional)
 # Add only constraints that should guide OpenSpec artifacts and workflows.
 # Include constraints an agent cannot infer by reading the code.
