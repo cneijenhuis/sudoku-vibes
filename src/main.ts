@@ -1,8 +1,10 @@
 import './style.css';
+import { registerServiceWorker } from './pwa/register';
 import { startApp } from './ui/app';
 
 const root = document.getElementById('app');
 if (root) startApp(root);
+registerServiceWorker();
 
 // Dev-only smoke hook: `?smoke` runs one puzzle per level through the real worker.
 if (import.meta.env.DEV && new URLSearchParams(location.search).has('smoke')) {

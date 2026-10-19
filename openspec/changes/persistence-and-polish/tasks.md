@@ -17,8 +17,8 @@
 ## 4. PWA
 
 - [x] 4.1 Create the SVG source, render and commit the PNG icons (192, 512, 512 maskable, 180) using the pre-installed Chromium, add the manifest and `index.html` tags; verify the icons look right (view them) and `Page.getInstallabilityErrors` reports none on the built site
-- [ ] 4.2 Add the Vite plugin generating `sw.js` (file list, hashed cache name, network-first navigations, cache-first assets, activate cleanup) and `src/pwa/register.ts` (production only, relative scope, failures swallowed); verify a unit test of the generated worker content and a Playwright run from a sub-path: online load registers the worker, offline reload shows the menu and a game can be started and played
-- [ ] 4.3 Verify an update: build twice with different content, confirm the second visit activates the new worker, serves only new files and deletes the old cache
+- [x] 4.2 Add the Vite plugin generating `sw.js` (file list, hashed cache name, network-first navigations, cache-first assets, activate cleanup) and `src/pwa/register.ts` (production only, relative scope, failures swallowed); verify a unit test of the generated worker content and a Playwright run from a sub-path: online load registers the worker, offline reload shows the menu and a game can be started and played
+- [x] 4.3 Verify an update: build twice with different content, confirm the second visit activates the new worker, serves only new files and deletes the old cache
 
 ## 5. Integration
 
