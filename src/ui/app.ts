@@ -1,6 +1,7 @@
 import { generatePuzzleAsync, disposeGenerator } from '../generator/client';
 import { createSaves } from '../storage/save';
 import { gameScreen } from './game';
+import { haptics } from './haptics';
 import { syncHistory } from './history';
 import { menuScreen } from './menu';
 import { resultsScreen } from './results';
@@ -13,7 +14,7 @@ function buildScreen(state: AppState, router: Router): MountedScreen<HTMLElement
   const toMenu = () => router.navigate({ screen: 'menu' });
   switch (state.screen) {
     case 'menu':
-      return menuScreen({ saved: saves.load(), onChoose: (d) => router.startGame(d), onResume: (s) => router.resumeGame(s) });
+      return menuScreen({ saved: saves.load(), onChoose: (d) => router.startGame(d), onResume: (s) => router.resumeGame(s), haptics });
     case 'loading':
       return loadingScreen(state.difficulty, () => router.cancel());
     case 'error':

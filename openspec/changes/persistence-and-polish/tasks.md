@@ -12,7 +12,7 @@
 
 ## 3. Haptics
 
-- [ ] 3.1 Implement `src/ui/haptics.ts` (feature detection, setting, visibility guard, patterns), wire it to mistakes, mode changes and completion, and add the menu toggle shown only when supported; verify unit tests with a fake `navigator` and Playwright with a stubbed `navigator.vibrate` recording calls (including toggle off and persistence across reload)
+- [x] 3.1 Implement `src/ui/haptics.ts` (feature detection, setting, visibility guard, patterns), wire it to mistakes, mode changes and completion, and add the menu toggle shown only when supported; verify unit tests with a fake `navigator` and Playwright with a stubbed `navigator.vibrate` recording calls (including toggle off and persistence across reload)
 
 ## 4. PWA
 

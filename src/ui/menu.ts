@@ -2,6 +2,7 @@ import { DIFFICULTY_LABELS, type Difficulty } from '../engine/grading';
 import { formatTime } from '../game/timer';
 import type { SavedGame } from '../storage/save';
 import { h } from './dom';
+import type { Haptics } from './haptics';
 import { LEVELS } from './levels';
 import type { MountedScreen } from './router';
 
@@ -10,12 +11,14 @@ export interface MenuOptions {
   saved: SavedGame | null;
   onChoose: (d: Difficulty) => void;
   onResume: (saved: SavedGame) => void;
+  /** Vibration setting; its toggle is shown only where vibration is supported. */
+  haptics?: Pick<Haptics, 'supported' | 'enabled' | 'setEnabled' | 'fire'>;
 }
 
 const PLAY_ICON =
   '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z"/></svg>';
 
-export function menuScreen({ saved, onChoose, onResume }: MenuOptions): MountedScreen<HTMLElement> {
+export function menuScreen({ saved, onChoose, onResume, haptics }: MenuOptions): MountedScreen<HTMLElement> {
   const lockAll = (): void => {
     for (const b of buttons) b.disabled = true;
     if (resumeBtn) resumeBtn.disabled = true;
@@ -124,12 +127,37 @@ export function menuScreen({ saved, onChoose, onResume }: MenuOptions): MountedS
     onChoose(difficulty);
   });
 
+  let foot: HTMLElement | null = null;
+  if (haptics?.supported) {
+    const toggle = h('button', {
+      class: 'toggle',
+      attrs: { type: 'button', role: 'switch', 'data-action': 'haptics' },
+    });
+    const label = h('span', { class: 'toggle-label', text: 'Vibration' });
+    const state = h('span', { class: 'toggle-state' });
+    const track = h('span', { class: 'toggle-track', attrs: { 'aria-hidden': 'true' } }, h('i', {}));
+    toggle.append(label, state, track);
+    const paint = (): void => {
+      const on = haptics.enabled();
+      toggle.setAttribute('aria-checked', String(on));
+      state.textContent = on ? 'On' : 'Off';
+    };
+    paint();
+    toggle.addEventListener('click', () => {
+      haptics.setEnabled(!haptics.enabled());
+      paint();
+      haptics.fire('mode'); // a little tick when turned on (silent when turned off)
+    });
+    foot = h('footer', { class: 'menu-foot' }, toggle);
+  }
+
   const el = h(
     'main',
     { class: `screen menu-screen${saved ? ' has-saved' : ''}` },
     h('header', { class: 'menu-head' }, h('h1', { text: 'Sudoku' }), h('p', { class: 'tagline', text: 'Choose a difficulty' })),
     ...(resumeBtn ? [resumeBtn] : []),
     h('nav', { class: 'menu-list', attrs: { 'aria-label': 'Difficulty' } }, ...buttons),
+    ...(foot ? [foot] : []),
     sheet,
   );
   return { el };

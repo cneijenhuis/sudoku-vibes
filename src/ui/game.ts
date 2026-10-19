@@ -19,6 +19,7 @@ import { createStopwatch, formatTime } from '../game/timer';
 import type { GeneratedPuzzle } from '../generator/generate';
 import type { SavedGame } from '../storage/save';
 import { h } from './dom';
+import { haptics as defaultHaptics, type Haptics } from './haptics';
 import { createLongPress, LONG_PRESS_MS, type LongPress } from './longpress';
 import type { MountedScreen } from './router';
 
@@ -49,6 +50,7 @@ export interface GameStart {
 export interface GameEnv {
   now?: () => number;
   doc?: Document;
+  haptics?: Haptics;
 }
 
 const TICK_MS = 250;
@@ -77,6 +79,7 @@ export function gameScreen(
 ): MountedScreen<HTMLElement> {
   const doc = env.doc ?? document;
   const sw = createStopwatch(env.now);
+  const haptics = env.haptics ?? defaultHaptics;
   let state: GameState = saved ? restoreGame(saved) : createGame(game.puzzle, game.solution);
   let paused = false;
   let finished = false;
@@ -234,16 +237,22 @@ export function gameScreen(
   function apply(next: GameState): void {
     if (next === state) return;
     const boardChanged = next.cells !== state.cells;
+    const modeBefore = activeMode(state);
+    const mistakesBefore = state.mistakes;
     state = next;
+    // Haptics only ever answer a player action (apply runs only while active, i.e. not paused).
     if (isComplete(state)) {
       finished = true;
       sw.stop();
       stopTick();
       render();
+      haptics.fire('complete');
       handlers.onComplete({ elapsedMs: sw.elapsed(), mistakes: state.mistakes });
       return;
     }
     render();
+    if (state.mistakes > mistakesBefore) haptics.fire('mistake');
+    else if (activeMode(state) !== modeBefore) haptics.fire('mode');
     if (boardChanged) persist();
   }
 
