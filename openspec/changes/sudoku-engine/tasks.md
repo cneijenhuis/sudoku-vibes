@@ -15,5 +15,5 @@
 
 ## 3. Grading
 
-- [ ] 3.1 Implement `Difficulty` enum, `analyze` and `grade` with threshold constants; verify one fixture puzzle per level grades correctly and grading is deterministic
-- [ ] 3.2 Export public API from `src/engine/index.ts` and verify `npm run typecheck` and `npm test` pass
+- [x] 3.1 Implement `Difficulty` enum, `analyze` and `grade` with threshold constants; verify one fixture puzzle per level grades correctly and grading is deterministic
+- [x] 3.2 Export public API from `src/engine/index.ts` and verify `npm run typecheck` and `npm test` pass
