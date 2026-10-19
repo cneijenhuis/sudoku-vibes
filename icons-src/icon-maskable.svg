@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- maskable (full bleed, content inside the 80% safe circle): Sudoku grid mark on the app's dark blue with the accent colour -->
+  <rect width="512" height="512" rx="0" fill="#1e2433"/>
+  <rect x="116.00" y="116.00" width="280" height="280" rx="19.6" fill="#252d42"/>
+  <rect x="215.87" y="215.87" width="80.27" height="80.27" rx="14.9" fill="#5b8def"/>
+  <g stroke="#7683a8" stroke-width="4.48" stroke-linecap="round">
+    <line x1="209.33" y1="116.00" x2="209.33" y2="396.00"/>
+    <line x1="116.00" y1="209.33" x2="396.00" y2="209.33"/>
+    <line x1="302.67" y1="116.00" x2="302.67" y2="396.00"/>
+    <line x1="116.00" y1="302.67" x2="396.00" y2="302.67"/>
+  </g>
+  <rect x="116.00" y="116.00" width="280" height="280" rx="19.6" fill="none" stroke="#f2f4f8" stroke-width="9.52"/>
+  <g font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central">
+    <text x="256.00" y="258.41" font-size="80.3" fill="#1e2433">5</text>
+    <text x="162.67" y="165.07" font-size="62.6" fill="#f2f4f8" opacity="0.9">7</text>
+    <text x="349.33" y="351.74" font-size="62.6" fill="#f2f4f8" opacity="0.9">2</text>
+    <text x="349.33" y="165.07" font-size="62.6" fill="#4cc38a" opacity="0.95">9</text>
+  </g>
+</svg>
