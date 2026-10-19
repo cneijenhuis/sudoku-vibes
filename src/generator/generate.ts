@@ -38,14 +38,28 @@ interface Candidate {
   difficulty: Difficulty;
 }
 
-/** Remove givens in random order while the solution stays unique, giving a minimal puzzle. */
-function dig(solution: Board, rng: Random, expired: () => boolean): Board {
+/** Minimum number of givens per level (Almost Impossible has none). */
+export const MIN_GIVENS: Record<Difficulty, number> = {
+  [Difficulty.Easy]: 36,
+  [Difficulty.Medium]: 32,
+  [Difficulty.Hard]: 28,
+  [Difficulty.Extreme]: 25,
+  [Difficulty.AlmostImpossible]: 0,
+};
+
+/**
+ * Remove givens in random order while the solution stays unique, stopping at `floor`
+ * givens. With floor 0 this gives a minimal puzzle.
+ */
+function dig(solution: Board, floor: number, rng: Random, expired: () => boolean): Board {
   const puzzle = Uint8Array.from(solution);
+  let clues = CELLS;
   for (const cell of shuffle(Array.from({ length: CELLS }, (_, i) => i), rng)) {
-    if (expired()) break;
+    if (expired() || clues <= floor) break;
     const digit = puzzle[cell] ?? 0;
     puzzle[cell] = 0;
     if (countSolutions(puzzle, 2) !== 1) puzzle[cell] = digit;
+    else clues--;
   }
   return puzzle;
 }
@@ -79,6 +93,11 @@ function gradeUnique(puzzle: Board): Difficulty {
  * one grades exactly as requested or the time budget runs out, in which case the
  * closest-graded puzzle found is returned with `exact: false`. At least one
  * attempt always completes, so a puzzle is always returned.
+ *
+ * Loop exits: (1) a candidate grades exactly as `target` (returned with `exact: true`);
+ * (2) the clock reaches the deadline after a candidate was graded (best candidate returned,
+ * `exact: false`). With a clock that never advances only exit 1 applies, so the target must
+ * be reachable; with `budgetMs <= 0` exactly one candidate is produced.
  */
 export function generatePuzzle(target: Difficulty, options: GenerateOptions = {}): GeneratedPuzzle {
   if (!(target in DIFFICULTY_LABELS)) throw new RangeError(`Unknown difficulty: ${String(target)}`);
@@ -93,7 +112,7 @@ export function generatePuzzle(target: Difficulty, options: GenerateOptions = {}
   for (;;) {
     const solution = randomFullGrid(rng);
     // Once something is in hand, let the deadline cut digging short.
-    const minimal = dig(solution, rng, () => best !== null && expired());
+    const minimal = dig(solution, MIN_GIVENS[target], rng, () => best !== null && expired());
     // Almost Impossible keeps the minimal puzzle; other levels try several restore orders,
     // which is much cheaper than digging a fresh grid.
     const tries = target === Difficulty.AlmostImpossible ? 1 : RESTORES_PER_DIG;

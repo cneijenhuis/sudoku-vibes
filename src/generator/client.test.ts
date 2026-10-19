@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { Difficulty } from '../engine/grading';
-import { Superseded, createGeneratorClient, type WorkerLike } from './client';
+import { Disposed, Superseded, createGeneratorClient, type WorkerLike } from './client';
 import type { GeneratedPuzzle } from './generate';
 import { handleRequest, type WorkerRequest, type WorkerResponse } from './protocol';
 
 class FakeWorker implements WorkerLike {
   onmessage: WorkerLike['onmessage'] = null;
   onerror: WorkerLike['onerror'] = null;
+  onmessageerror: WorkerLike['onmessageerror'] = null;
   sent: WorkerRequest[] = [];
   terminated = false;
   postMessage(m: WorkerRequest): void {
@@ -51,12 +52,32 @@ describe('generator client', () => {
     const { workers, client } = setup();
     const first = client.generate(Difficulty.Easy);
     const second = client.generate(Difficulty.Medium);
-    const w = workers[0]!;
-    expect(workers).toHaveLength(1);
     await expect(first).rejects.toBeInstanceOf(Superseded);
-    w.reply({ id: 1, result: puzzle('stale') });
-    w.reply({ id: 2, result: puzzle('2') });
+    // The stale worker is terminated and a fresh one is started for the new request.
+    expect(workers).toHaveLength(2);
+    expect(workers[0]!.terminated).toBe(true);
+    expect(workers[1]!.terminated).toBe(false);
+    workers[0]!.reply({ id: 1, result: puzzle('stale') });
+    workers[1]!.reply({ id: 2, result: puzzle('2') });
     await expect(second).resolves.toEqual(puzzle('2'));
+  });
+
+  it('dispose rejects a pending request and the next request respawns', async () => {
+    const { workers, client } = setup();
+    const p = client.generate(Difficulty.Easy);
+    client.dispose();
+    await expect(p).rejects.toBeInstanceOf(Disposed);
+    expect(workers[0]!.terminated).toBe(true);
+    void client.generate(Difficulty.Easy);
+    expect(workers).toHaveLength(2);
+  });
+
+  it('rejects on an unreadable worker message', async () => {
+    const { workers, client } = setup();
+    const p = client.generate(Difficulty.Easy);
+    workers[0]!.onmessageerror?.({});
+    await expect(p).rejects.toThrow('unreadable');
+    expect(workers[0]!.terminated).toBe(true);
   });
 
   it('rejects when the worker reports an error message', async () => {

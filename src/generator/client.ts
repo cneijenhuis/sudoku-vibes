@@ -10,18 +10,27 @@ export class Superseded extends Error {
   }
 }
 
+/** Rejection reason for a request still pending when the client is disposed. */
+export class Disposed extends Error {
+  constructor() {
+    super('Puzzle generator client disposed');
+    this.name = 'Disposed';
+  }
+}
+
 /** The subset of `Worker` the client uses (lets tests inject a fake). */
 export interface WorkerLike {
   postMessage(message: WorkerRequest): void;
   terminate(): void;
   onmessage: ((event: { data: WorkerResponse }) => void) | null;
   onerror: ((event: { message?: string }) => void) | null;
+  onmessageerror: ((event: unknown) => void) | null;
 }
 
 export interface GeneratorClient {
   /** Request a puzzle; a newer call supersedes (rejects) any in-flight one. */
   generate(difficulty: Difficulty, seed?: number): Promise<GeneratedPuzzle>;
-  /** Stop the worker; the next request starts a new one. */
+  /** Stop the worker and reject any pending request with `Disposed`; the next request starts a new worker. */
   dispose(): void;
 }
 
@@ -36,15 +45,22 @@ export function createGeneratorClient(createWorker: () => WorkerLike): Generator
   let nextId = 0;
   let pending: Pending | null = null;
 
-  function dispose(): void {
+  function stopWorker(): void {
     worker?.terminate();
     worker = null;
+  }
+
+  function dispose(): void {
+    const p = pending;
+    pending = null;
+    stopWorker();
+    p?.reject(new Disposed());
   }
 
   function fail(error: Error): void {
     const p = pending;
     pending = null;
-    dispose();
+    stopWorker();
     p?.reject(error);
   }
 
@@ -59,14 +75,20 @@ export function createGeneratorClient(createWorker: () => WorkerLike): Generator
       if ('error' in msg) p.reject(new Error(msg.error));
       else p.resolve(msg.result);
     };
+    w.onmessageerror = () => fail(new Error('Puzzle generator worker sent an unreadable message'));
     w.onerror = (event) => fail(new Error(event.message || 'Puzzle generator worker failed'));
     return w;
   }
 
   return {
     generate(difficulty, seed) {
-      pending?.reject(new Superseded());
-      pending = null;
+      if (pending) {
+        // Kill the stale run (it may be a slow Hard/Almost Impossible search) and respawn lazily.
+        const old = pending;
+        pending = null;
+        stopWorker();
+        old.reject(new Superseded());
+      }
       const id = ++nextId;
       return new Promise<GeneratedPuzzle>((resolve, reject) => {
         pending = { id, resolve, reject };
