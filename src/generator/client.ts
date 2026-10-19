@@ -112,3 +112,8 @@ const defaultClient = createGeneratorClient(
 export function generatePuzzleAsync(difficulty: Difficulty, seed?: number): Promise<GeneratedPuzzle> {
   return defaultClient.generate(difficulty, seed);
 }
+
+/** Abort the in-flight request (rejecting it with `Disposed`); the next request starts a fresh worker. */
+export function disposeGenerator(): void {
+  defaultClient.dispose();
+}
