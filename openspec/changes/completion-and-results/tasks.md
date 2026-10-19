@@ -2,7 +2,7 @@
 
 ## 1. Logic
 
-- [ ] 1.1 Add `nextDifficulty` to `src/ui/levels.ts`; verify unit tests cover every level, `null` after Almost Impossible, and consistency with `LEVELS` order
+- [x] 1.1 Add `nextDifficulty` to `src/ui/levels.ts`; verify unit tests cover every level, `null` after Almost Impossible, and consistency with `LEVELS` order
 
 ## 2. Results screen
 
