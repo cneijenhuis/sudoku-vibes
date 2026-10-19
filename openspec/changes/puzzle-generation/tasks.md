@@ -2,8 +2,8 @@
 
 ## 1. Randomness and grid generation
 
-- [ ] 1.1 Add seedable PRNG (`src/generator/random.ts`) with shuffle helper; verify tests show same seed gives same sequence and different seeds differ
-- [ ] 1.2 Implement random full-grid generation; verify tests that 50 seeded grids are conflict-free and complete
+- [x] 1.1 Add seedable PRNG (`src/generator/random.ts`) with shuffle helper; verify tests show same seed gives same sequence and different seeds differ
+- [x] 1.2 Implement random full-grid generation; verify tests that 50 seeded grids are conflict-free and complete
 
 ## 2. Puzzle generation
 
