@@ -1,10 +1,9 @@
-# Spec Delta
+# number-first-input Specification
 
 ## Purpose
-
 Lets the player pick a digit once and then place it in many cells by tapping them, for fast entry of repeated digits.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Entering number-first mode
 Holding a digit button on the number pad for about half a second SHALL switch the game to number-first mode with that digit active. While the button is held it SHALL show a fill animation rising from the bottom of the button, completing when the mode switches. Releasing before completion SHALL cancel the animation and act as an ordinary tap.
@@ -67,6 +66,10 @@ When the active digit becomes complete, number-first mode SHALL end and the game
 #### Scenario: Last instance placed
 - **WHEN** number-first mode is active with 5 and the player places the ninth correct 5
 - **THEN** cell-first mode is active, the 5 button is disabled and nothing is highlighted
+
+#### Scenario: Undo of the completing entry
+- **WHEN** the ninth 5 ended number-first mode and the player undoes that entry
+- **THEN** cell-first mode is active, the 5s are highlighted again and the freed cell is selected
 
 ### Requirement: Mode is per game
 A new game SHALL start in cell-first mode, and pausing and resuming SHALL preserve the current mode and active digit.

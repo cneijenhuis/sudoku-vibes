@@ -173,7 +173,7 @@ export function undo(state: GameState): GameState {
   if (!move) return state;
   const cells = Uint8Array.from(state.cells);
   cells[move.index] = move.previous;
-  return { ...state, cells, selected: state.mode === 'number-first' ? null : move.index, history: state.history.slice(0, -1) };
+  return { ...state, cells, selected: activeMode(state) === 'number-first' ? null : move.index, history: state.history.slice(0, -1) };
 }
 
 /** The mode to act on: number-first only while its active digit is set and not yet complete. */
