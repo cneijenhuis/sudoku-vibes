@@ -13,7 +13,7 @@ The engine provides `parse/serialize`, `solve`, `countSolutions`, `analyze` and 
 ## Decisions
 
 - **Full grid:** fill by randomised backtracking (shuffled digit order per cell using the seeded PRNG).
-- **Digging strategy depends on the target.** Visit cells in random order and remove a given only if the puzzle stays unique (`countSolutions` = 1) AND its grade does not exceed the target. Easy..Extreme stop at the first removal that would overshoot, so they naturally end at the target level; accept only if the final grade equals the target, else retry with a new grid. Almost Impossible removes without a grade cap (down to a minimal puzzle) and accepts only a puzzle whose grade is Almost Impossible. Alternative: generate minimal puzzles and filter by grade; rejected, since nearly all minimal puzzles are hard and Easy would almost never be found.
+- **Generation strategy: dig to minimal, then restore.** Remove givens in random order while `countSolutions` stays 1, giving a minimal puzzle. Almost Impossible keeps it and accepts it only if it grades Almost Impossible. Every other level then puts givens back in random order (several restore orders per minimal puzzle) and stops at the first state the technique solver finishes at or below the target level; the puzzle is accepted only if it grades exactly as the target, otherwise retry. Adding givens never breaks uniqueness. Rejected alternative (implemented and measured first): dig downward with a grade cap, rejecting removals that overshoot the target. It gets stuck, because most paths run out of valid removals at Easy/Medium and Hard needed about 1.2 s median and 8 s worst case; steering by comparing a few candidate removals per step gave no improvement. Digging minimal puzzles and restoring is also far cheaper per attempt (about 10 ms: one uniqueness-only dig plus a handful of analyses).
 - **PRNG:** mulberry32 seeded from a 32-bit int; production seed from `crypto.getRandomValues`. The generator takes the PRNG as a parameter.
 - **Time budget:** default 8 s, injectable clock for tests. On expiry return the best candidate (smallest level distance) with `exact: false`.
 - **Worker:** one module worker (`src/generator/worker.ts`) handling `{id, difficulty, seed?}` and replying `{id, result}` or `{id, error}`. The client (`src/generator/client.ts`) keeps a monotonically increasing request id; replies for old ids are dropped. A superseded request's promise rejects with a `Superseded` error that callers can ignore. Alternative: terminate and respawn the worker on cancel; simpler to reason about but slower, can be added if budgets prove too long.
@@ -24,3 +24,17 @@ The engine provides `parse/serialize`, `solve`, `countSolutions`, `analyze` and 
 - [Easy/Medium rejection loops are slow] → the grade-capped digging makes most attempts valid; the time budget plus fallback bounds the worst case.
 - [Almost Impossible takes seconds on slow phones] → runs in the worker; the UI shows a loading state (start-menu change). Pre-generation can be added later.
 - [Fallback puzzle differs from request] → the flag lets the UI choose to retry or accept; default is accept.
+
+## Measured generation time
+
+Measured with Node 22 in the dev container (single thread, `generatePuzzle` with seeds 1001..1020, budget 60 s so fallback never triggers; milliseconds):
+
+| Level | Median | p90 | Worst | Exact (of 20) | Avg givens |
+| --- | --- | --- | --- | --- | --- |
+| Easy | 10 | 22 | 26 | 20 | 26.0 |
+| Medium | 25 | 55 | 117 | 20 | 25.3 |
+| Hard | 476 | 1024 | 3249 | 20 | 24.9 |
+| Extreme | 68 | 126 | 360 | 20 | 25.9 |
+| Almost Impossible | 19 | 39 | 67 | 20 | 24.7 |
+
+Every level hit its exact grade within the default budget. Hard is the slowest because few minimal puzzles first become solvable at Hard (they usually need only Medium techniques or jump to Extreme); a rare unlucky seed takes about 3 s, still well inside the 8 s budget. Almost Impossible is fast because most minimal puzzles stall the technique solver. Phones will be several times slower, which is why generation runs in the worker.
