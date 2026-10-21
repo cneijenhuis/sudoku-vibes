@@ -17,7 +17,9 @@ unlimited.
 from the bottom while you hold) to lock that digit in. Every cell holding it is highlighted
 and tapping an empty cell places it right away, no selection needed. Tap another digit button
 or any filled cell to switch digit, or long-press another button. Long-press the locked
-button again to leave the mode; it also ends when the digit is complete. Mistakes block
+button again to leave the mode. When the locked digit is complete the lock moves on to the
+next higher digit that still needs placing (skipping finished ones, 9 wraps to 1), so you can
+keep tapping; finishing the last digit finishes the puzzle. Mistakes block
 placing until undone, exactly as in cell-first mode, and undo does not select a cell.
 Pad buttons use pointer events (`src/ui/longpress.ts`); keyboard Enter/Space still taps.
 
@@ -70,7 +72,7 @@ and then deletes the old cache. The worker is registered only in production buil
 ## Haptics
 
 Where `navigator.vibrate` exists (Android browsers; not iOS Safari) the app vibrates briefly on a
-mistake, when number-first mode starts or ends, and with a longer pattern when a puzzle is
+mistake, when number-first mode starts or ends (not when it moves to the next digit), and with a longer pattern when a puzzle is
 completed. A **Vibration** switch in the menu (shown only where supported, on by default, remembered
 in `localStorage`) turns it off. Nothing vibrates while the game is paused or the page is hidden
 (`src/ui/haptics.ts`).
