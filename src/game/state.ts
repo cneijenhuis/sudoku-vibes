@@ -164,7 +164,8 @@ function place(state: GameState, i: number, digit: number): GameState {
     mistakes: state.mistakes + (digit === state.solution[i] ? 0 : 1),
   };
   const completed = completedDigits(next);
-  if (!completed[digit]) return next;
+  // Only the entry that completes the digit advances (a stray entry of an already complete digit does not).
+  if (!completed[digit] || completedDigits(state)[digit]) return next;
   const advanceTo = activeMode(state) === 'number-first' ? nextIncompleteDigit(digit, completed) : null;
   return advanceTo === null ? { ...next, mode: 'cell-first' } : { ...next, highlight: advanceTo };
 }

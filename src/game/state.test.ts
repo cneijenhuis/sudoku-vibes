@@ -500,7 +500,7 @@ describe('number-first mode', () => {
     });
   });
 
-  it('after undoing the completing entry, a stored complete digit falls back to cell-first via activeMode', () => {
+  it('a stored complete digit in number-first mode falls back to cell-first via activeMode', () => {
     const done = tapCell(tapCell(nf(), 0), 14);
     const stale = { ...done, highlight: 5 }; // e.g. a state assembled elsewhere
     expect(activeMode(stale)).toBe('cell-first');
