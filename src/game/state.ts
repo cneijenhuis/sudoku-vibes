@@ -147,7 +147,8 @@ export function enter(state: GameState, digit: number): GameState {
 
 /**
  * Put `digit` into empty cell `i` (no entry when a mistake is on the board), record it, highlight
- * the digit and clear the selection. Completing the digit ends number-first mode.
+ * the digit and clear the selection. Completing the digit in number-first mode makes the next
+ * incomplete digit active; in cell-first mode (or when nothing is left) the mode is cell-first.
  */
 function place(state: GameState, i: number, digit: number): GameState {
   if (!Number.isInteger(digit) || digit < 1 || digit > 9) return state;
@@ -162,7 +163,22 @@ function place(state: GameState, i: number, digit: number): GameState {
     history: [...state.history, { index: i, previous: 0, value: digit }],
     mistakes: state.mistakes + (digit === state.solution[i] ? 0 : 1),
   };
-  return completedDigits(next)[digit] ? { ...next, mode: 'cell-first' } : next;
+  const completed = completedDigits(next);
+  if (!completed[digit]) return next;
+  const advanceTo = activeMode(state) === 'number-first' ? nextIncompleteDigit(digit, completed) : null;
+  return advanceTo === null ? { ...next, mode: 'cell-first' } : { ...next, highlight: advanceTo };
+}
+
+/**
+ * The next digit after `from` (higher first, wrapping 9 to 1, `from` itself last) whose entry in
+ * `completed` (as from `completedDigits`) is false, or null when every digit is complete.
+ */
+export function nextIncompleteDigit(from: number, completed: readonly boolean[]): number | null {
+  for (let step = 1; step <= 9; step++) {
+    const d = ((from - 1 + step) % 9 + 9) % 9 + 1;
+    if (!completed[d]) return d;
+  }
+  return null;
 }
 
 /** Whether a tap on a digit button would place the digit rather than highlight it. */

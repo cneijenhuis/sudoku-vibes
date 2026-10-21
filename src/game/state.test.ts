@@ -12,6 +12,7 @@ import {
   isComplete,
   isMistakeCell,
   longPressDigit,
+  nextIncompleteDigit,
   pressDigit,
   select,
   startNumberFirst,
@@ -409,17 +410,101 @@ describe('number-first mode', () => {
     expect(exitNumberFirst(plain)).toBe(plain);
   });
 
-  it('placing the last instance ends the mode, highlights nothing and ignores further starts', () => {
+  it('placing the last instance advances to the next incomplete digit and stays in the mode', () => {
     const g = tapCell(tapCell(nf(), 0), 14);
     expect(completedDigits(g)[5]).toBe(true);
-    expect(g.mode).toBe('cell-first');
-    expect(activeMode(g)).toBe('cell-first');
-    expect(effectiveHighlight(g)).toBeNull();
+    expect(g.mode).toBe('number-first');
+    expect(activeMode(g)).toBe('number-first');
+    expect(g.highlight).toBe(6);
+    expect(effectiveHighlight(g)).toBe(6);
+    expect(g.selected).toBeNull();
     expect(startNumberFirst(g, 5)).toBe(g);
-    // undoing the completing entry does not resurrect the mode
-    const u = undo(g);
-    expect(u.mode).toBe('cell-first');
-    expect(u.selected).toBe(14);
+    expect(pressDigit(g, 5)).toBe(g);
+  });
+
+  it('cell-first entry of the last instance still highlights nothing', () => {
+    const g = completeFive(row());
+    expect(g.mode).toBe('cell-first');
+    expect(effectiveHighlight(g)).toBeNull();
+  });
+
+  describe('advancing after a completed digit', () => {
+    // Blank the first cell of each listed digit in the solution: each is then one short of complete.
+    const missing = (...ds: number[]) => {
+      const p = [...SOLUTION];
+      const at = ds.map((d) => {
+        const i = p.indexOf(String(d));
+        p[i] = '0';
+        return i;
+      });
+      return { game: createGame(p.join(''), SOLUTION), at };
+    };
+    const finish = (ds: number[], from: number) => {
+      const { game, at } = missing(...ds);
+      return { g: tapCell(startNumberFirst(game, from), at[ds.indexOf(from)]!), at, game };
+    };
+
+    it('moves to the adjacent digit', () => {
+      expect(finish([2, 3], 2).g.highlight).toBe(3);
+    });
+
+    it('skips completed digits', () => {
+      const { g } = finish([2, 4], 2); // 3 is complete
+      expect(g.highlight).toBe(4);
+      expect(g.mode).toBe('number-first');
+    });
+
+    it('wraps from 9 to 1', () => {
+      expect(finish([9, 1], 9).g.highlight).toBe(1);
+    });
+
+    it('wraps and skips', () => {
+      expect(finish([9, 3], 9).g.highlight).toBe(3); // 1 and 2 are complete
+    });
+
+    it('can wrap back below the completed digit', () => {
+      expect(finish([5, 2], 5).g.highlight).toBe(2);
+    });
+
+    it('the next digit is then placed by the following tap', () => {
+      const { g, at } = finish([2, 3], 2);
+      const next = tapCell(g, at[1]!);
+      expect(next.cells[at[1]!]).toBe(3);
+      expect(next.mistakes).toBe(0);
+    });
+
+    it('undoing the completing entry keeps the advanced digit, selects nothing and reopens the digit', () => {
+      const { g } = finish([2, 3], 2);
+      const u = undo(g);
+      expect(completedDigits(u)[2]).toBe(false);
+      expect(u.mode).toBe('number-first');
+      expect(u.highlight).toBe(3);
+      expect(u.selected).toBeNull();
+      expect(activeMode(u)).toBe('number-first');
+      expect(pressDigit(u, 2).highlight).toBe(2);
+    });
+
+    it('finishing the last incomplete digit completes the puzzle and leaves cell-first with nothing highlighted', () => {
+      const { g } = finish([9], 9);
+      expect(isComplete(g)).toBe(true);
+      expect(g.mode).toBe('cell-first');
+      expect(effectiveHighlight(g)).toBeNull();
+    });
+
+    it('a mistake never advances', () => {
+      const { game, at } = missing(2, 3);
+      let g = startNumberFirst(game, 2);
+      g = tapCell(g, at[1]!); // a 2 where a 3 belongs
+      expect(g.highlight).toBe(2);
+      expect(g.mistakes).toBe(1);
+    });
+  });
+
+  it('after undoing the completing entry, a stored complete digit falls back to cell-first via activeMode', () => {
+    const done = tapCell(tapCell(nf(), 0), 14);
+    const stale = { ...done, highlight: 5 }; // e.g. a state assembled elsewhere
+    expect(activeMode(stale)).toBe('cell-first');
+    expect(effectiveHighlight(stale)).toBeNull();
   });
 
   it('tapping a cell of a complete digit does not switch to it', () => {
@@ -437,5 +522,26 @@ describe('number-first mode', () => {
   it('ignores out-of-range taps', () => {
     const g = nf();
     for (const i of [-1, 81, 1.5]) expect(tapCell(g, i)).toBe(g);
+  });
+});
+
+describe('nextIncompleteDigit', () => {
+  const only = (...incomplete: number[]) => Array.from({ length: 10 }, (_, d) => d !== 0 && !incomplete.includes(d));
+  it.each([
+    [2, [3], 3],
+    [2, [4], 4],
+    [9, [1], 1],
+    [9, [3], 3],
+    [5, [2, 7], 7],
+    [5, [2], 2],
+    [5, [5, 8], 8],
+  ])('from %i with %j incomplete gives %i', (from, incomplete, want) => {
+    expect(nextIncompleteDigit(from, only(...incomplete))).toBe(want);
+  });
+  it('wraps all the way round to the digit itself when it is the only one left', () => {
+    expect(nextIncompleteDigit(5, only(5))).toBe(5);
+  });
+  it('is null when every digit is complete', () => {
+    expect(nextIncompleteDigit(5, only())).toBeNull();
   });
 });
