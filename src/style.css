@@ -51,10 +51,6 @@
   box-sizing: border-box;
 }
 
-html {
-  background: var(--fallback-bg);
-}
-
 html,
 body {
   margin: 0;
@@ -69,24 +65,17 @@ body {
 }
 
 /*
- * The photo: one fixed layer behind everything; the plain fallback colour shows until it loads.
- * It reaches past the bottom edge: in iOS home-screen (standalone) mode a fixed layer stops short of
- * the home-indicator area and the canvas colour would show there as a stripe.
+ * The photo is the root element's background (the page canvas), not a fixed layer: in iOS home-screen
+ * mode fixed layers stop at the short layout viewport while the canvas paints the whole screen.
+ * `--canvas-h` (see src/theme/canvas.ts) makes the root as tall as the screen there.
  */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: calc(-1 * (env(safe-area-inset-bottom, 0px) + 40px));
-  z-index: -1;
+html {
+  height: var(--canvas-h, 100%);
   background-color: var(--fallback-bg);
   background-image: var(--bg-image);
   background-position: var(--bg-position);
   background-size: cover;
   background-repeat: no-repeat;
-  pointer-events: none;
 }
 
 /* Frosted white surface shared by every card, key and pill. */
@@ -1598,6 +1587,3 @@ html.diag-canvas-test {
   background: red;
 }
 
-html.diag-canvas-test body::before {
-  display: none;
-}

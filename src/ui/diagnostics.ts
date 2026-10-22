@@ -19,7 +19,6 @@ export async function collectDiagnostics(win: Window = window): Promise<string> 
   const doc = win.document;
   const vv = win.visualViewport;
   const app = doc.getElementById('app');
-  const bg = getComputedStyle(doc.body, '::before');
   const nav = win.navigator as Navigator & { standalone?: boolean };
   const lines = [
     `build: ${BUILD_ID}`,
@@ -30,7 +29,7 @@ export async function collectDiagnostics(win: Window = window): Promise<string> 
     `visualViewport: ${px(vv?.width)} x ${px(vv?.height)} offsetTop ${px(vv?.offsetTop)} pageTop ${px(vv?.pageTop)}`,
     `html client: ${doc.documentElement.clientWidth} x ${doc.documentElement.clientHeight}`,
     `#app: ${px(app?.getBoundingClientRect().height)} high`,
-    `photo layer: top ${bg.top} bottom ${bg.bottom} height ${bg.height}`,
+    `html: ${px(doc.documentElement.getBoundingClientRect().height)} high, --canvas-h ${doc.documentElement.style.getPropertyValue('--canvas-h') || 'unset'}`,
     `safe-area (t r b l): ${safeAreaInsets(doc)}`,
     `dpr: ${win.devicePixelRatio}`,
   ];
@@ -52,7 +51,7 @@ export function buildTag(): HTMLElement {
   tag.addEventListener('click', () => {
     const pre = h('pre', { class: 'diag-text', text: 'Collecting...' });
     const close = h('button', { class: 'btn secondary glass', text: 'Close', attrs: { type: 'button' } });
-    // Paints the page canvas red and hides the photo layer: shows whether the page can paint at all
+    // Paints the page canvas red over the photo: shows whether the page can paint at all
     // in the strip below the layout viewport (iOS home-screen mode).
     const test = h('button', { class: 'btn secondary glass', text: 'Test: red canvas (tap again to undo)', attrs: { type: 'button' } });
     const panel = h('div', { class: 'diag glass', attrs: { role: 'dialog', 'aria-label': 'Diagnostics' } }, h('h2', { text: 'Diagnostics' }), pre, test, close);

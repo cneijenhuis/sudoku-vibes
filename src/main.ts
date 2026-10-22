@@ -1,9 +1,11 @@
 import './style.css';
 import { registerServiceWorker } from './pwa/register';
 import { applyBackground, pickBackground } from './theme/backgrounds';
+import { watchCanvas } from './theme/canvas';
 import { startApp } from './ui/app';
 
 applyBackground(pickBackground());
+watchCanvas();
 
 const root = document.getElementById('app');
 if (root) startApp(root);
