@@ -26,3 +26,26 @@ The play screen is a CSS grid (`.screen.game-screen`: top bar, board region, num
 - [6px gutter makes the frame feel tight to the screen edge] -> visual check at 320, 375 and 430 widths; the drop shadow and glass edge keep it readable; if it looks cramped, 8px is the fallback and is a single token.
 - [Landscape panel too narrow on 568x320 phones] -> verify at 568x320 and 667x375 that the keypad keys stay at least 44px and the clock fits (status line may wrap).
 - [Tablet landscape leaves empty space beside the panel] -> acceptable; centre the pair of columns.
+
+## Board size before and after
+
+Board side in CSS pixels, measured with `getBoundingClientRect` in Chromium (touch-emulated, DPR 2) on a build of the commit before this change (`36c3bbb`, which only adds the proposal; the code is that of `c42527f`).
+
+| Viewport | Before | After | Change |
+| --- | --- | --- | --- |
+| 390x844 | 366 | | |
+| 393x852 | 369 | | |
+| 375x667 | 351 | | |
+| 360x640 | 336 | | |
+| 412x915 | 388 | | |
+| 430x932 | 406 | | |
+| 320x568 | 296 | | |
+| 768x1024 | 560 | | |
+| 667x375 | 309 | | |
+| 844x390 | 324 | | |
+| 932x430 | 364 | | |
+| 568x320 | 254 | | |
+| 1024x768 | 560 | | |
+| 1180x820 | 560 | | |
+
+The before numbers for 390x844, 360x640 and 412x915 match the figures in the proposal (366, 336, 388).

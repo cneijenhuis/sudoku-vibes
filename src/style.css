@@ -33,6 +33,9 @@
   --cursor-ring: var(--line-strong);
   --font: 'Fredoka', system-ui, sans-serif;
   --tap: 44px;
+  /* Side gutter of the board and the number keys; the largest the board can be is the viewport minus two of these. */
+  --board-gutter: 6px;
+  --board-max: 720px;
   --bg-image: none;
   --bg-position: 50% 50%;
   /* One level colour per Difficulty value, dark enough for text on the light glass (>= 4.5:1). */
@@ -681,50 +684,18 @@ h2 {
 }
 
 /*
- * The board region is a size container. Its content is the wordmark slot (when there is room)
- * above the board. --pb is the slot's height (pill 56px + 18px gap, or 0): it is the full
- * 74px only when the space left under a width-limited board can hold it, so showing the pill
- * never makes the board smaller than it would be without it. Where round() is unsupported the
- * pill is simply left out.
+ * The board region is a size container holding only the board, which is centred in it on both
+ * axes (equal space above and below). The padding is the board gutter, so the board is the
+ * viewport width minus two gutters where the width is the limit.
  */
 .board-region {
   min-height: 0;
   min-width: 0;
-  padding: 8px 12px;
+  padding: var(--board-gutter);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   container-type: size;
-}
-
-.board-region > * {
-  --pb: 0px;
-}
-
-@supports (width: round(down, 10px, 3px)) {
-  .board-region > * {
-    --pb: round(down, clamp(0px, calc(100cqh - min(100cqw, 560px)), 74px), 74px);
-  }
-}
-
-.wordmark-slot {
-  flex: none;
-  height: var(--pb);
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-}
-
-.wordmark-pill {
-  height: 56px;
-  padding: 0 22px;
-  display: flex;
-  align-items: center;
-  border-radius: 28px;
-  box-shadow: 0 3px 0 var(--line-strong);
-  white-space: nowrap;
 }
 
 .wordmark {
@@ -741,7 +712,7 @@ h2 {
 }
 
 .board {
-  --side: min(100cqw, calc(100cqh - var(--pb)), 560px);
+  --side: min(100cqw, 100cqh, var(--board-max));
   position: relative;
   flex: none;
   width: var(--side);
@@ -865,9 +836,9 @@ h2 {
   grid-template-columns: repeat(9, minmax(0, 1fr));
   gap: 5px;
   width: 100%;
-  max-width: 584px;
+  max-width: calc(var(--board-max) + 2 * var(--board-gutter));
   margin: 0 auto;
-  padding: 8px 12px 14px;
+  padding: 8px var(--board-gutter) 14px;
 }
 
 /* Number keys: raised glass with a navy drop edge. */

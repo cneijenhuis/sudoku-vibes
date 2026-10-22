@@ -2,8 +2,8 @@
 
 ## 1. Portrait
 
-- [ ] 1.1 Record "before" board sizes (from a build of the current `main`) at 390x844, 393x852, 375x667, 360x640, 412x915, 430x932, 320x568, 768x1024 in a table in `design.md`; verify the numbers against the table in the proposal where they overlap
-- [ ] 1.2 Remove the wordmark pill (markup, `.wordmark-slot`, `.wordmark-pill`, `--pb`) from the play screen, add the 6px board and pad gutter token, raise the board and pad cap to 720px, and keep the board centred; verify screenshots at the portrait viewports above, the board widths (390 gives 378, 768 gives 720), top gap equals bottom gap within 1px, and the menu wordmark is unchanged
+- [x] 1.1 Record "before" board sizes (from a build of the current `main`) at 390x844, 393x852, 375x667, 360x640, 412x915, 430x932, 320x568, 768x1024 in a table in `design.md`; verify the numbers against the table in the proposal where they overlap
+- [x] 1.2 Remove the wordmark pill (markup, `.wordmark-slot`, `.wordmark-pill`, `--pb`) from the play screen, add the 6px board and pad gutter token, raise the board and pad cap to 720px, and keep the board centred; verify screenshots at the portrait viewports above, the board widths (390 gives 378, 768 gives 720), top gap equals bottom gap within 1px, and the menu wordmark is unchanged
 
 ## 2. Landscape
 

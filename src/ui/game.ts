@@ -22,7 +22,6 @@ import { h } from './dom';
 import { haptics as defaultHaptics, type Haptics } from './haptics';
 import { createLongPress, LONG_PRESS_MS, type LongPress } from './longpress';
 import type { MountedScreen } from './router';
-import { wordmark } from './wordmark';
 
 export interface GameResult {
   elapsedMs: number;
@@ -113,10 +112,7 @@ export function gameScreen(
     cells.push(b);
     board.append(b);
   }
-  // Decorative: the page title already names the app. The slot collapses to nothing (see --pb in
-  // style.css) whenever the pill would make the board smaller.
-  const pill = h('div', { class: 'wordmark-pill glass' }, wordmark());
-  const region = h('section', { class: 'board-region' }, h('div', { class: 'wordmark-slot', attrs: { 'aria-hidden': 'true' } }, pill), board);
+  const region = h('section', { class: 'board-region' }, board);
 
   const digitBtns: HTMLButtonElement[] = [];
   const pad = h('div', { class: 'pad', attrs: { role: 'group', 'aria-label': 'Number pad' } });
