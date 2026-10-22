@@ -52,6 +52,22 @@ describe('service worker plugin', () => {
     expect(new TextDecoder().decode(readFileSync(join(dir, 'sw.js')))).toBe(text);
   });
 
+  it('leaves the large install-only 512px icons out of the precache but keeps the small ones', () => {
+    const dir = site({ ...BUILD, 'icons/icon-192.png': 'a', 'icons/icon-512.png': 'b', 'icons/icon-maskable-512.png': 'c', 'icons/apple-touch-icon.png': 'd' });
+    writeServiceWorker(dir);
+    const text = new TextDecoder().decode(readFileSync(join(dir, 'sw.js')));
+    expect(text).toContain('"./icons/icon-192.png"');
+    expect(text).toContain('"./icons/apple-touch-icon.png"');
+    expect(text).not.toContain('icon-512.png');
+    expect(text).not.toContain('icon-maskable-512.png');
+  });
+
+  it('still changes the cache name when an excluded icon changes', () => {
+    const a = site({ ...BUILD, 'icons/icon-512.png': 'one' });
+    const b = site({ ...BUILD, 'icons/icon-512.png': 'two' });
+    expect(writeServiceWorker(a)).not.toBe(writeServiceWorker(b));
+  });
+
   it('two different builds produce different workers and cache names', () => {
     const a = site(BUILD);
     const b = site({ ...BUILD, 'assets/a-1.js': 'changed' });

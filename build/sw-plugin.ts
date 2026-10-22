@@ -38,11 +38,19 @@ export function cacheNameFor(entries: readonly FileEntry[]): string {
   return CACHE_PREFIX + h.digest('hex').slice(0, 12);
 }
 
+/**
+ * Files that stay out of the precache: the large 512px icons are only fetched by the browser when
+ * the app is installed (the manifest links them), so caching them would add about 0.8 MB to the
+ * first visit for nothing. They are still part of the cache-name hash, so changing them changes it.
+ */
+export const PRECACHE_EXCLUDE = /^icons\/icon-(maskable-)?512\.png$/;
+
 /** Write `sw.js` into the built site at `dir`; returns the cache name used. */
 export function writeServiceWorker(dir: string): string {
   const entries = listFiles(dir);
   const cacheName = cacheNameFor(entries);
-  writeFileSync(join(dir, SW_FILE), buildServiceWorker({ cacheName, files: entries.map((e) => e.path) }));
+  const files = entries.map((e) => e.path).filter((p) => !PRECACHE_EXCLUDE.test(p));
+  writeFileSync(join(dir, SW_FILE), buildServiceWorker({ cacheName, files }));
   return cacheName;
 }
 

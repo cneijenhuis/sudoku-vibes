@@ -64,7 +64,7 @@ surface, shadows; components never use literal colours, which `src/theme/tokens.
 - **Per-level colours** are small accents (bar, pips, chips) kept dark enough for the light glass.
 - **Browser chrome:** `theme-color` and the manifest background are `#F6E9D2`. The iOS status bar
   is `black-translucent`, so the photo runs under the clock and the home-screen app is edge to edge.
-  The PWA icons still show the earlier dark mark and have not been redrawn (design follow-up).
+  The app icon is the deckchair with the inflatable 7 from the photo (see the PWA section).
 
 ## Saving, resuming and the Back button
 
@@ -89,10 +89,12 @@ the pre-reload history entry still exists).
 ## Install, offline and updates
 
 The app is an installable PWA: `public/manifest.webmanifest` (relative `start_url`/`scope`, so it
-works from a sub-path like `/sudoku-vibes/`) plus icons in `public/icons/` (192, 512, maskable 512
-and an Apple touch icon). The icons are rendered from the SVG sources in `icons-src/` with
-`CHROMIUM_PATH=<chromium> NODE_PATH=<dir with playwright> node icons-src/render.mjs` (a one-off
-tool, not part of the build).
+works from a sub-path like `/sudoku-vibes/`) plus icons in `public/icons/` (192, 512, maskable 512, a 180px Apple touch icon and a 32px
+favicon). They are all rendered from one master image, `icons-src/icon-master.jpg` (the deckchair
+with the 7, an opaque full-bleed square with the artwork inside the central 70% so the circle crop
+of maskable icons keeps the 7), by `python3 icons-src/render.py` (needs Pillow; a one-off tool, not
+part of the build). The large 512px icons are only fetched when the app is installed, so the service
+worker does not precache them (`PRECACHE_EXCLUDE` in `build/sw-plugin.ts`).
 
 `npm run build` also emits `dist/sw.js` (`build/sw-plugin.ts`, template in `src/pwa/sw-source.ts`;
 no Workbox). It precaches every built file, including the puzzle-generator worker, into a cache
