@@ -16,12 +16,15 @@ In portrait the game screen SHALL show, top to bottom, a bar with an undo button
 - **WHEN** the game screen is shown at 390x844
 - **THEN** the space above the board (below the top bar) and the space below it (above the number keys) differ by no more than 1px
 
-### Requirement: Fits any viewport
-In portrait the board SHALL be a square sized to the largest size that fits between the top bar and the number keys, at most 720 CSS pixels. In every landscape viewport (width greater than height) the undo button, the timer and the pause button SHALL sit in a panel on the right together with the digits as a 3x3 keypad, and the board SHALL use the full height minus a 6px margin, centred vertically in the area left of the panel. The undo and pause buttons SHALL be at least 44 CSS pixels in both dimensions, and each digit button at least 44 CSS pixels tall.
+### Requirement: Portrait board size
+In portrait the board SHALL be a square sized to the largest size that fits between the top bar and the number keys, at most 720 CSS pixels.
 
-#### Scenario: Small or landscape screens
-- **WHEN** the viewport is 320x568 or 667x375
-- **THEN** nothing is clipped or scrolls, the board is fully visible and the undo, pause and digit buttons are at least 44px tall
+#### Scenario: Portrait phone
+- **WHEN** the game screen is shown at 390x844
+- **THEN** the board is 378px wide and nothing is clipped or scrolls
+
+### Requirement: Landscape panel
+In every landscape viewport (width greater than height) the undo button, the timer and the pause button SHALL sit in a panel on the right together with the digits as a 3x3 keypad, and the board SHALL use the full height minus a 6px margin, centred vertically in the area left of the panel.
 
 #### Scenario: Landscape panel
 - **WHEN** the game screen is shown at 844x390 or at 1024x768
@@ -30,6 +33,13 @@ In portrait the board SHALL be a square sized to the largest size that fits betw
 #### Scenario: Rotation
 - **WHEN** the device is rotated from portrait to landscape during a game
 - **THEN** the layout switches to the right-hand panel without losing any game state
+
+### Requirement: Fits any viewport
+The undo and pause buttons SHALL be at least 44 CSS pixels in both dimensions and each digit button at least 44 CSS pixels tall, and the whole game screen SHALL fit without clipping or scrolling.
+
+#### Scenario: Small or landscape screens
+- **WHEN** the viewport is 320x568 or 667x375
+- **THEN** nothing is clipped or scrolls, the board is fully visible and the undo, pause and digit buttons are at least 44px tall
 
 ### Requirement: Live status line
 Below the time the top bar SHALL show the difficulty name and the number of mistakes made so far in the status colour, emphasised in weight once the count is above zero.
