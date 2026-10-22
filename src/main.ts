@@ -1,6 +1,9 @@
 import './style.css';
 import { registerServiceWorker } from './pwa/register';
+import { applyBackground, pickBackground } from './theme/backgrounds';
 import { startApp } from './ui/app';
+
+applyBackground(pickBackground());
 
 const root = document.getElementById('app');
 if (root) startApp(root);

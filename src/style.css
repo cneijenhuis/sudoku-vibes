@@ -1,20 +1,53 @@
+@import './theme/fonts.css';
+
+/*
+ * Summer Vibes tokens. Components use these names, never literal colours (the only literals live
+ * here). The background image, its focal position and the fallback colour are set at runtime from
+ * src/theme/backgrounds.ts as --bg-image, --bg-position and --fallback-bg (the value below is the
+ * default until then, and is also what shows if the photo cannot load).
+ */
 :root {
-  color-scheme: dark;
-  --bg: #1e2433;
-  --fg: #f2f4f8;
-  --accent: #5b8def;
+  color-scheme: light;
+  --surface: rgba(255, 253, 248, 0.86);
+  --surface-solid: #fffdf8;
+  --ink: #10233a;
+  --entry: #067684;
+  --line-strong: #1e4d6b;
+  --line-soft: rgba(30, 77, 107, 0.42);
+  --key-text: #1e4d6b;
+  --highlight: #ffe08a;
+  --highlight-text: #6e4300;
+  --highlight-ring: #f4b400;
+  --highlight-edge: #d9a100;
+  --done-text: #4f6e82;
+  --done-edge: #6f8fa3;
+  --accent: #e2533f;
+  --status: #b83a28;
+  --fallback-bg: #f6e9d2;
+  --shadow-board: 0 14px 30px rgba(40, 30, 10, 0.22);
+  /* Additions beyond the handover (see design.md): error, its tint, and the selected-cell cursor. */
+  --error: #bd0e2a;
+  --error-tint: rgba(189, 14, 42, 0.14);
+  --cursor-fill: #ddf1f7;
+  --cursor-ring: var(--line-strong);
+  --font: 'Fredoka', system-ui, sans-serif;
   --tap: 44px;
-  --surface: #2a3247;
-  --surface-hi: #333d56;
-  --border: #3d486a;
-  --muted: #aab3c7;
-  /* One accent per Difficulty value: Super Easy, Easy, Medium, Hard, Extreme, Almost Impossible. */
-  --c0: #38c8d8;
-  --c1: #4cc38a;
-  --c2: #5b8def;
-  --c3: #e8b04a;
-  --c4: #f07a52;
-  --c5: #d070e8;
+  --bg-image: none;
+  --bg-position: 50% 50%;
+  /* One level colour per Difficulty value, dark enough for text on the light glass (>= 4.5:1). */
+  --c0: #0b6e7c;
+  --c1: #1a7a4c;
+  --c2: #2a58c8;
+  --c3: #9a5f00;
+  --c4: #a8480f;
+  --c5: #8a35b0;
+  --level: var(--c2);
+  /* Legacy names still used by screens not yet re-skinned in this change. */
+  --bg: var(--fallback-bg);
+  --fg: var(--ink);
+  --surface-hi: #ffffff;
+  --border: var(--line-strong);
+  --muted: var(--done-text);
 }
 
 *,
@@ -29,11 +62,47 @@ body {
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
-  background: var(--bg);
-  color: var(--fg);
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: var(--fallback-bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-weight: 500;
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* The photo: one fixed layer behind everything; the plain fallback colour shows until it loads. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--fallback-bg);
+  background-image: var(--bg-image);
+  background-position: var(--bg-position);
+  background-size: cover;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+/* Frosted white surface shared by every card, key and pill. */
+.glass {
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: rgba(255, 253, 248, 0.94);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    background: var(--surface-solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }
 
 #app {
@@ -85,12 +154,12 @@ button,
 }
 
 /* Accent per difficulty (decorative; labels carry the meaning). */
-.level-0, .accent-0 { --accent: var(--c0); }
-.level-1, .accent-1 { --accent: var(--c1); }
-.level-2, .accent-2 { --accent: var(--c2); }
-.level-3, .accent-3 { --accent: var(--c3); }
-.level-4, .accent-4 { --accent: var(--c4); }
-.level-5, .accent-5 { --accent: var(--c5); }
+.level-0, .accent-0 { --level: var(--c0); }
+.level-1, .accent-1 { --level: var(--c1); }
+.level-2, .accent-2 { --level: var(--c2); }
+.level-3, .accent-3 { --level: var(--c3); }
+.level-4, .accent-4 { --level: var(--c4); }
+.level-5, .accent-5 { --level: var(--c5); }
 
 button {
   font: inherit;
@@ -137,7 +206,7 @@ button:focus-visible {
   text-align: left;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-left: 6px solid var(--accent);
+  border-left: 6px solid var(--level);
   border-radius: 14px;
   cursor: pointer;
 }
@@ -182,7 +251,7 @@ button:focus-visible {
 }
 
 .pips i.on {
-  background: var(--accent);
+  background: var(--level);
 }
 
 /* Loading, error, game */
@@ -201,7 +270,7 @@ button:focus-visible {
 .status-level {
   margin: 6px 0 0;
   font-size: 1.1rem;
-  color: var(--accent, var(--muted));
+  color: var(--level, var(--muted));
   font-weight: 600;
 }
 
@@ -222,7 +291,7 @@ button:focus-visible {
   height: 48px;
   border-radius: 50%;
   border: 5px solid var(--border);
-  border-top-color: var(--accent);
+  border-top-color: var(--level);
   animation: spin 0.9s linear infinite;
 }
 
@@ -277,7 +346,7 @@ button:focus-visible {
 /* Results */
 .results-screen {
   gap: 18px;
-  background: radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%);
+  background: radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--level) 16%, transparent), transparent 70%);
 }
 
 .results-hero,
@@ -310,9 +379,9 @@ button:focus-visible {
   margin: 12px 0 0;
   padding: 5px 14px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
-  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--level) 60%, transparent);
+  background: color-mix(in srgb, var(--level) 16%, transparent);
+  color: var(--level);
   font-weight: 650;
   font-size: 0.95rem;
 }
@@ -352,24 +421,24 @@ button:focus-visible {
 }
 
 .btn.cta {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--level);
+  border-color: var(--level);
   color: #121826;
-  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 35%, transparent);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--level) 35%, transparent);
 }
 
 .btn.cta:active:not(:disabled) {
-  background: color-mix(in srgb, var(--accent) 82%, #000);
+  background: color-mix(in srgb, var(--level) 82%, #000);
 }
 
 .btn.ghost {
   background: transparent;
-  border-color: color-mix(in srgb, var(--accent) 70%, transparent);
+  border-color: color-mix(in srgb, var(--level) 70%, transparent);
   color: var(--fg);
 }
 
 .btn.ghost:active:not(:disabled) {
-  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  background: color-mix(in srgb, var(--level) 18%, transparent);
 }
 
 .btn.text {
@@ -403,8 +472,8 @@ button:focus-visible {
   place-items: center;
   border-radius: 50%;
   color: #121826;
-  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--accent) 70%, #fff), var(--accent) 70%);
-  box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 22%, transparent), 0 8px 28px color-mix(in srgb, var(--accent) 45%, transparent);
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--level) 70%, #fff), var(--level) 70%);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--level) 22%, transparent), 0 8px 28px color-mix(in srgb, var(--level) 45%, transparent);
   animation: badge-pop 700ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
 }
 
@@ -425,7 +494,7 @@ button:focus-visible {
   width: 84px;
   height: 84px;
   border-radius: 50%;
-  border: 3px solid var(--accent);
+  border: 3px solid var(--level);
   opacity: 0;
   animation: ring-out 1.5s ease-out 120ms both;
 }
@@ -438,7 +507,7 @@ button:focus-visible {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--level);
   opacity: 0;
   animation: spark-out 1.4s cubic-bezier(0.15, 0.7, 0.3, 1) var(--delay, 0ms) both;
 }
@@ -502,7 +571,6 @@ button:focus-visible {
   --line: #7683a8;
   --cell-line: #3a4565;
   --board-bg: #252d42;
-  --entry: #86b0ff;
   --sel-bg: #3b568f;
   --hl-bg: #4d4120;
   --hl-fg: #ffd97a;
@@ -572,7 +640,7 @@ button:focus-visible {
   white-space: nowrap;
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--level);
 }
 
 .sub.has-mistakes {
@@ -725,7 +793,7 @@ button:focus-visible {
   overflow: hidden;
   isolation: isolate;
   --fill: #f0c24e;
-  --ink: #2a2208;
+  --key-ink: #2a2208;
   --hold-ease: cubic-bezier(0.25, 0.1, 0.6, 1);
 }
 
@@ -749,7 +817,7 @@ button:focus-visible {
   content: attr(data-digit);
   display: grid;
   place-items: center;
-  color: var(--ink);
+  color: var(--key-ink);
   clip-path: inset(100% 0 0 0);
   transition: clip-path 140ms ease-out;
 }
@@ -770,7 +838,7 @@ button:focus-visible {
   left: 50%;
   display: none;
   margin-left: -5.5px;
-  color: var(--ink);
+  color: var(--key-ink);
   line-height: 0;
   pointer-events: none;
 }
@@ -876,7 +944,7 @@ button:focus-visible {
   font-size: 2.4rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: var(--accent);
+  color: var(--level);
 }
 
 .overlay .actions {
@@ -1084,9 +1152,9 @@ button:focus-visible {
   gap: 14px;
   text-align: left;
   background: var(--surface);
-  border: 2px solid var(--accent);
+  border: 2px solid var(--level);
   border-radius: 14px;
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--level) 16%, transparent);
   cursor: pointer;
 }
 
@@ -1107,7 +1175,7 @@ button:focus-visible {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--accent);
+  background: var(--level);
   color: #0f1522;
 }
 
@@ -1124,7 +1192,7 @@ button:focus-visible {
 
 .resume-sub {
   font-size: 0.9rem;
-  color: var(--accent);
+  color: var(--level);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }

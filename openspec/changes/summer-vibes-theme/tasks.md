@@ -2,9 +2,9 @@
 
 ## 1. Assets and theme foundation
 
-- [ ] 1.1 Produce the optimised background (WebP, about 1170 px tall, 150 to 250 KB) from the uploaded image into `src/assets/backgrounds/`, add `src/theme/backgrounds.ts` (list with one entry, one chosen per load, fallback colour and position); verify the file size and view the result, and that the original PNG is not committed
-- [ ] 1.2 Add self-hosted Fredoka woff2 files (500, 600, 700, latin subset, with the OFL licence file) under `src/assets/fonts/` and `@font-face` rules; verify with a Playwright run that text renders in Fredoka (`document.fonts`), that no request leaves the app's origin, and that the files appear in the built output and the service worker precache list. If the fonts cannot be obtained, stop and report
-- [ ] 1.3 Rewrite `src/style.css` around the tokens, `.glass` (with `@supports` and `prefers-reduced-transparency` fallbacks), the fixed background layer with the fallback colour, and `color-scheme: light`; preload the background from `index.html`; verify a unit test or script that lists the token values, and a Playwright check of the glass fallbacks (emulate `prefers-reduced-transparency` where supported)
+- [x] 1.1 Produce the optimised background (WebP, about 1170 px tall, 150 to 250 KB) from the uploaded image into `src/assets/backgrounds/`, add `src/theme/backgrounds.ts` (list with one entry, one chosen per load, fallback colour and position); verify the file size and view the result, and that the original PNG is not committed
+- [x] 1.2 Add self-hosted Fredoka woff2 files (500, 600, 700, latin subset, with the OFL licence file) under `src/assets/fonts/` and `@font-face` rules; verify with a Playwright run that text renders in Fredoka (`document.fonts`), that no request leaves the app's origin, and that the files appear in the built output and the service worker precache list. If the fonts cannot be obtained, stop and report
+- [x] 1.3 Rewrite `src/style.css` around the tokens, `.glass` (with `@supports` and `prefers-reduced-transparency` fallbacks), the fixed background layer with the fallback colour, and `color-scheme: light`; preload the background from `index.html`; verify a unit test or script that lists the token values, and a Playwright check of the glass fallbacks (emulate `prefers-reduced-transparency` where supported)
 
 ## 2. Play screen
 
