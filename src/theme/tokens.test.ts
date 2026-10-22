@@ -22,7 +22,7 @@ const TOKENS: Record<string, string> = {
   '--status': '#b83a28',
   '--fallback-bg': '#f6e9d2',
   '--shadow-board': '0 14px 30px rgba(40, 30, 10, 0.22)',
-  '--error': '#bd0e2a',
+  '--error': '#a80b24',
   '--cursor-fill': '#ddf1f7',
 };
 

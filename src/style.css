@@ -26,8 +26,8 @@
   --fallback-bg: #f6e9d2;
   --shadow-board: 0 14px 30px rgba(40, 30, 10, 0.22);
   /* Additions beyond the handover (see design.md): error, its tint, and the selected-cell cursor. */
-  --error: #bd0e2a;
-  --error-tint: rgba(189, 14, 42, 0.14);
+  --error: #a80b24;
+  --error-tint: rgba(168, 11, 36, 0.14);
   --cursor-fill: #ddf1f7;
   --cursor-ring: var(--line-strong);
   --font: 'Fredoka', system-ui, sans-serif;
@@ -56,13 +56,16 @@
   box-sizing: border-box;
 }
 
+html {
+  background: var(--fallback-bg);
+}
+
 html,
 body {
   margin: 0;
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
-  background: var(--fallback-bg);
   color: var(--ink);
   font-family: var(--font);
   font-weight: 500;
@@ -568,14 +571,6 @@ button:focus-visible {
 
 /* Game screen */
 .screen.game-screen {
-  --line: #7683a8;
-  --cell-line: #3a4565;
-  --board-bg: #252d42;
-  --sel-bg: #3b568f;
-  --hl-bg: #4d4120;
-  --hl-fg: #ffd97a;
-  --bad: #ff8d8d;
-  --bad-bg: #5a2c3a;
   position: relative;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
@@ -592,84 +587,174 @@ button:focus-visible {
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr) 52px;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px 4px;
+  gap: 12px;
+  padding: 8px 12px 10px;
 }
 
+/* Raised glass button: a solid navy drop edge underneath, pressed down on :active. */
 .icon-btn {
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   padding: 0;
   display: grid;
   place-items: center;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
+  border: 0;
+  border-radius: 18px;
+  color: var(--ink);
+  box-shadow: 0 3px 0 var(--line-strong);
   cursor: pointer;
 }
 
 .icon-btn:active:not(:disabled) {
-  background: var(--surface-hi);
-  transform: scale(0.94);
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--line-strong);
 }
 
 .icon-btn:disabled {
-  opacity: 0.35;
+  opacity: 0.45;
   cursor: default;
 }
 
 .clock {
+  justify-self: center;
+  max-width: 100%;
+  min-width: 0;
+  padding: 8px 18px 7px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  line-height: 1.15;
-  min-width: 0;
+  gap: 6px;
+  border-radius: 20px;
+  box-shadow: 0 3px 0 var(--line-strong);
 }
 
 .time {
-  font-size: 1.7rem;
-  font-weight: 700;
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
+  color: var(--ink);
 }
 
 .sub {
   max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--level);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.15;
+  color: var(--status);
+  text-wrap: balance;
 }
 
 .sub.has-mistakes {
-  color: var(--bad);
+  font-weight: 700;
 }
 
+/*
+ * The board region is a size container. Its content is the wordmark slot (when there is room)
+ * above the board. --pb is the slot's height (pill 56px + 18px gap, or 0): it is the full
+ * 74px only when the space left under a width-limited board can hold it, so showing the pill
+ * never makes the board smaller than it would be without it. Where round() is unsupported the
+ * pill is simply left out.
+ */
 .board-region {
   min-height: 0;
   min-width: 0;
-  padding: 8px;
-  display: grid;
-  place-items: center;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   container-type: size;
 }
 
+.board-region > * {
+  --pb: 0px;
+}
+
+@supports (width: round(down, 10px, 3px)) {
+  .board-region > * {
+    --pb: round(down, clamp(0px, calc(100cqh - min(100cqw, 560px)), 74px), 74px);
+  }
+}
+
+.wordmark-slot {
+  flex: none;
+  height: var(--pb);
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.wordmark-pill {
+  height: 56px;
+  padding: 0 22px;
+  display: flex;
+  align-items: center;
+  border-radius: 28px;
+  box-shadow: 0 3px 0 var(--line-strong);
+  white-space: nowrap;
+}
+
+.wordmark {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1;
+  word-spacing: 6px; /* Fredoka's space is ~2px wide; the design puts 8px between the words */
+  color: var(--ink);
+}
+
+.wordmark .vibes {
+  color: var(--accent);
+}
+
 .board {
-  --side: min(100cqw, 100cqh, 560px);
+  --side: min(100cqw, calc(100cqh - var(--pb)), 560px);
+  position: relative;
+  flex: none;
   width: var(--side);
-  width: round(down, var(--side), 9px);
   aspect-ratio: 1;
   display: grid;
   grid-template-columns: repeat(9, minmax(0, 1fr));
   grid-template-rows: repeat(9, minmax(0, 1fr));
   container-type: inline-size;
-  background: var(--board-bg);
-  border: 2px solid var(--line);
-  border-radius: 8px;
+  border: 3px solid var(--line-strong);
+  border-radius: 22px;
   overflow: hidden;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-board);
+}
+
+/* 3x3 box dividers: 3px navy lines at one and two thirds, over the cell backgrounds. */
+.board::before,
+.board::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.board::before {
+  background: linear-gradient(
+    to right,
+    transparent calc(100% / 3 - 1.5px),
+    var(--line-strong) 0 calc(100% / 3 + 1.5px),
+    transparent 0 calc(200% / 3 - 1.5px),
+    var(--line-strong) 0 calc(200% / 3 + 1.5px),
+    transparent 0
+  );
+}
+
+.board::after {
+  background: linear-gradient(
+    to bottom,
+    transparent calc(100% / 3 - 1.5px),
+    var(--line-strong) 0 calc(100% / 3 + 1.5px),
+    transparent 0 calc(200% / 3 - 1.5px),
+    var(--line-strong) 0 calc(200% / 3 + 1.5px),
+    transparent 0
+  );
 }
 
 .cell {
@@ -681,62 +766,52 @@ button:focus-visible {
   place-items: center;
   background: transparent;
   border: 0;
-  border-right: 1px solid var(--cell-line);
-  border-bottom: 1px solid var(--cell-line);
   border-radius: 0;
-  font-size: calc(100cqw / 9 * 0.62);
+  box-shadow: inset -1px -1px 0 0 var(--line-soft);
+  color: var(--ink);
+  font-size: calc(100cqw / 9 * 0.625);
   line-height: 1;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
 }
 
-.cell:nth-child(9n) {
-  border-right: 0;
-}
-
-.cell:nth-child(n + 73) {
-  border-bottom: 0;
-}
-
-.cell.box-r {
-  border-right: 2px solid var(--line);
-}
-
-.cell.box-b {
-  border-bottom: 2px solid var(--line);
-}
-
 .cell.given {
-  color: var(--fg);
-  font-weight: 700;
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .cell.entry {
   color: var(--entry);
-  font-weight: 600;
+  font-weight: 500;
 }
 
-/* Highlighted digit: warm gold, clearly apart from the cool blue selection. */
+/* Highlighted digit: butter yellow with a 2px ring. */
 .cell.hl {
-  background: var(--hl-bg);
-  color: var(--hl-fg);
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--hl-fg) 45%, transparent);
+  background: var(--highlight);
+  color: var(--highlight-text);
+  box-shadow: inset 0 0 0 2px var(--highlight-ring);
 }
 
+/* The cell-first cursor: sea-glass fill and a heavier navy ring, so it never reads as a highlight. */
 .cell.selected {
-  background: var(--sel-bg);
-  box-shadow: inset 0 0 0 2.5px var(--fg);
+  background: var(--cursor-fill);
+  box-shadow: inset 0 0 0 3px var(--cursor-ring);
 }
 
-/* Mistakes: red tint, wavy underline and a corner mark, so colour is not the only cue. */
+/* Mistakes: red digit on a light red tint, plus a wavy underline and a corner mark (not colour alone). */
 .cell.mistake {
   position: relative;
-  background: var(--bad-bg);
-  color: var(--bad);
-  font-weight: 700;
-  text-decoration: underline wavy var(--bad);
+  background: var(--error-tint);
+  color: var(--error);
+  font-weight: 600;
+  text-decoration: underline wavy var(--error);
   text-decoration-thickness: 2px;
   text-underline-offset: 0.12em;
+  box-shadow: inset -1px -1px 0 0 var(--line-soft);
+}
+
+.cell.mistake.selected {
+  box-shadow: inset 0 0 0 3px var(--cursor-ring);
 }
 
 .cell.mistake::after {
@@ -746,57 +821,52 @@ button:focus-visible {
   right: 0;
   border-style: solid;
   border-width: 0 calc(100cqw / 9 * 0.28) calc(100cqw / 9 * 0.28) 0;
-  border-color: transparent var(--bad) transparent transparent;
-}
-
-.cell.mistake.selected {
-  background: #7a3447;
+  border-color: transparent var(--error) transparent transparent;
 }
 
 .cell:focus-visible {
-  outline: 3px solid var(--fg);
+  outline: 3px solid var(--ink);
   outline-offset: -3px;
 }
 
 .pad {
   display: grid;
   grid-template-columns: repeat(9, minmax(0, 1fr));
-  gap: 4px;
+  gap: 5px;
   width: 100%;
-  max-width: 560px;
+  max-width: 584px;
   margin: 0 auto;
-  padding: 8px 8px 12px;
+  padding: 8px 12px 14px;
 }
 
+/* Number keys: raised glass with a navy drop edge. */
 .digit {
+  position: relative;
   min-width: 0;
   height: 60px;
   padding: 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  font-size: 1.65rem;
-  font-weight: 650;
-  font-variant-numeric: tabular-nums;
-  color: var(--entry);
-  cursor: pointer;
-}
-
-/*
- * Number-first. Three layers on a pad button: ::before is the fill (rises from the bottom while
- * the button is held), ::after repeats the digit in dark ink clipped to the same rising edge so
- * the numeral stays readable on both the filled and unfilled parts, and .lock is the padlock
- * shown once the mode is on. The fill uses a fast-in easing, so a quick tap barely registers.
- */
-.digit {
-  position: relative;
   overflow: hidden;
   isolation: isolate;
-  --fill: #f0c24e;
-  --key-ink: #2a2208;
+  border: 2px solid var(--line-strong);
+  border-radius: 14px;
+  box-shadow: 0 3px 0 var(--line-strong);
+  color: var(--key-text);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  --fill: var(--highlight);
+  --hold-ink: var(--highlight-text);
   --hold-ease: cubic-bezier(0.25, 0.1, 0.6, 1);
 }
 
+/*
+ * Number-first. Three layers on a key: ::before is the fill (rises from the bottom while the key
+ * is held), ::after repeats the digit in the highlight ink clipped to the same rising edge so the
+ * numeral stays readable on both the filled and unfilled parts, and .lock is the padlock shown
+ * once the mode is on. The fill uses a fast-in easing, so a quick tap barely registers.
+ */
 .digit::before,
 .digit::after {
   content: '';
@@ -807,7 +877,7 @@ button:focus-visible {
 
 .digit::before {
   z-index: -1;
-  background: linear-gradient(to top, var(--fill), color-mix(in srgb, var(--fill) 82%, #fff));
+  background: linear-gradient(to top, var(--fill), color-mix(in srgb, var(--fill) 82%, var(--surface-solid)));
   transform: scaleY(0);
   transform-origin: bottom;
   transition: transform 140ms ease-out;
@@ -817,7 +887,7 @@ button:focus-visible {
   content: attr(data-digit);
   display: grid;
   place-items: center;
-  color: var(--key-ink);
+  color: var(--hold-ink);
   clip-path: inset(100% 0 0 0);
   transition: clip-path 140ms ease-out;
 }
@@ -834,21 +904,26 @@ button:focus-visible {
 
 .digit .lock {
   position: absolute;
-  top: 4px;
+  top: 6px;
   left: 50%;
   display: none;
   margin-left: -5.5px;
-  color: var(--key-ink);
+  color: var(--highlight-text);
   line-height: 0;
   pointer-events: none;
 }
 
-/* Locked in: solid gold, dark numeral, padlock. Holding it again drains the gold upwards. */
+/* Selected key (the highlighted digit): yellow, raised 3px with a mustard edge. */
+.digit.active,
 .digit.locked {
-  border-color: var(--fill);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--fill) 35%, transparent), 0 0 14px color-mix(in srgb, var(--fill) 40%, transparent);
+  background: var(--highlight);
+  border-color: var(--highlight-edge);
+  box-shadow: 0 4px 0 var(--highlight-edge);
+  color: var(--highlight-text);
+  transform: translateY(-3px);
 }
 
+/* Locked in (number-first): fully filled, with the padlock. Holding it again drains the fill upwards. */
 .digit.locked::before {
   transform: scaleY(1);
   transition: none;
@@ -874,35 +949,31 @@ button:focus-visible {
   transition: clip-path var(--hold-ms, 450ms) var(--hold-ease);
 }
 
-.digit:active:not(:disabled) {
-  background: var(--surface-hi);
-  transform: scale(0.94);
+.digit:active:not(:disabled):not(.active):not(.locked) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--line-strong);
 }
 
-/* The digit whose cells are highlighted on the board. */
-.digit.active {
-  background: var(--hl-bg);
-  border-color: var(--hl-fg);
-  color: var(--hl-fg);
-}
-
-/* All nine placed: dimmed, dashed outline and a small tick. */
+/* All nine placed: flat glass, dashed edge, a small check. Not tappable. */
 .digit:disabled {
-  background: transparent;
-  border: 1px dashed var(--border);
-  color: var(--muted);
-  opacity: 0.45;
+  background: var(--surface);
+  border: 2px dashed var(--done-edge);
+  box-shadow: none;
+  color: var(--done-text);
   cursor: default;
 }
 
 .digit:disabled::after {
-  content: '\2713';
+  content: '';
   position: absolute;
-  top: 3px;
-  right: 5px;
-  font-size: 0.6rem;
-  font-weight: 700;
-  line-height: 1;
+  top: 6px;
+  left: 50%;
+  width: 11px;
+  height: 11px;
+  margin-left: -5.5px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M2.5 8.5 6.4 12.4 13.5 4' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/></svg>") center / contain no-repeat;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M2.5 8.5 6.4 12.4 13.5 4' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/></svg>") center / contain no-repeat;
 }
 
 /* Pause: the board and pad are hidden (not just covered) and an opaque overlay takes over. */
@@ -951,12 +1022,13 @@ button:focus-visible {
   max-width: none;
 }
 
+
 @media (prefers-reduced-motion: reduce) {
   .icon-btn:active:not(:disabled),
   .digit:active:not(:disabled) {
     transform: none;
   }
-  /* No rising fill: the held button just lights up. */
+  /* No rising fill: the held key just lights up. */
   .digit.holding:not(.locked)::before,
   .digit.holding:not(.locked)::after,
   .digit.locked.holding::before,
@@ -979,7 +1051,20 @@ button:focus-visible {
   }
 }
 
-/* Short landscape: number pad moves beside the board as a 3x3 keypad. */
+/* Narrow phones: tighter header so the status line stays on one line where it can. */
+@media (max-width: 360px) {
+  .topbar {
+    gap: 8px;
+  }
+  .clock {
+    padding-inline: 12px;
+  }
+  .sub {
+    font-size: 13px;
+  }
+}
+
+/* Short landscape: the pad moves beside the board as a 3x3 keypad and the header gets compact. */
 @media (max-height: 520px) and (orientation: landscape) {
   .screen.game-screen {
     grid-template-rows: auto minmax(0, 1fr);
@@ -987,10 +1072,26 @@ button:focus-visible {
   }
   .topbar {
     grid-column: 1 / -1;
-    padding-block: 4px 0;
+    grid-template-columns: 48px minmax(0, 1fr) 48px;
+    padding: 2px 12px 4px;
+  }
+  .icon-btn {
+    width: 48px;
+    height: 48px;
+  }
+  .clock {
+    padding: 4px 14px 3px;
+    gap: 2px;
+    border-radius: 16px;
+  }
+  .time {
+    font-size: 22px;
+  }
+  .sub {
+    font-size: 12px;
   }
   .board-region {
-    padding: 6px;
+    padding: 6px 12px;
   }
   .pad {
     grid-template-columns: repeat(3, 64px);
@@ -1005,9 +1106,6 @@ button:focus-visible {
   .digit {
     height: auto;
     min-height: 56px;
-  }
-  .time {
-    font-size: 1.4rem;
   }
 }
 

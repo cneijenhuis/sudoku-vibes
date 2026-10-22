@@ -22,6 +22,7 @@ import { h } from './dom';
 import { haptics as defaultHaptics, type Haptics } from './haptics';
 import { createLongPress, LONG_PRESS_MS, type LongPress } from './longpress';
 import type { MountedScreen } from './router';
+import { wordmark } from './wordmark';
 
 export interface GameResult {
   elapsedMs: number;
@@ -66,7 +67,7 @@ const PAUSE_ICON =
   '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4.2" height="14" rx="1.4"/><rect x="13.8" y="5" width="4.2" height="14" rx="1.4"/></svg>';
 
 function iconButton(cls: string, label: string, svg: string): HTMLButtonElement {
-  const b = h('button', { class: `icon-btn ${cls}`, attrs: { type: 'button', 'aria-label': label } });
+  const b = h('button', { class: `icon-btn glass ${cls}`, attrs: { type: 'button', 'aria-label': label } });
   b.innerHTML = svg; // static markup defined above
   return b;
 }
@@ -97,13 +98,13 @@ export function gameScreen(
     'header',
     { class: 'topbar' },
     undoBtn,
-    h('div', { class: 'clock' }, timeEl, subEl),
+    h('div', { class: 'clock glass' }, timeEl, subEl),
     pauseBtn,
   );
 
   const cells: HTMLButtonElement[] = [];
   const cache: string[] = [];
-  const board = h('div', { class: 'board', attrs: { role: 'group', 'aria-label': 'Sudoku board' } });
+  const board = h('div', { class: 'board glass', attrs: { role: 'group', 'aria-label': 'Sudoku board' } });
   for (let i = 0; i < CELLS; i++) {
     const r = Math.floor(i / 9);
     const c = i % 9;
@@ -112,13 +113,16 @@ export function gameScreen(
     cells.push(b);
     board.append(b);
   }
-  const region = h('section', { class: 'board-region' }, board);
+  // Decorative: the page title already names the app. The slot collapses to nothing (see --pb in
+  // style.css) whenever the pill would make the board smaller.
+  const pill = h('div', { class: 'wordmark-pill glass' }, wordmark());
+  const region = h('section', { class: 'board-region' }, h('div', { class: 'wordmark-slot', attrs: { 'aria-hidden': 'true' } }, pill), board);
 
   const digitBtns: HTMLButtonElement[] = [];
   const pad = h('div', { class: 'pad', attrs: { role: 'group', 'aria-label': 'Number pad' } });
   pad.style.setProperty('--hold-ms', `${LONG_PRESS_MS}ms`);
   for (let d = 1; d <= 9; d++) {
-    const b = h('button', { class: 'digit', text: String(d), attrs: { type: 'button', 'data-digit': String(d), 'aria-label': `${d}`, 'aria-pressed': 'false' } });
+    const b = h('button', { class: 'digit glass', text: String(d), attrs: { type: 'button', 'data-digit': String(d), 'aria-label': `${d}`, 'aria-pressed': 'false' } });
     const lock = h('span', { class: 'lock', attrs: { 'aria-hidden': 'true' } });
     lock.innerHTML = LOCK_ICON; // static markup defined above
     b.append(lock);
