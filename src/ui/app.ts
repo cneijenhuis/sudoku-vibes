@@ -3,6 +3,7 @@ import { createSaves } from '../storage/save';
 import { gameScreen } from './game';
 import { haptics } from './haptics';
 import { syncHistory } from './history';
+import { buildTag } from './diagnostics';
 import { menuScreen } from './menu';
 import { resultsScreen } from './results';
 import { bindScreens, createRouter, type AppState, type MountedScreen, type Router } from './router';
@@ -13,8 +14,11 @@ const saves = createSaves();
 function buildScreen(state: AppState, router: Router): MountedScreen<HTMLElement> {
   const toMenu = () => router.navigate({ screen: 'menu' });
   switch (state.screen) {
-    case 'menu':
-      return menuScreen({ saved: saves.load(), onChoose: (d) => router.startGame(d), onResume: (s) => router.resumeGame(s), haptics });
+    case 'menu': {
+      const menu = menuScreen({ saved: saves.load(), onChoose: (d) => router.startGame(d), onResume: (s) => router.resumeGame(s), haptics });
+      menu.el.append(buildTag());
+      return menu;
+    }
     case 'loading':
       return loadingScreen(state.difficulty, () => router.cancel());
     case 'error':
