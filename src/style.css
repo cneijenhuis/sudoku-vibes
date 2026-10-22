@@ -1593,3 +1593,11 @@ h2 {
   word-break: break-all;
   color: var(--ink);
 }
+
+html.diag-canvas-test {
+  background: red;
+}
+
+html.diag-canvas-test body::before {
+  display: none;
+}

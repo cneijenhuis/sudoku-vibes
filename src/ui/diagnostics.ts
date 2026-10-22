@@ -52,8 +52,15 @@ export function buildTag(): HTMLElement {
   tag.addEventListener('click', () => {
     const pre = h('pre', { class: 'diag-text', text: 'Collecting...' });
     const close = h('button', { class: 'btn secondary glass', text: 'Close', attrs: { type: 'button' } });
-    const panel = h('div', { class: 'diag glass', attrs: { role: 'dialog', 'aria-label': 'Diagnostics' } }, h('h2', { text: 'Diagnostics' }), pre, close);
-    close.addEventListener('click', () => panel.remove());
+    // Paints the page canvas red and hides the photo layer: shows whether the page can paint at all
+    // in the strip below the layout viewport (iOS home-screen mode).
+    const test = h('button', { class: 'btn secondary glass', text: 'Test: red canvas (tap again to undo)', attrs: { type: 'button' } });
+    const panel = h('div', { class: 'diag glass', attrs: { role: 'dialog', 'aria-label': 'Diagnostics' } }, h('h2', { text: 'Diagnostics' }), pre, test, close);
+    test.addEventListener('click', () => document.documentElement.classList.toggle('diag-canvas-test'));
+    close.addEventListener('click', () => {
+      document.documentElement.classList.remove('diag-canvas-test');
+      panel.remove();
+    });
     document.body.append(panel);
     void collectDiagnostics().then((t) => {
       pre.textContent = t;
