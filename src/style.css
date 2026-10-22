@@ -1072,7 +1072,9 @@ h2 {
 
 /*
  * Landscape (width greater than height): undo, the clock and pause sit in a panel on the right
- * with the digits as a 3x3 keypad below them, so the board gets the full height. The board column
+ * with the digits as a 3x3 keypad below them, so the board gets the full height. The key height
+ * follows the available height (screen height minus safe areas, the two gutters, the bar and the
+ * gaps), so the panel never outgrows the screen; it is at most 110px. The board column
  * is as wide as the screen is tall (so the board is the height minus two gutters, at most the
  * cap) and the panel takes the rest, between 240px and 320px; the pair is centred, so on wide
  * tablets the spare width is split evenly at both sides. Rows: spacer, bar, keypad, spacer, which
@@ -1082,6 +1084,13 @@ h2 {
   .screen.game-screen {
     --app-h: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
     --board-col: min(var(--app-h), calc(var(--board-max) + 2 * var(--board-gutter)));
+    --bar-h: 76px;
+    --key-gap: 8px;
+    --key-h: clamp(
+      var(--tap),
+      calc((var(--app-h) - 2 * var(--board-gutter) - var(--bar-h) - 10px - 2 * var(--key-gap)) / 3),
+      110px
+    );
     --panel-w: clamp(240px, calc(100vw - env(safe-area-inset-left) - env(safe-area-inset-right) - var(--board-col)), 320px);
     grid-template-rows: minmax(0, 1fr) auto auto minmax(0, 1fr);
     grid-template-columns: minmax(0, var(--board-col)) var(--panel-w);
@@ -1096,11 +1105,22 @@ h2 {
     grid-row: 2;
     grid-template-columns: 52px minmax(0, 1fr) 52px;
     gap: 8px;
-    padding: 0 8px 12px;
+    padding: 0 8px 10px;
   }
   .clock {
-    padding: 6px 8px 5px;
+    height: var(--bar-h);
+    padding: 0 8px;
     gap: 4px;
+    justify-content: center;
+  }
+  /* Two fixed lines (level, then mistakes) so the bar has a known height and no stray separator. */
+  .sub {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .sub .sep {
+    display: none;
   }
   .time {
     font-size: 30px;
@@ -1112,14 +1132,13 @@ h2 {
     grid-column: 2;
     grid-row: 3;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
+    gap: var(--key-gap);
     max-width: none;
     margin: 0;
     padding: 0 8px;
   }
   .digit {
-    height: auto;
-    aspect-ratio: 1;
+    height: var(--key-h);
   }
 }
 

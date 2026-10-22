@@ -186,7 +186,12 @@ export function gameScreen(
     });
     undoBtn.disabled = paused || finished || !canUndo(state);
     const n = state.mistakes;
-    subEl.textContent = `${DIFFICULTY_LABELS[game.difficulty]} · ${n} ${n === 1 ? 'mistake' : 'mistakes'}`;
+    // Level and mistakes are separate spans so landscape can stack them without the dot.
+    subEl.replaceChildren(
+      h('span', { text: DIFFICULTY_LABELS[game.difficulty] }),
+      h('span', { class: 'sep', text: ' · ' }),
+      h('span', { text: `${n} ${n === 1 ? 'mistake' : 'mistakes'}` }),
+    );
     subEl.classList.toggle('has-mistakes', n > 0);
     paintTime();
   }
