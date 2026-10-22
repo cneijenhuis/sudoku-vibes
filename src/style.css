@@ -10,6 +10,7 @@
   color-scheme: light;
   --surface: rgba(255, 253, 248, 0.86);
   --surface-solid: #fffdf8;
+  --surface-fallback: rgba(255, 253, 248, 0.94);
   --ink: #10233a;
   --entry: #067684;
   --line-strong: #1e4d6b;
@@ -90,7 +91,7 @@ body::before {
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .glass {
-    background: rgba(255, 253, 248, 0.94);
+    background: var(--surface-fallback);
   }
 }
 
@@ -173,7 +174,6 @@ h2 {
   padding: 0 24px;
   border: 2px solid var(--line-strong);
   border-radius: 14px;
-  background: var(--surface);
   box-shadow: 0 3px 0 var(--line-strong);
   color: var(--key-text);
   font-size: 17px;
@@ -376,8 +376,10 @@ h2 {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  border: 7px solid color-mix(in srgb, var(--level) 25%, var(--surface-solid));
+  /* Solid pale-navy track on the glass disc, a thick half-ring arc in the level colour, navy outline. */
+  border: 9px solid color-mix(in srgb, var(--line-strong) 25%, var(--surface-solid));
   border-top-color: var(--level);
+  border-right-color: var(--level);
   box-shadow: 0 0 0 3px var(--line-strong), 0 4px 0 3px var(--line-strong);
   animation: spin 0.9s linear infinite;
 }
@@ -639,8 +641,13 @@ h2 {
 }
 
 .icon-btn:disabled {
-  opacity: 0.45;
+  /* Keep the glass surface and edge at full strength; only the icon dims. */
+  color: var(--done-text);
   cursor: default;
+}
+
+.icon-btn:disabled svg {
+  opacity: 0.5;
 }
 
 .clock {
@@ -984,7 +991,6 @@ h2 {
 
 /* All nine placed: flat glass, dashed edge, a small check. Not tappable. */
 .digit:disabled {
-  background: var(--surface);
   border: 2px dashed var(--done-edge);
   box-shadow: none;
   color: var(--done-text);

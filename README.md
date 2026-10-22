@@ -51,9 +51,10 @@ surface, shadows; components never use literal colours, which `src/theme/tokens.
 - **Fonts:** Fredoka 500/600/700 (latin subset, SIL OFL, licence in `src/assets/fonts/OFL.txt`) is
   self-hosted with `font-display: swap`, so there are no third-party requests and the service worker
   precaches it for offline play.
-- **Wordmark pill:** the play screen shows a "Sudoku Vibes" pill above the board only when that
-  does not make the board smaller than it would be without it (pure CSS, see `--pb` in
-  `src/style.css`); short phones and landscape hide it.
+- **Wordmark pill:** the play screen shows a "Sudoku Vibes" pill above the board whenever that does
+  not make the board smaller than it would be without it (pure CSS, see `--pb` in `src/style.css`).
+  That is the case whenever the board is width-limited (e.g. 375x667, 320x568, 360x640); it is hidden
+  only when the viewport is height-limited, such as landscape.
 - **Per-level colours** are small accents (bar, pips, chips) kept dark enough for the light glass.
 - **Browser chrome:** `theme-color` and the manifest background are `#F6E9D2`. The iOS status bar
   is `default` (dark text on a light bar) because the white text of `black-translucent` would be

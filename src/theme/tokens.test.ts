@@ -39,6 +39,21 @@ describe('theme tokens', () => {
     expect(afterRoot.match(/#[0-9a-fA-F]{3,8}\b/g) ?? []).toEqual([]);
   });
 
+  it('keeps rgba()/hsl() colour literals out of component rules', () => {
+    const afterRoot = css.slice(css.indexOf('}', css.indexOf(':root {')) + 1);
+    expect(afterRoot.match(/\b(?:rgba?|hsla?)\(/g) ?? []).toEqual([]);
+  });
+
+  it('only the .glass rules set the surface as a background (else they defeat the glass fallbacks)', () => {
+    const offenders: string[] = [];
+    for (const m of css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      const sel = (m[1] ?? '').trim();
+      if (/^\.glass$/.test(sel)) continue;
+      if (/background(?:-color)?:\s*var\(--surface(?:-fallback)?\)/.test(m[2] ?? '')) offenders.push(sel);
+    }
+    expect(offenders).toEqual([]);
+  });
+
   it('declares the glass fallbacks', () => {
     expect(css).toContain('@supports not');
     expect(css).toContain('prefers-reduced-transparency');
