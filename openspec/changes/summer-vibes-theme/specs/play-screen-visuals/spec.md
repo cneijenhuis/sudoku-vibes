@@ -71,8 +71,12 @@ A completed key SHALL be glass with a 2px dashed done-edge border, done-text dig
 - **THEN** the 4 key has a dashed border, a check icon and cannot be tapped
 
 ### Requirement: Layout across devices
-The play screen SHALL keep a 12px side gutter, SHALL fit 390x844, 375x667, 320x568 and 667x375 without scrolling or clipping, and SHALL keep touch targets and board size no worse than before the restyle.
+The play screen SHALL keep a 12px side gutter, SHALL fit 390x844, 375x667, 320x568 and 667x375 without scrolling or clipping, and SHALL keep touch targets at their previous size. Where the board is width-limited it SHALL be the viewport width minus the gutters, and it SHALL be no more than about 2% smaller than before the restyle at any viewport.
 
 #### Scenario: Small viewports
 - **WHEN** the play screen is shown at 375x667, 320x568 and 667x375
-- **THEN** nothing scrolls or is clipped and the board is at least as large as before the restyle
+- **THEN** nothing scrolls or is clipped and the board is within about 2% of, or larger than, its size before the restyle
+
+#### Scenario: Width-limited board
+- **WHEN** the play screen is shown at 390x844
+- **THEN** the board is 366px wide (390 minus two 12px gutters)

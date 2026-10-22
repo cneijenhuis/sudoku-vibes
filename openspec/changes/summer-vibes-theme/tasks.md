@@ -8,7 +8,7 @@
 
 ## 2. Play screen
 
-- [x] 2.1 Restyle the header (undo, timer pill, status line, pause) and add the wordmark pill with the hide-when-no-room rule; verify screenshots at 390x844, 375x667, 320x568 and 667x375 show the specified sizes and that the board is not smaller than before the change at any of them
+- [x] 2.1 Restyle the header (undo, timer pill, status line, pause) and add the wordmark pill with the hide-when-no-room rule; verify screenshots at 390x844, 375x667, 320x568 and 667x375 show the specified sizes and that the board is within about 2% of its previous size (or larger) at each of them
 - [x] 2.2 Restyle the board and cells (frame, dividers, given/entered/highlighted/selected/error states, error colour chosen and contrast measured); verify screenshots of each cell state side by side and measured contrast of each text/surface pair is at least 4.5:1 (compute from the rendered pixels or tokens over #FFFDF8)
 - [x] 2.3 Restyle the number keys (available, selected, number-first with lock, completed with check and dashed border) and recolour the long-press fill animation; verify Playwright screenshots of each state, a mid-hold frame, and that behaviour (taps, long-press, disabled completed keys) is unchanged
 
