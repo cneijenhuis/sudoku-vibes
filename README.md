@@ -32,6 +32,34 @@ Navigation lives in `src/ui/router.ts`; DOM-free game logic (state, stopwatch) l
 `src/game/`. In dev, `?smoke`
 runs a generator smoke test (not included in production builds).
 
+## Look and feel (Summer Vibes)
+
+The app is called **Sudoku Vibes** and uses a light "Summer Vibes" theme: a full-screen beach photo
+behind frosted white glass surfaces, navy grid lines, a butter-yellow highlight and the rounded
+Fredoka typeface. Everything is driven by the tokens at the top of `src/style.css` (colours, glass
+surface, shadows; components never use literal colours, which `src/theme/tokens.test.ts` checks).
+
+- **Glass:** the shared `.glass` class is the 86% white surface with a 3px backdrop blur. Without
+  `backdrop-filter` support it becomes 94% white, and with `prefers-reduced-transparency` it is
+  opaque `#FFFDF8` with no blur.
+- **Background photo:** `src/theme/backgrounds.ts` lists the available backgrounds (id, image,
+  fallback colour, focal position). To add one, put an optimised image (WebP, about 1170 px tall)
+  in `src/assets/backgrounds/` and add an entry; one is picked per page load and exposed to the CSS
+  as `--bg-image`. `index.html` preloads the first entry's image, so with several entries only that
+  one benefits from the preload. The plain fallback colour `#F6E9D2` shows while the photo loads or
+  if it fails.
+- **Fonts:** Fredoka 500/600/700 (latin subset, SIL OFL, licence in `src/assets/fonts/OFL.txt`) is
+  self-hosted with `font-display: swap`, so there are no third-party requests and the service worker
+  precaches it for offline play.
+- **Wordmark pill:** the play screen shows a "Sudoku Vibes" pill above the board only when that
+  does not make the board smaller than it would be without it (pure CSS, see `--pb` in
+  `src/style.css`); short phones and landscape hide it.
+- **Per-level colours** are small accents (bar, pips, chips) kept dark enough for the light glass.
+- **Browser chrome:** `theme-color` and the manifest background are `#F6E9D2`. The iOS status bar
+  is `default` (dark text on a light bar) because the white text of `black-translucent` would be
+  unreadable over the bright photo. The PWA icons still show the earlier dark mark and have not been
+  redrawn (design follow-up).
+
 ## Saving, resuming and the Back button
 
 The game in progress is saved automatically in the browser (`localStorage`, key
