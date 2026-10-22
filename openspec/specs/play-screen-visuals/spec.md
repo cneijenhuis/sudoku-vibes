@@ -12,17 +12,6 @@ The header SHALL show undo (left), the timer pill (centre) and pause (right). Un
 - **WHEN** the play screen is shown
 - **THEN** the undo button, timer pill and pause button appear in one row with the specified sizes and accessible names
 
-### Requirement: Wordmark pill
-Below the header the play screen SHALL show a glass wordmark pill (radius 28px, 56px high, 0 22px padding, same drop edge) containing the wordmark in 30px Fredoka 700 with -0.5px letter spacing and an 8px gap between the words. When the viewport is too short to keep the board at least as large as without the pill, the pill SHALL be hidden.
-
-#### Scenario: Tall phone
-- **WHEN** the play screen is shown at 390x844
-- **THEN** the wordmark pill is visible between the header and the board
-
-#### Scenario: Short phone
-- **WHEN** showing the pill would shrink the board below its size at the same viewport without the pill
-- **THEN** the pill is hidden and the board keeps its larger size
-
 ### Requirement: Board frame
 The board SHALL be a glass surface with a 3px strong-line border, 22px outer radius, board shadow and hidden overflow. 3x3 boxes SHALL be divided by 3px strong-line dividers (each box drawing a 1.5px strong-line edge) and single cells by 1px soft lines.
 
@@ -70,12 +59,16 @@ A completed key SHALL be glass with a 2px dashed done-edge border, done-text dig
 - **THEN** the 4 key has a dashed border, a check icon and cannot be tapped
 
 ### Requirement: Layout across devices
-The play screen SHALL keep a 12px side gutter, SHALL fit 390x844, 375x667, 320x568 and 667x375 without scrolling or clipping, and SHALL keep touch targets at their previous size. Where the board is width-limited it SHALL be the viewport width minus the gutters, and it SHALL be no more than about 2% smaller than before the restyle at any viewport.
+The play screen SHALL give the board and the number keys a 6px side gutter in portrait (the header controls keep a 12px inset), SHALL fit 390x844, 375x667, 320x568, 667x375, 844x390 and 1024x768 without scrolling or clipping, and SHALL keep touch targets at their previous size. Where the board is width-limited it SHALL be the viewport width minus the two gutters, and the board SHALL NOT be smaller than its size before the Summer Vibes restyle at any of those viewports.
 
 #### Scenario: Small viewports
-- **WHEN** the play screen is shown at 375x667, 320x568 and 667x375
-- **THEN** nothing scrolls or is clipped and the board is within about 2% of, or larger than, its size before the restyle
+- **WHEN** the play screen is shown at 375x667, 320x568, 667x375 and 844x390
+- **THEN** nothing scrolls or is clipped and the board is larger than it was before the restyle
 
 #### Scenario: Width-limited board
 - **WHEN** the play screen is shown at 390x844
-- **THEN** the board is 366px wide (390 minus two 12px gutters)
+- **THEN** the board is 378px wide (390 minus two 6px gutters)
+
+#### Scenario: Tablet
+- **WHEN** the play screen is shown at 768x1024
+- **THEN** the board is 720px wide, centred horizontally
