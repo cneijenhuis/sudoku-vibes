@@ -56,10 +56,11 @@ surface, shadows; components never use literal colours, which `src/theme/tokens.
 - **Fonts:** Fredoka 500/600/700 (latin subset, SIL OFL, licence in `src/assets/fonts/OFL.txt`) is
   self-hosted with `font-display: swap`, so there are no third-party requests and the service worker
   precaches it for offline play.
-- **Wordmark pill:** the play screen shows a "Sudoku Vibes" pill above the board whenever that does
-  not make the board smaller than it would be without it (pure CSS, see `--pb` in `src/style.css`).
-  That is the case whenever the board is width-limited (e.g. 375x667, 320x568, 360x640); it is hidden
-  only when the viewport is height-limited, such as landscape.
+- **Play screen layout:** no wordmark on the play screen (it is on the menu). In portrait the board
+  is centred between the bar and the number keys with a 6px side gutter (`--board-gutter`, the header
+  keeps 12px) and is at most 720px. Whenever the screen is landscape (width greater than height) undo,
+  the clock and pause sit in a panel on the right above a 3x3 keypad and the board takes the full
+  height minus the gutter; rotation is pure CSS, so game state is untouched.
 - **Per-level colours** are small accents (bar, pips, chips) kept dark enough for the light glass.
 - **Browser chrome:** `theme-color` and the manifest background are `#F6E9D2`. The iOS status bar
   is `black-translucent`, so the photo runs under the clock and the home-screen app is edge to edge.

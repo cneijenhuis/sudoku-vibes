@@ -33,19 +33,25 @@ Board side in CSS pixels, measured with `getBoundingClientRect` in Chromium (tou
 
 | Viewport | Before | After | Change |
 | --- | --- | --- | --- |
-| 390x844 | 366 | | |
-| 393x852 | 369 | | |
-| 375x667 | 351 | | |
-| 360x640 | 336 | | |
-| 412x915 | 388 | | |
-| 430x932 | 406 | | |
-| 320x568 | 296 | | |
-| 768x1024 | 560 | | |
-| 667x375 | 309 | | |
-| 844x390 | 324 | | |
-| 932x430 | 364 | | |
-| 568x320 | 254 | | |
-| 1024x768 | 560 | | |
-| 1180x820 | 560 | | |
+| 390x844 | 366 | 378 | +12 |
+| 393x852 | 369 | 381 | +12 |
+| 375x667 | 351 | 363 | +12 |
+| 360x640 | 336 | 348 | +12 |
+| 412x915 | 388 | 400 | +12 |
+| 430x932 | 406 | 418 | +12 |
+| 320x568 | 296 | 308 | +12 |
+| 768x1024 | 560 | 720 | +160 |
+| 667x375 | 309 | 363 | +54 |
+| 844x390 | 324 | 378 | +54 |
+| 932x430 | 364 | 418 | +54 |
+| 568x320 | 254 | 308 | +54 |
+| 1024x768 | 560 | 720 | +160 |
+| 1180x820 | 560 | 720 | +160 |
 
 The before numbers for 390x844, 360x640 and 412x915 match the figures in the proposal (366, 336, 388).
+
+Portrait: the space above and below the board is equal at every portrait viewport (for example 146.9 and 146.9 at 390x844, 65.9 and 65.9 at 375x667, 45 and 45 at 320x568) and the board is centred horizontally. Landscape: the board is the viewport height minus 12px (720px at most) and the margin above and below it is equal (6px; 24px at 1024x768, 50px at 1180x820). The keys are at least 72x72 in landscape and 60px tall in portrait, undo and pause are 52x52.
+
+Gutter: 6px was kept. At 320, 375 and 430 widths the rounded frame and shadow still read clearly against the photo and the keys line up with the board edges; 8px (one token, `--board-gutter`) stays the fallback.
+
+Implemented landscape layout: the board column is as wide as the screen is tall (capped at 720px plus the gutters) and the panel takes the remaining width, between 240px and 320px; the two columns are centred as a pair, and the grid rows (spacer, bar, keypad, spacer) centre the panel vertically. The keys are square.

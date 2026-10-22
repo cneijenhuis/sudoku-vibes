@@ -7,9 +7,9 @@
 
 ## 2. Landscape
 
-- [ ] 2.1 Switch the landscape layout to `(orientation: landscape)` with the right-hand panel (undo, timer, pause above the 3x3 keypad), board at full height minus 6px and vertically centred; verify at 568x320, 667x375, 844x390, 932x430, 1024x768 that the board height equals the viewport height minus 12px (capped at 720px), nothing clips or scrolls, all controls are at least 44px, and screenshots look balanced (including the pause overlay and number-first states)
-- [ ] 2.2 Verify rotation: start a game in portrait, make a move and a mistake, rotate to landscape and back with Playwright viewport changes; the board, entries, timer and mode are unchanged
+- [x] 2.1 Switch the landscape layout to `(orientation: landscape)` with the right-hand panel (undo, timer, pause above the 3x3 keypad), board at full height minus 6px and vertically centred; verify at 568x320, 667x375, 844x390, 932x430, 1024x768 that the board height equals the viewport height minus 12px (capped at 720px), nothing clips or scrolls, all controls are at least 44px, and screenshots look balanced (including the pause overlay and number-first states)
+- [x] 2.2 Verify rotation: start a game in portrait, make a move and a mistake, rotate to landscape and back with Playwright viewport changes; the board, entries, timer and mode are unchanged
 
 ## 3. Integration
 
-- [ ] 3.1 Record "after" board sizes for every viewport in the table and confirm none is smaller than before; verify the existing flows (cell-first, number-first with advance, pause, results, resume) still work, `npm run typecheck`, `npm test`, `npm run build` and `openspec validate --all --strict` pass, and update `README.md` (layout section, wordmark text)
+- [x] 3.1 Record "after" board sizes for every viewport in the table and confirm none is smaller than before; verify the existing flows (cell-first, number-first with advance, pause, results, resume) still work, `npm run typecheck`, `npm test`, `npm run build` and `openspec validate --all --strict` pass, and update `README.md` (layout section, wordmark text)
