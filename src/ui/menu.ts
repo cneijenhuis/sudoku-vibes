@@ -5,6 +5,7 @@ import { h } from './dom';
 import type { Haptics } from './haptics';
 import { LEVELS } from './levels';
 import type { MountedScreen } from './router';
+import { wordmark } from './wordmark';
 
 export interface MenuOptions {
   /** The valid saved game, if any; offers Resume and makes starting a new game ask first. */
@@ -31,7 +32,7 @@ export function menuScreen({ saved, onChoose, onResume, haptics }: MenuOptions):
     }
     const btn = h(
       'button',
-      { class: `level level-${difficulty}`, attrs: { type: 'button', 'data-difficulty': String(difficulty) } },
+      { class: `level glass level-${difficulty}`, attrs: { type: 'button', 'data-difficulty': String(difficulty) } },
       h('span', { class: 'level-text' }, h('span', { class: 'level-name', text: label }), h('span', { class: 'level-hint', text: hint })),
       pips,
     );
@@ -56,7 +57,7 @@ export function menuScreen({ saved, onChoose, onResume, haptics }: MenuOptions):
     resumeBtn = h(
       'button',
       {
-        class: `resume accent-${saved.difficulty}`,
+        class: `resume glass accent-${saved.difficulty}`,
         attrs: { type: 'button', 'data-action': 'resume-saved', 'aria-label': `Resume ${level} game, ${time}` },
       },
       play,
@@ -69,15 +70,15 @@ export function menuScreen({ saved, onChoose, onResume, haptics }: MenuOptions):
   }
 
   // --- replace confirmation (in-app sheet, not window.confirm) ----------------
-  const keepBtn = h('button', { class: 'btn secondary', text: 'Keep saved game', attrs: { type: 'button', 'data-action': 'keep-saved' } });
-  const replaceBtn = h('button', { class: 'btn danger', text: 'Start new game', attrs: { type: 'button', 'data-action': 'replace-saved' } });
+  const keepBtn = h('button', { class: 'btn secondary glass', text: 'Keep saved game', attrs: { type: 'button', 'data-action': 'keep-saved' } });
+  const replaceBtn = h('button', { class: 'btn danger glass', text: 'Start new game', attrs: { type: 'button', 'data-action': 'replace-saved' } });
   const sheetText = h('p', { class: 'sheet-text' });
   const sheet = h(
     'div',
     { class: 'sheet-backdrop', attrs: { 'data-testid': 'confirm-sheet' } },
     h(
       'div',
-      { class: 'sheet', attrs: { role: 'alertdialog', 'aria-modal': 'true', 'aria-labelledby': 'sheet-title', 'aria-describedby': 'sheet-desc' } },
+      { class: 'sheet glass', attrs: { role: 'alertdialog', 'aria-modal': 'true', 'aria-labelledby': 'sheet-title', 'aria-describedby': 'sheet-desc' } },
       h('h2', { text: 'Replace saved game?', attrs: { id: 'sheet-title' } }),
       sheetText,
       h('div', { class: 'actions' }, replaceBtn, keepBtn),
@@ -130,7 +131,7 @@ export function menuScreen({ saved, onChoose, onResume, haptics }: MenuOptions):
   let foot: HTMLElement | null = null;
   if (haptics?.supported) {
     const toggle = h('button', {
-      class: 'toggle',
+      class: 'toggle glass',
       attrs: { type: 'button', role: 'switch', 'data-action': 'haptics' },
     });
     const label = h('span', { class: 'toggle-label', text: 'Vibration' });
@@ -154,7 +155,7 @@ export function menuScreen({ saved, onChoose, onResume, haptics }: MenuOptions):
   const el = h(
     'main',
     { class: `screen menu-screen${saved ? ' has-saved' : ''}` },
-    h('header', { class: 'menu-head' }, h('h1', { text: 'Sudoku' }), h('p', { class: 'tagline', text: 'Choose a difficulty' })),
+    h('header', { class: 'menu-head glass' }, wordmark('h1'), h('p', { class: 'tagline', text: 'Choose a difficulty' })),
     ...(resumeBtn ? [resumeBtn] : []),
     h('nav', { class: 'menu-list', attrs: { 'aria-label': 'Difficulty' } }, ...buttons),
     ...(foot ? [foot] : []),

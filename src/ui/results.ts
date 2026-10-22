@@ -34,7 +34,7 @@ const STAR_SVG =
 function stat(label: string, value: string, testid: string): HTMLElement {
   return h(
     'div',
-    { class: 'stat' },
+    { class: 'stat glass' },
     h('span', { class: 'stat-label', text: label }),
     h('span', { class: 'stat-value', text: value, attrs: { 'data-testid': testid } }),
   );
@@ -66,7 +66,7 @@ export function resultsScreen(
 
   const shownAt = performance.now();
   const button = (cls: string, text: string, action: string, run: () => void): HTMLButtonElement => {
-    const b = h('button', { class: `btn ${cls}`, text, attrs: { type: 'button', 'data-action': action } });
+    const b = h('button', { class: `btn ${cls}${cls === 'cta' ? '' : ' glass'}`, text, attrs: { type: 'button', 'data-action': action } });
     b.addEventListener('click', (e) => {
       if (e.timeStamp - shownAt < GHOST_CLICK_MS) return;
       // Lock every action at once; the router also ignores starts while loading.
@@ -89,7 +89,7 @@ export function resultsScreen(
       celebration(),
       h(
         'div',
-        { class: 'status-text' },
+        { class: 'status-text glass' },
         h('h2', { text: copy.title, attrs: { 'data-testid': 'result-title' } }),
         h('p', { class: 'results-message', text: copy.message }),
         h('p', { class: 'level-chip', text: DIFFICULTY_LABELS[played], attrs: { 'data-testid': 'result-level' } }),

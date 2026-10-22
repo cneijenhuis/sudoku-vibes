@@ -14,7 +14,7 @@
 
 ## 3. Other screens and branding
 
-- [ ] 3.1 Re-skin the menu (wordmark header "Sudoku Vibes", glass level buttons with legible accents, Resume card, haptics toggle, confirm sheet), loading/error, pause overlay and results (including the celebration on the light theme); verify screenshots of each at 375x667 and 320x568 with no scrolling and legible text over the photo
+- [x] 3.1 Re-skin the menu (wordmark header "Sudoku Vibes", glass level buttons with legible accents, Resume card, haptics toggle, confirm sheet), loading/error, pause overlay and results (including the celebration on the light theme); verify screenshots of each at 375x667 and 320x568 with no scrolling and legible text over the photo
 - [ ] 3.2 Apply branding: page title, manifest name/short_name and colours, apple title, theme-color, README; check the iOS `apple-mobile-web-app-status-bar-style`; verify the built `dist/index.html` and manifest values and `Page.getInstallabilityErrors` is empty
 
 ## 4. Integration

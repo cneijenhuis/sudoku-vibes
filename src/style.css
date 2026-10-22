@@ -38,16 +38,10 @@
   --c0: #0b6e7c;
   --c1: #1a7a4c;
   --c2: #2a58c8;
-  --c3: #9a5f00;
+  --c3: #8f5800;
   --c4: #a8480f;
   --c5: #8a35b0;
   --level: var(--c2);
-  /* Legacy names still used by screens not yet re-skinned in this change. */
-  --bg: var(--fallback-bg);
-  --fg: var(--ink);
-  --surface-hi: #ffffff;
-  --border: var(--line-strong);
-  --muted: var(--done-text);
 }
 
 *,
@@ -132,12 +126,6 @@ body::before {
   overflow-y: auto;
 }
 
-h1 {
-  margin: 0;
-  font-size: 3rem;
-  letter-spacing: 0.05em;
-}
-
 button,
 [role='button'] {
   min-width: var(--tap);
@@ -170,23 +158,108 @@ button {
 }
 
 button:focus-visible {
-  outline: 3px solid var(--fg);
+  outline: 3px solid var(--ink);
   outline-offset: 2px;
+}
+
+h1,
+h2 {
+  margin: 0;
+}
+
+/* Raised glass key shared by the buttons of every screen: navy edge, solid navy drop edge. */
+.btn {
+  min-height: 52px;
+  padding: 0 24px;
+  border: 2px solid var(--line-strong);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 3px 0 var(--line-strong);
+  color: var(--key-text);
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--line-strong);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Primary actions use the butter-yellow of the selected key. */
+.btn.primary,
+.btn.cta {
+  background: var(--highlight);
+  border-color: var(--highlight-edge);
+  box-shadow: 0 3px 0 var(--highlight-edge);
+  color: var(--highlight-text);
+}
+
+.btn.primary:active:not(:disabled),
+.btn.cta:active:not(:disabled) {
+  box-shadow: 0 1px 0 var(--highlight-edge);
+}
+
+/* Destructive: red text and edge on glass (red is never used as a fill outside error cells). */
+.btn.danger {
+  border-color: var(--error);
+  box-shadow: 0 3px 0 var(--error);
+  color: var(--error);
+}
+
+.btn.danger:active:not(:disabled) {
+  box-shadow: 0 1px 0 var(--error);
+}
+
+.btn.ghost {
+  border-color: var(--level);
+  box-shadow: 0 3px 0 var(--level);
+}
+
+.btn.ghost:active:not(:disabled) {
+  box-shadow: 0 1px 0 var(--level);
+}
+
+.btn.text {
+  border-color: var(--done-edge);
+  box-shadow: none;
+  color: var(--key-text);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 320px;
 }
 
 /* Start menu */
 .menu-screen {
-  gap: 20px;
+  gap: 18px;
 }
 
 .menu-head {
+  padding: 10px 26px 12px;
+  border-radius: 28px;
+  box-shadow: 0 3px 0 var(--line-strong);
   text-align: center;
 }
 
+.menu-head .wordmark {
+  display: block;
+  font-size: 36px;
+}
+
 .tagline {
-  margin: 6px 0 0;
-  color: var(--muted);
-  font-size: 1rem;
+  margin: 4px 0 0;
+  color: var(--key-text);
+  font-size: 16px;
 }
 
 .menu-list {
@@ -194,29 +267,30 @@ button:focus-visible {
   max-width: 420px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .level {
   flex: 0 0 auto;
   width: 100%;
-  min-height: 56px;
-  padding: 8px 16px 8px 14px;
+  min-height: 58px;
+  padding: 8px 16px 8px 22px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   text-align: left;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 6px solid var(--level);
+  border: 2px solid var(--line-strong);
   border-radius: 14px;
+  /* The level colour is a bar down the left edge, inside the navy frame. */
+  box-shadow: inset 8px 0 0 0 var(--level), 0 3px 0 var(--line-strong);
+  color: var(--ink);
   cursor: pointer;
 }
 
 .level:active:not(:disabled) {
-  background: var(--surface-hi);
-  transform: scale(0.985);
+  transform: translateY(2px);
+  box-shadow: inset 8px 0 0 0 var(--level), 0 1px 0 var(--line-strong);
 }
 
 .level:disabled {
@@ -231,13 +305,13 @@ button:focus-visible {
 }
 
 .level-name {
-  font-size: 1.15rem;
-  font-weight: 650;
+  font-size: 19px;
+  font-weight: 600;
 }
 
 .level-hint {
-  font-size: 0.85rem;
-  color: var(--muted);
+  font-size: 14px;
+  color: var(--key-text);
 }
 
 .pips {
@@ -247,17 +321,17 @@ button:focus-visible {
 }
 
 .pips i {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  background: var(--border);
+  background: var(--line-soft);
 }
 
 .pips i.on {
   background: var(--level);
 }
 
-/* Loading, error, game */
+/* Loading, error, results: a glass card over the photo. */
 .loading-screen,
 .error-screen,
 .results-screen {
@@ -265,36 +339,46 @@ button:focus-visible {
   gap: 20px;
 }
 
+.status-text {
+  max-width: 340px;
+  padding: 18px 26px 20px;
+  border: 3px solid var(--line-strong);
+  border-radius: 22px;
+  box-shadow: var(--shadow-board);
+}
+
 .status-text h2 {
-  margin: 0;
-  font-size: 1.5rem;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ink);
 }
 
 .status-level {
   margin: 6px 0 0;
-  font-size: 1.1rem;
-  color: var(--level, var(--muted));
+  font-size: 18px;
   font-weight: 600;
+  color: var(--level);
 }
 
 .error-screen .status-level {
-  color: var(--muted);
+  color: var(--key-text);
 }
 
 .error-message {
   margin: 12px auto 0;
   max-width: 320px;
-  color: var(--muted);
-  font-size: 0.95rem;
+  color: var(--ink);
+  font-size: 15px;
   overflow-wrap: anywhere;
 }
 
 .spinner {
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  border: 5px solid var(--border);
+  border: 7px solid color-mix(in srgb, var(--level) 25%, var(--surface-solid));
   border-top-color: var(--level);
+  box-shadow: 0 0 0 3px var(--line-strong), 0 4px 0 3px var(--line-strong);
   animation: spin 0.9s linear infinite;
 }
 
@@ -308,48 +392,15 @@ button:focus-visible {
   .spinner {
     animation-duration: 3s;
   }
-  .level:active:not(:disabled) {
+  .level:active:not(:disabled),
+  .btn:active:not(:disabled) {
     transform: none;
   }
-}
-
-.actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-  max-width: 320px;
-}
-
-.btn {
-  min-height: 52px;
-  padding: 0 24px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  font-weight: 600;
-  font-size: 1.05rem;
-  cursor: pointer;
-}
-
-.btn:active {
-  background: var(--surface-hi);
-}
-
-.btn.primary {
-  background: #4a7ae0;
-  border-color: #4a7ae0;
-  color: #fff;
-}
-
-.btn.primary:active {
-  background: #3f6bc9;
 }
 
 /* Results */
 .results-screen {
   gap: 18px;
-  background: radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--level) 16%, transparent), transparent 70%);
 }
 
 .results-hero,
@@ -366,27 +417,30 @@ button:focus-visible {
   gap: 18px;
 }
 
+.results-hero .status-text {
+  width: 100%;
+}
+
 .results-hero .status-text h2 {
-  font-size: 2rem;
-  letter-spacing: 0.01em;
+  font-size: 32px;
 }
 
 .results-message {
   margin: 6px 0 0;
-  color: var(--muted);
-  font-size: 0.95rem;
+  color: var(--ink);
+  font-size: 16px;
 }
 
 .level-chip {
   display: inline-block;
   margin: 12px 0 0;
-  padding: 5px 14px;
+  padding: 5px 16px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--level) 60%, transparent);
-  background: color-mix(in srgb, var(--level) 16%, transparent);
-  color: var(--level);
-  font-weight: 650;
-  font-size: 0.95rem;
+  border: 2px solid var(--level);
+  background: var(--surface-solid);
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 16px;
 }
 
 .stats {
@@ -400,62 +454,32 @@ button:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 14px 8px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  padding: 12px 8px 10px;
+  border: 2px solid var(--line-strong);
   border-radius: 14px;
+  box-shadow: 0 3px 0 var(--line-strong);
 }
 
 .stat-label {
-  color: var(--muted);
-  font-size: 0.8rem;
+  color: var(--key-text);
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
 
 .stat-value {
-  font-size: 2rem;
+  font-size: 32px;
   font-weight: 700;
+  line-height: 1.1;
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
 
 .results-screen .actions {
-  gap: 10px;
+  gap: 12px;
 }
 
-.btn.cta {
-  background: var(--level);
-  border-color: var(--level);
-  color: #121826;
-  box-shadow: 0 6px 18px color-mix(in srgb, var(--level) 35%, transparent);
-}
-
-.btn.cta:active:not(:disabled) {
-  background: color-mix(in srgb, var(--level) 82%, #000);
-}
-
-.btn.ghost {
-  background: transparent;
-  border-color: color-mix(in srgb, var(--level) 70%, transparent);
-  color: var(--fg);
-}
-
-.btn.ghost:active:not(:disabled) {
-  background: color-mix(in srgb, var(--level) 18%, transparent);
-}
-
-.btn.text {
-  background: transparent;
-  border-color: transparent;
-  color: var(--muted);
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-/* Celebration: a badge that pops in, two expanding rings and a ring of sparks. CSS only. */
+/* Celebration: a medal that pops in, two expanding rings and a ring of sparks. CSS only. */
 .celebrate {
   position: relative;
   width: 168px;
@@ -474,9 +498,9 @@ button:focus-visible {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  color: #121826;
-  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--level) 70%, #fff), var(--level) 70%);
-  box-shadow: 0 0 0 6px color-mix(in srgb, var(--level) 22%, transparent), 0 8px 28px color-mix(in srgb, var(--level) 45%, transparent);
+  color: var(--surface-solid);
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--level) 65%, var(--surface-solid)), var(--level) 70%);
+  box-shadow: 0 0 0 5px var(--surface-solid), 0 0 0 8px var(--line-strong), var(--shadow-board);
   animation: badge-pop 700ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
 }
 
@@ -497,7 +521,8 @@ button:focus-visible {
   width: 84px;
   height: 84px;
   border-radius: 50%;
-  border: 3px solid var(--level);
+  border: 3px solid var(--highlight-ring);
+  box-shadow: 0 0 0 2px var(--surface-solid);
   opacity: 0;
   animation: ring-out 1.5s ease-out 120ms both;
 }
@@ -506,19 +531,22 @@ button:focus-visible {
   animation-delay: 400ms;
 }
 
+/* Sparks keep a white halo so they read on both sky and sand. */
 .spark {
-  width: 9px;
-  height: 9px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: var(--level);
+  box-shadow: 0 0 0 2px var(--surface-solid);
   opacity: 0;
   animation: spark-out 1.4s cubic-bezier(0.15, 0.7, 0.3, 1) var(--delay, 0ms) both;
 }
 
 .spark.big {
-  width: 12px;
-  height: 12px;
-  background: #fff;
+  width: 14px;
+  height: 14px;
+  background: var(--highlight);
+  box-shadow: 0 0 0 2px var(--highlight-edge);
 }
 
 @keyframes badge-pop {
@@ -535,7 +563,7 @@ button:focus-visible {
 @keyframes ring-out {
   0% {
     transform: scale(0.8);
-    opacity: 0.8;
+    opacity: 0.9;
   }
   100% {
     transform: scale(2);
@@ -976,7 +1004,8 @@ button:focus-visible {
   mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M2.5 8.5 6.4 12.4 13.5 4' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/></svg>") center / contain no-repeat;
 }
 
-/* Pause: the board and pad are hidden (not just covered) and an opaque overlay takes over. */
+/* Pause: the board and header are hidden (not just covered); a glass card sits over the photo. */
+.game-screen.paused .topbar,
 .game-screen.paused .board-region,
 .game-screen.paused .pad {
   visibility: hidden;
@@ -989,7 +1018,6 @@ button:focus-visible {
   display: grid;
   place-items: center;
   padding: 16px;
-  background: var(--bg);
 }
 
 .overlay[hidden] {
@@ -1003,17 +1031,23 @@ button:focus-visible {
   gap: 16px;
   width: 100%;
   max-width: 320px;
+  padding: 24px 22px 22px;
+  border: 3px solid var(--line-strong);
+  border-radius: 22px;
+  box-shadow: var(--shadow-board);
 }
 
 .overlay-card h2 {
-  margin: 0;
-  font-size: 1.8rem;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--ink);
 }
 
 .paused-time {
   margin: -8px 0 4px;
-  font-size: 2.4rem;
-  font-weight: 700;
+  font-size: 44px;
+  font-weight: 600;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
   color: var(--level);
 }
@@ -1021,7 +1055,6 @@ button:focus-visible {
 .overlay .actions {
   max-width: none;
 }
-
 
 @media (prefers-reduced-motion: reduce) {
   .icon-btn:active:not(:disabled),
@@ -1115,11 +1148,14 @@ button:focus-visible {
     padding: 8px 16px;
     gap: 10px;
   }
-  h1 {
-    font-size: 2rem;
-  }
   .menu-screen {
-    gap: 14px;
+    gap: 10px;
+  }
+  .menu-head {
+    padding: 6px 22px 8px;
+  }
+  .menu-head .wordmark {
+    font-size: 28px;
   }
   .tagline {
     display: none;
@@ -1162,8 +1198,14 @@ button:focus-visible {
   .results-hero {
     gap: 8px;
   }
+  .results-hero .status-text {
+    padding: 12px 20px 14px;
+  }
   .results-hero .status-text h2 {
-    font-size: 1.7rem;
+    font-size: 28px;
+  }
+  .results-message {
+    font-size: 15px;
   }
   .level-chip {
     margin-top: 8px;
@@ -1172,13 +1214,13 @@ button:focus-visible {
     gap: 12px;
   }
   .stat {
-    padding: 10px 8px;
+    padding: 8px 8px 7px;
   }
   .stat-value {
-    font-size: 1.7rem;
+    font-size: 28px;
   }
   .results-screen .actions {
-    gap: 8px;
+    gap: 10px;
   }
   .results-screen .btn {
     min-height: 48px;
@@ -1221,17 +1263,20 @@ button:focus-visible {
   .results-hero {
     gap: 8px;
   }
+  .results-hero .status-text {
+    padding: 10px 18px 12px;
+  }
   .results-hero .status-text h2 {
-    font-size: 1.6rem;
+    font-size: 26px;
   }
   .level-chip {
     margin-top: 8px;
   }
   .stat {
-    padding: 8px;
+    padding: 6px 8px 5px;
   }
   .stat-value {
-    font-size: 1.6rem;
+    font-size: 26px;
   }
   .btn {
     min-height: 46px;
@@ -1243,22 +1288,22 @@ button:focus-visible {
   flex: 0 0 auto;
   width: 100%;
   max-width: 420px;
-  min-height: 60px;
+  min-height: 64px;
   padding: 8px 16px 8px 12px;
   display: flex;
   align-items: center;
   gap: 14px;
   text-align: left;
-  background: var(--surface);
-  border: 2px solid var(--level);
+  border: 2px solid var(--line-strong);
   border-radius: 14px;
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--level) 16%, transparent);
+  box-shadow: 0 3px 0 var(--line-strong);
+  color: var(--ink);
   cursor: pointer;
 }
 
 .resume:active:not(:disabled) {
-  background: var(--surface-hi);
-  transform: scale(0.985);
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--line-strong);
 }
 
 .resume:disabled {
@@ -1268,13 +1313,13 @@ button:focus-visible {
 
 .resume-play {
   flex: none;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   display: grid;
   place-items: center;
   background: var(--level);
-  color: #0f1522;
+  color: var(--surface-solid);
 }
 
 .resume-text {
@@ -1284,13 +1329,13 @@ button:focus-visible {
 }
 
 .resume-title {
-  font-size: 1.15rem;
+  font-size: 20px;
   font-weight: 700;
 }
 
 .resume-sub {
-  font-size: 0.9rem;
-  color: var(--level);
+  font-size: 15px;
+  color: var(--key-text);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -1304,7 +1349,7 @@ button:focus-visible {
   justify-content: center;
   padding: 16px;
   padding-bottom: calc(16px + env(safe-area-inset-bottom));
-  background: rgba(8, 11, 20, 0.66);
+  background: color-mix(in srgb, var(--ink) 40%, transparent);
 }
 
 .sheet-backdrop[hidden] {
@@ -1320,35 +1365,25 @@ button:focus-visible {
   align-items: center;
   gap: 10px;
   text-align: center;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.4);
+  border: 3px solid var(--line-strong);
+  border-radius: 22px;
+  box-shadow: var(--shadow-board);
 }
 
 .sheet h2 {
-  margin: 0;
-  font-size: 1.3rem;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
 }
 
 .sheet-text {
   margin: 0 0 6px;
-  color: var(--muted);
+  color: var(--ink);
   line-height: 1.4;
 }
 
 .sheet .actions {
   max-width: none;
-}
-
-.btn.danger {
-  background: #c24a56;
-  border-color: #c24a56;
-  color: #fff;
-}
-
-.btn.danger:active:not(:disabled) {
-  background: #a83c47;
 }
 
 /* Menu: compact spacing on shorter phones so Resume card + haptics toggle still fit unscrolled */
@@ -1357,55 +1392,73 @@ button:focus-visible {
     gap: 12px;
     padding-block: 12px;
   }
-  .menu-screen h1 {
-    font-size: 2.4rem;
+  .menu-head {
+    padding: 6px 24px 8px;
+  }
+  .menu-head .wordmark {
+    font-size: 32px;
   }
   .menu-screen .tagline {
     margin-top: 2px;
+    font-size: 15px;
   }
   .menu-screen .menu-list {
-    gap: 8px;
+    gap: 9px;
   }
   .menu-screen .level {
-    min-height: 50px;
+    min-height: 52px;
     padding-block: 5px;
   }
   .menu-screen .level-hint {
-    font-size: 0.8rem;
+    font-size: 13px;
   }
   .menu-screen .resume {
-    min-height: 54px;
+    min-height: 58px;
     padding-block: 5px;
   }
   .menu-screen .resume-play {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
   }
 }
 
 @media (max-height: 620px) and (orientation: portrait) {
   .menu-screen {
     gap: 8px;
-    padding-block: 10px;
+    padding-block: 8px;
   }
-  .menu-screen h1 {
-    font-size: 2rem;
+  .menu-head {
+    padding: 4px 22px 6px;
+  }
+  .menu-head .wordmark {
+    font-size: 28px;
   }
   .menu-screen .tagline {
-    font-size: 0.9rem;
+    font-size: 14px;
+    margin-top: 0;
   }
   .menu-screen .menu-list {
-    gap: 6px;
+    gap: 7px;
   }
   .menu-screen .level {
     min-height: 46px;
     padding-block: 3px;
   }
   .menu-screen .level-name {
-    font-size: 1.1rem;
+    font-size: 17px;
   }
   .menu-screen .level-text {
     gap: 0;
+  }
+  .menu-screen .resume {
+    min-height: 52px;
+  }
+  .menu-screen .resume-play {
+    width: 36px;
+    height: 36px;
+  }
+  .menu-screen .resume-title {
+    font-size: 18px;
   }
 }
 
@@ -1423,23 +1476,24 @@ button:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: transparent;
-  border: 1px solid var(--border);
+  border: 2px solid var(--line-strong);
   border-radius: 999px;
-  color: var(--muted);
-  font-size: 0.95rem;
+  box-shadow: 0 3px 0 var(--line-strong);
+  color: var(--key-text);
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
 }
 
 .toggle:active {
-  background: var(--surface);
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--line-strong);
 }
 
 .toggle-state {
   min-width: 1.6em;
   text-align: left;
-  font-weight: 650;
-  color: var(--fg);
+  color: var(--ink);
 }
 
 .toggle-track {
@@ -1447,7 +1501,7 @@ button:focus-visible {
   width: 42px;
   height: 26px;
   border-radius: 13px;
-  background: var(--border);
+  background: var(--done-edge);
   transition: background 0.15s;
 }
 
@@ -1458,7 +1512,7 @@ button:focus-visible {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--fg);
+  background: var(--surface-solid);
   transition: transform 0.15s;
 }
 
@@ -1474,5 +1528,8 @@ button:focus-visible {
   .toggle-track,
   .toggle-track i {
     transition: none;
+  }
+  .toggle:active {
+    transform: none;
   }
 }

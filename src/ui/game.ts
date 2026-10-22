@@ -132,11 +132,11 @@ export function gameScreen(
 
   const pausedTime = h('p', { class: 'paused-time', attrs: { 'data-testid': 'paused-time' } });
   const resumeBtn = h('button', { class: 'btn primary', text: 'Resume', attrs: { type: 'button', 'data-action': 'resume' } });
-  const quitBtn = h('button', { class: 'btn secondary', text: 'Quit to menu', attrs: { type: 'button', 'data-action': 'quit' } });
+  const quitBtn = h('button', { class: 'btn secondary glass', text: 'Quit to menu', attrs: { type: 'button', 'data-action': 'quit' } });
   const overlay = h(
     'div',
     { class: 'overlay', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Paused' } },
-    h('div', { class: 'overlay-card' }, h('h2', { text: 'Paused' }), pausedTime, h('div', { class: 'actions' }, resumeBtn, quitBtn)),
+    h('div', { class: 'overlay-card glass' }, h('h2', { text: 'Paused' }), pausedTime, h('div', { class: 'actions' }, resumeBtn, quitBtn)),
   );
   overlay.hidden = true;
 

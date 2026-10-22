@@ -34,6 +34,11 @@ describe('theme tokens', () => {
     });
   }
 
+  it('keeps literal hex colours out of component rules (only the :root token block has them)', () => {
+    const afterRoot = css.slice(css.indexOf('}', css.indexOf(':root {')) + 1);
+    expect(afterRoot.match(/#[0-9a-fA-F]{3,8}\b/g) ?? []).toEqual([]);
+  });
+
   it('declares the glass fallbacks', () => {
     expect(css).toContain('@supports not');
     expect(css).toContain('prefers-reduced-transparency');
