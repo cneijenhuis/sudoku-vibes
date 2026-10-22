@@ -10,6 +10,9 @@ context: |
   no text selection or context menu on long-press, respect safe-area insets.
   Six difficulty levels: Super Easy, Easy, Medium, Hard, Extreme, Almost Impossible.
   Generated puzzles must always have exactly one solution.
+  The app is called "Sudoku Vibes" and has a light "Summer Vibes" theme (beach photo on the page
+  canvas, frosted glass surfaces, Fredoka, self-hosted assets so it works offline). It runs as an
+  installed iOS/Android home-screen app, where the viewport can be shorter than the screen.
 
 # Project context (optional)
 # Add only constraints that should guide OpenSpec artifacts and workflows.

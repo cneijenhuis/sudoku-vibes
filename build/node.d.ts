@@ -27,5 +27,3 @@ declare module 'node:crypto' {
   }
   export function createHash(algorithm: string): Hash;
 }
-
-declare const process: { env: Record<string, string | undefined> };

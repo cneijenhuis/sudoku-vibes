@@ -47,7 +47,12 @@ surface, shadows; components never use literal colours, which `src/theme/tokens.
   in `src/assets/backgrounds/` and add an entry; one is picked per page load and exposed to the CSS
   as `--bg-image`. `index.html` preloads the first entry's image, so with several entries only that
   one benefits from the preload. The plain fallback colour `#F6E9D2` shows while the photo loads or
-  if it fails.
+  if it fails. The photo is the page canvas (the `<html>` background), not a fixed layer. In iOS
+  home-screen mode the layout viewport is shorter than the screen (e.g. 793 against 852 points, the
+  status-bar height) and fixed layers stop at that edge, which left a beige strip under the app;
+  `src/theme/canvas.ts` therefore sets `--canvas-h` to the screen height there so the photo covers
+  everything. It re-checks on load timers and on resize, focus, visibility and touch events, and
+  decides the same way once the viewport has grown, which keeps it from flickering.
 - **Fonts:** Fredoka 500/600/700 (latin subset, SIL OFL, licence in `src/assets/fonts/OFL.txt`) is
   self-hosted with `font-display: swap`, so there are no third-party requests and the service worker
   precaches it for offline play.
@@ -57,9 +62,8 @@ surface, shadows; components never use literal colours, which `src/theme/tokens.
   only when the viewport is height-limited, such as landscape.
 - **Per-level colours** are small accents (bar, pips, chips) kept dark enough for the light glass.
 - **Browser chrome:** `theme-color` and the manifest background are `#F6E9D2`. The iOS status bar
-  is `default` (dark text on a light bar) because the white text of `black-translucent` would be
-  unreadable over the bright photo. The PWA icons still show the earlier dark mark and have not been
-  redrawn (design follow-up).
+  is `black-translucent`, so the photo runs under the clock and the home-screen app is edge to edge.
+  The PWA icons still show the earlier dark mark and have not been redrawn (design follow-up).
 
 ## Saving, resuming and the Back button
 
