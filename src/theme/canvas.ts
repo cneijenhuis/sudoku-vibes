@@ -24,8 +24,10 @@ export function canvasHeight(env: CanvasEnv): number | null {
   const long = Math.max(env.screenWidth, env.screenHeight);
   const short = Math.min(env.screenWidth, env.screenHeight);
   const target = Math.max(env.outerHeight, landscape ? short : long);
+  // `>= 0`, not `> 0`: once the root is as tall as the screen, iOS may report the full height as the
+  // viewport; deciding the same way in both states stops the height flipping back and forth.
   const extra = target - env.innerHeight;
-  return extra > 0 && extra <= 120 ? target : null;
+  return extra >= 0 && extra <= 120 ? target : null;
 }
 
 function isStandalone(win: Window): boolean {

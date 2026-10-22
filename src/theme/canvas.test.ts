@@ -16,8 +16,13 @@ describe('canvasHeight', () => {
     expect(canvasHeight({ ...iphone, standalone: false })).toBeNull();
   });
 
-  it('keeps the normal height when the viewport already fills the screen', () => {
-    expect(canvasHeight({ ...iphone, innerHeight: 852 })).toBeNull();
+  it('gives the same answer whether or not the viewport has already grown to the screen height (no flicker)', () => {
+    expect(canvasHeight({ ...iphone, innerHeight: 793 })).toBe(852);
+    expect(canvasHeight({ ...iphone, innerHeight: 852 })).toBe(852);
+  });
+
+  it('keeps the normal height when the viewport is taller than the screen', () => {
+    expect(canvasHeight({ ...iphone, innerHeight: 900 })).toBeNull();
   });
 
   it('ignores implausibly large differences', () => {
