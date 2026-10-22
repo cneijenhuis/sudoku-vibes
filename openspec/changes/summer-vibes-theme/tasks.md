@@ -19,4 +19,4 @@
 
 ## 4. Integration
 
-- [ ] 4.1 Verify the full flow in Playwright on the built site from a sub-path (menu, start, play incl. number-first, pause, finish, results, resume), offline reload with the photo and fonts served from the service worker cache, and no console errors; verify `npm run typecheck`, `npm test`, `npm run build` and `openspec validate --all --strict` pass, and that the existing unit tests still pass unchanged apart from copy that mentions the old name
+- [x] 4.1 Verify the full flow in Playwright on the built site from a sub-path (menu, start, play incl. number-first, pause, finish, results, resume), offline reload with the photo and fonts served from the service worker cache, and no console errors; verify `npm run typecheck`, `npm test`, `npm run build` and `openspec validate --all --strict` pass, and that the existing unit tests still pass unchanged apart from copy that mentions the old name
