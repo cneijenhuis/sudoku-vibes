@@ -122,6 +122,7 @@ npm run typecheck  # tsc --noEmit (strict)
 npm test           # run Vitest once
 npm run build      # production build into dist/
 npm run preview    # serve dist/ locally
+npm run e2e:smoke  # browser smoke test of the built site (needs `npm run build` and Playwright, see tools/e2e)
 ```
 
 ## Deployment (GitHub Pages)

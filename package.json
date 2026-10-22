@@ -8,7 +8,8 @@
     "build": "vite build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "e2e:smoke": "node tools/e2e/smoke.mjs"
   },
   "devDependencies": {
     "typescript": "^7.0.2",
