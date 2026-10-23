@@ -6,7 +6,7 @@ Defines what the player sees while playing: the board, top bar and number pad, a
 ## Requirements
 
 ### Requirement: Screen layout
-In portrait the game screen SHALL show, top to bottom, a bar with a pause button on the left and the running time centred; the 9x9 board; the digits 1 to 9 in a row; and below them an action row with the undo button, key-sized, under the 1, the redo button next to it (under the 2) while there is something to redo, and the pencil button, key-sized, under the 9. The free space between bar and action row SHALL be split into three equal gaps. No wordmark.
+In portrait the game screen SHALL show, top to bottom, a bar with a pause button on the left and the running time centred; the 9x9 board; the digits 1 to 9 in a row; and below them an action row with the undo button, key-sized, under the 1, the redo button next to it while there is something to redo, the eraser, key-sized, under the 8 once notes exist, and the pencil button, key-sized, under the 9. The free space between bar and action row SHALL be split into three equal gaps. No wordmark.
 
 #### Scenario: Phone portrait
 - **WHEN** the game screen is shown at 375x667 CSS pixels
@@ -24,6 +24,10 @@ In portrait the game screen SHALL show, top to bottom, a bar with a pause button
 - **WHEN** the game screen is shown in portrait and an entry has been undone
 - **THEN** undo is under the 1 and redo under the 2, both the size of a digit key, and the pause button is at the left of the top bar
 
+#### Scenario: Eraser is key-sized
+- **WHEN** the game screen is shown in portrait and a note exists
+- **THEN** the eraser is under the 8, the size of a digit key, with the pencil under the 9
+
 ### Requirement: Portrait board size
 In portrait the board SHALL be a square sized to the largest size that fits between the top bar and the number keys, at most 720 CSS pixels.
 
@@ -32,7 +36,7 @@ In portrait the board SHALL be a square sized to the largest size that fits betw
 - **THEN** the board is 378px wide and nothing is clipped or scrolls
 
 ### Requirement: Landscape panel
-In every landscape viewport (width greater than height) the pause button and the timer SHALL sit in a panel on the right together with the digits as a 3x3 keypad and, below it, a compact row with undo and redo at the left and the pencil at the right, and the board SHALL use the full height minus a 6px margin, centred vertically in the area left of the panel.
+In every landscape viewport (width greater than height) the pause button and the timer SHALL sit in a panel on the right together with the digits as a 3x3 keypad and, below it, a compact row with undo and redo at the left and the eraser and pencil at the right, and the board SHALL use the full height minus a 6px margin, centred vertically in the area left of the panel.
 
 #### Scenario: Landscape panel
 - **WHEN** the game screen is shown at 844x390 or at 1024x768
@@ -43,7 +47,7 @@ In every landscape viewport (width greater than height) the pause button and the
 - **THEN** the layout switches to the right-hand panel without losing any game state
 
 ### Requirement: Fits any viewport
-The pause button SHALL be at least 44 CSS pixels in both dimensions and each digit, undo, redo and pencil button at least 44 CSS pixels tall. Narrow undo, redo and pencil buttons SHALL get a transparent touch area at least 44px wide where no neighbouring button is closer; neighbouring areas meet midway between the buttons. The whole game screen SHALL fit without clipping or scrolling.
+The pause button SHALL be at least 44 CSS pixels in both dimensions and each digit, undo, redo, eraser and pencil button at least 44 CSS pixels tall. Narrow action-row buttons SHALL get a transparent touch area at least 44px wide where no neighbouring button is closer; neighbouring areas meet midway between the buttons. The whole game screen SHALL fit without clipping or scrolling.
 
 #### Scenario: Small or landscape screens
 - **WHEN** the viewport is 320x568 or 667x375

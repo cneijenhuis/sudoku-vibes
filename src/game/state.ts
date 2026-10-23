@@ -312,7 +312,7 @@ export function redo(state: GameState): GameState {
   return place(state, move.index, move.value, true);
 }
 
-/** The mode to act on: number-first only while its active digit is set and not yet complete. */
+/** The mode to act on: number-first only while its active digit is set and not yet complete, or the eraser is active. */
 export function activeMode(state: GameState): InputMode {
   if (state.mode !== 'number-first') return 'cell-first';
   if (state.erasing) return 'number-first';
@@ -345,8 +345,8 @@ export function longPressDigit(state: GameState, digit: number): GameState {
 /**
  * A tap on a board cell. Cell-first: select it. Number-first: an empty cell receives the active
  * digit (unselected; blocked while a mistake is on the board) or, with notes mode on, toggles it
- * as a note, a filled cell makes its digit
- * the active one unless that digit is complete.
+ * as a note, a filled cell makes its digit the active one unless that digit is complete. With
+ * the eraser active, an empty cell loses its notes and a filled cell does nothing.
  */
 export function tapCell(state: GameState, index: number): GameState {
   if (activeMode(state) === 'cell-first') return select(state, index);
