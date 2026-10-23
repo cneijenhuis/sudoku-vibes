@@ -883,6 +883,7 @@ h2 {
 }
 
 .notes-btn {
+  position: relative;
   grid-column: 9;
   min-width: 0;
   height: var(--key-h);
@@ -894,6 +895,16 @@ h2 {
   box-shadow: 0 3px 0 var(--line-strong);
   color: var(--key-text);
   cursor: pointer;
+}
+
+/* Touch target of at least 44px: where the key is narrower, a transparent area extends leftwards. */
+.notes-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: min(0px, calc(100% - var(--tap)));
 }
 
 .notes-btn:active:not(:disabled) {

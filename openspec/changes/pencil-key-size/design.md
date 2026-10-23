@@ -7,3 +7,5 @@ Vertical rhythm: bar, board region, pencil button, digit row sit in a column who
 Alternatives (from the contact sheet): two-row pad (B, bigger keys, costs board height) and top-bar button (C, wraps the clock). Rejected by the user's choice of A.
 
 Landscape keeps its compact button (the panel is already height-constrained by a 3x3 keypad of up to 110px keys).
+
+Touch target: the visible pencil button is exactly one digit key, which is only 30-38px wide on phones, so a transparent `::after` on the button extends its hit area leftwards (over the empty notes-row columns) to at least 44px. Vertically it is already 60px. The 8 key is below the row, so nothing overlaps it. Landscape's 56x44 button needs no extension.

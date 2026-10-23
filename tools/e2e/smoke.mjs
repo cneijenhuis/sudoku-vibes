@@ -23,6 +23,19 @@ try {
   assert.ok(Math.abs(m.pencil[0] - m.key9[0]) < 1 && Math.abs(m.pencil[1] - m.key9[1]) < 1, `pencil is key-sized (${m.pencil} / ${m.key9})`);
   assert.ok(Math.abs(m.pencilRight - m.key9Right) < 1, 'pencil right edge matches the 9 key');
 
+  assert.equal(m.hit43, true, 'pencil touch target is at least 44px wide');
+
+  // narrowest phone: the key-sized pencil is narrower than 44px, its hit area must still reach 44px
+  const narrow = await phone(browser, { width: 320, height: 568 });
+  await seedPuzzle(narrow, { puzzle: makePuzzle(empty) });
+  const np = await narrow.newPage();
+  await np.goto(server.url, { waitUntil: 'networkidle' });
+  await startGame(np, 0);
+  const nm = await boardMetrics(np);
+  assert.ok(nm.pencil[0] < 44 && nm.hit43 === true, `320 wide: pencil ${nm.pencil}, hit43 ${nm.hit43}`);
+  assert.equal(await np.evaluate(() => { const r = document.querySelector('[data-digit="8"]').getBoundingClientRect(); return document.elementFromPoint(r.left + r.width / 2, r.top + 5)?.closest('[data-digit]')?.dataset.digit; }), '8', 'the 8 key is not overlapped');
+  await narrow.close();
+
   // cell-first: a wrong digit (a 2 where the 1 belongs; 2 still has an empty cell, so its key is enabled)
   // is a mistake and blocks further entry until undone
   await tap(page, cellSel(empty[0]));

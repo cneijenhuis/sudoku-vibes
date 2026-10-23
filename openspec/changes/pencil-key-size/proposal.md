@@ -8,12 +8,14 @@ The slim pencil row between the board and the number keys looked awkward. Play-t
 
 - Portrait: the pencil button is exactly one digit key in width and height, its right edge in line with the 9 key.
 - The free vertical space between the top bar and the digit row is split into three equal gaps: above the board, between the board and the pencil button, between the pencil button and the digit row. The board stays as large as fits, with at least a 6px gap each.
+- The key-sized pencil keeps a touch target of at least 44x44 via a transparent hit area extended leftwards (modifies the pencil-notes toggle requirement).
 - Landscape is unchanged (assumption): the pencil button keeps its compact size under the keypad.
 
 ## Capabilities
 
 ### Modified Capabilities
 - `game-board`: portrait screen layout of the pencil button.
+- `pencil-notes`: touch target of the notes toggle.
 
 ## Impact
 

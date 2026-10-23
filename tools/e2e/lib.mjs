@@ -131,6 +131,8 @@ export const boardMetrics = (page) =>
       gapPad: portrait && n && k ? rd(k.top - n.bottom) : null,
       pencil: n && [rd(n.width), rd(n.height)],
       key9: k && [rd(k.width), rd(k.height)],
+      // Does a point 43px left of the pencil's right edge (vertical centre) hit the pencil button? (touch target >= 44px)
+      hit43: n ? document.elementFromPoint(n.right - 43, n.top + n.height / 2)?.closest('.notes-btn') != null : null,
       pencilRight: n && rd(n.right), key9Right: k && rd(k.right),
       scrolls: document.documentElement.scrollHeight > innerHeight + 1 || document.documentElement.scrollWidth > innerWidth + 1,
     };

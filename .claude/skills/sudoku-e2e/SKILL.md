@@ -21,8 +21,10 @@ scripts and screenshots in the scratchpad, not the repo, and view screenshots wi
 - **Interaction:** selectors are `[data-difficulty]`, `[data-i]` (cell), `[data-digit]`,
   `[data-action=undo|pause|resume|quit]`. `tap()` uses real touch taps; `hold()` is a CDP touch hold
   (number-first needs at least 450 ms, 650 is safe). After undo the cleared cell is already selected.
-- **Layout:** `boardMetrics(page)` gives board size, scroll check and (portrait only) the gaps above and
-  below the board. Check 390x844, 375x667, 320x568, 768x1024 and landscape 844x390, 667x375, 568x320,
+- **Layout:** `boardMetrics(page)` gives board size, scroll check and, in portrait, the three gaps (`gapAbove`: bar to
+  board, `gapBelow`: board to pencil, `gapPad`: pencil to digit row; equal by design), the pencil and 9 key sizes
+  (`pencil`, `key9`) and right edges (`pencilRight`, `key9Right`), and `hit43` (a point 43px left of the pencil's
+  right edge hits the pencil: touch target >= 44px). Check 390x844, 375x667, 320x568, 768x1024 and landscape 844x390, 667x375, 568x320,
   1024x768.
 - **Notch:** `simulateSafeArea(ctx, {left: 47, right: 47, bottom: 21})` rewrites `env(safe-area-inset-*)`
   in the CSS (injecting padding on `#app` is misleading). Do it before opening pages.
