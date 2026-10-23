@@ -930,6 +930,23 @@ h2 {
   right: calc(-2px - 0.5 * var(--act-gap));
 }
 
+/*
+ * Pencil: reaches left (free space, or the midline to the eraser when it is shown) and right over
+ * the gutter. Eraser: reaches left into free space and right to the midline with the pencil.
+ */
+.notes-btn::after {
+  --reach-right: calc(-2px - var(--board-gutter));
+  right: var(--reach-right);
+}
+
+.action-row.has-eraser .notes-btn::after {
+  left: calc(-2px - 0.5 * var(--act-gap));
+}
+
+.act-btn.eraser::after {
+  right: calc(-2px - 0.5 * var(--act-gap));
+}
+
 .act-btn[hidden] {
   display: none;
 }
@@ -948,6 +965,14 @@ h2 {
 
 .notes-btn {
   grid-column: 9;
+}
+
+.act-btn.eraser {
+  grid-column: 8;
+  isolation: isolate;
+  /* The same hold fill as a digit key (see .digit). */
+  --fill: var(--highlight);
+  --hold-ease: cubic-bezier(0.25, 0.1, 0.6, 1);
 }
 
 .act-btn:active:not(:disabled) {
@@ -1010,14 +1035,21 @@ h2 {
  * once the mode is on. The fill uses a fast-in easing, so a quick tap barely registers.
  */
 .digit::before,
-.digit::after {
+.digit::after,
+.eraser::before {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
 
-.digit::before {
+/* The eraser's ::after is its touch area, so it has no second ink layer; its fill keeps the key's rounding. */
+.eraser::before {
+  border-radius: inherit;
+}
+
+.digit::before,
+.eraser::before {
   z-index: -1;
   background: linear-gradient(to top, var(--fill), color-mix(in srgb, var(--fill) 82%, var(--surface-solid)));
   transform: scaleY(0);
@@ -1034,7 +1066,8 @@ h2 {
   transition: clip-path 140ms ease-out;
 }
 
-.digit.holding::before {
+.digit.holding::before,
+.eraser.holding::before {
   transform: scaleY(1);
   transition: transform var(--hold-ms, 450ms) var(--hold-ease);
 }
@@ -1044,7 +1077,8 @@ h2 {
   transition: clip-path var(--hold-ms, 450ms) var(--hold-ease);
 }
 
-.digit .lock {
+.digit .lock,
+.eraser .lock {
   position: absolute;
   top: 6px;
   left: 50%;
@@ -1057,7 +1091,8 @@ h2 {
 
 /* Selected key (the highlighted digit): yellow, raised 3px with a mustard edge. */
 .digit.active,
-.digit.locked {
+.digit.locked,
+.eraser.locked {
   background: var(--highlight);
   border-color: var(--highlight-edge);
   box-shadow: 0 4px 0 var(--highlight-edge);
@@ -1066,7 +1101,8 @@ h2 {
 }
 
 /* Locked in (number-first): fully filled, with the padlock. Holding it again drains the fill upwards. */
-.digit.locked::before {
+.digit.locked::before,
+.eraser.locked::before {
   transform: scaleY(1);
   transition: none;
 }
@@ -1076,11 +1112,18 @@ h2 {
   transition: none;
 }
 
-.digit.locked .lock {
+.digit.locked .lock,
+.eraser.locked .lock {
   display: block;
 }
 
-.digit.locked.holding::before {
+.act-btn.eraser.locked:active:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 0 var(--highlight-edge);
+}
+
+.digit.locked.holding::before,
+.eraser.locked.holding::before {
   transform: scaleY(0);
   transform-origin: top;
   transition: transform var(--hold-ms, 450ms) var(--hold-ease);
@@ -1180,17 +1223,20 @@ h2 {
   .digit.holding:not(.locked)::before,
   .digit.holding:not(.locked)::after,
   .digit.locked.holding::before,
-  .digit.locked.holding::after {
+  .digit.locked.holding::after,
+  .eraser.holding::before {
     transition: none;
   }
-  .digit.holding:not(.locked)::before {
+  .digit.holding:not(.locked)::before,
+  .eraser.holding:not(.locked)::before {
     transform: scaleY(1);
     opacity: 0.55;
   }
   .digit.holding:not(.locked):not(:disabled)::after {
     clip-path: inset(0 0 0 0);
   }
-  .digit.locked.holding::before {
+  .digit.locked.holding::before,
+  .eraser.locked.holding::before {
     transform: scaleY(1);
     opacity: 0.55;
   }
@@ -1287,21 +1333,27 @@ h2 {
   .action-row {
     grid-column: 2;
     grid-row: 4;
-    display: flex;
+    /* undo, redo | free space | eraser, pencil: keys at most 56px wide, never under the 44px tap size */
+    grid-template-columns: repeat(2, minmax(44px, 56px)) minmax(0, 1fr) repeat(2, minmax(44px, 56px));
     --act-gap: var(--key-gap);
     max-width: none;
     margin: 0;
     padding: var(--key-gap) 8px 0;
   }
   .act-btn {
-    width: 56px;
     height: var(--tap);
   }
   .act-btn.undo::after {
     --reach-left: 0px;
   }
+  .act-btn.eraser {
+    grid-column: 4;
+  }
   .notes-btn {
-    margin-left: auto;
+    grid-column: 5;
+  }
+  .notes-btn::after {
+    --reach-right: 0px;
   }
 }
 

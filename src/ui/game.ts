@@ -9,9 +9,12 @@ import {
   effectiveHighlight,
   isComplete,
   isMistakeCell,
+  hasVisibleNotes,
   longPressDigit,
+  longPressEraser,
   notesOf,
   pressDigit,
+  pressEraser,
   redo,
   restoreGame,
   tapCell,
@@ -60,6 +63,8 @@ export interface GameEnv {
 const TICK_MS = 250;
 /** How far outside a pad button (px) a held finger may drift before the press is cancelled. */
 const SLOP_PX = 10;
+/** The eraser's touch area reaches further outside the key (narrow key, extended hit area). */
+const ERASER_SLOP_PX = 24;
 
 const LOCK_ICON =
   '<svg viewBox="0 0 16 16" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M5 7V5a3 3 0 0 1 6 0v2h.5A1.5 1.5 0 0 1 13 8.5v5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 3 13.5v-5A1.5 1.5 0 0 1 4.5 7H5Zm1.8 0h2.4V5a1.2 1.2 0 0 0-2.4 0v2Z"/></svg>';
@@ -68,6 +73,9 @@ const UNDO_ICON =
   '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>';
 const PAUSE_ICON =
   '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4.2" height="14" rx="1.4"/><rect x="13.8" y="5" width="4.2" height="14" rx="1.4"/></svg>';
+
+const ERASER_ICON =
+  '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20H9.5"/><path d="M5.2 15.3 14.8 5.7a2 2 0 0 1 2.8 0l2.7 2.7a2 2 0 0 1 0 2.8L11.5 20H8.8l-3.6-3.6a2 2 0 0 1 0-2.8"/><path d="M9.6 10.9l5.5 5.5"/></svg>';
 
 const PENCIL_ICON =
   '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.2 5.3l3.5 3.5"/><path d="M4 20l1-4.5L16.6 3.9a1.9 1.9 0 0 1 2.7 0l.8.8a1.9 1.9 0 0 1 0 2.7L8.5 19 4 20Z"/></svg>';
@@ -127,9 +135,15 @@ export function gameScreen(
   const undoBtn = actionButton('undo', 'Undo', UNDO_ICON, 'undo');
   const redoBtn = actionButton('redo', 'Redo', UNDO_ICON, 'redo');
   redoBtn.hidden = true;
+  const eraserBtn = actionButton('eraser', 'Erase notes', ERASER_ICON, 'eraser');
+  eraserBtn.hidden = true;
+  eraserBtn.style.setProperty('--hold-ms', `${LONG_PRESS_MS}ms`);
+  eraserBtn.setAttribute('aria-pressed', 'false');
+  eraserBtn.append(h('span', { class: 'lock', attrs: { 'aria-hidden': 'true' } }));
+  (eraserBtn.lastElementChild as HTMLElement).innerHTML = LOCK_ICON; // static markup defined above
   const notesBtn = actionButton('notes-btn', 'Notes', PENCIL_ICON, 'notes');
   notesBtn.setAttribute('aria-pressed', 'false');
-  const actionRow = h('div', { class: 'action-row' }, undoBtn, redoBtn, notesBtn);
+  const actionRow = h('div', { class: 'action-row' }, undoBtn, redoBtn, eraserBtn, notesBtn);
 
   const digitBtns: HTMLButtonElement[] = [];
   const pad = h('div', { class: 'pad', attrs: { role: 'group', 'aria-label': 'Number pad' } });
@@ -215,6 +229,15 @@ export function gameScreen(
     notesBtn.classList.toggle('on', state.notesOn);
     notesBtn.setAttribute('aria-pressed', String(state.notesOn));
     undoBtn.disabled = paused || finished || !canUndo(state);
+    const erasable = !paused && !finished && hasVisibleNotes(state);
+    const eraserHadFocus = doc.activeElement === eraserBtn;
+    eraserBtn.hidden = !erasable;
+    if (eraserHadFocus && !erasable && !paused) notesBtn.focus({ preventScroll: true });
+    actionRow.classList.toggle('has-eraser', erasable);
+    const eraserLocked = erasable && state.erasing;
+    eraserBtn.classList.toggle('locked', eraserLocked);
+    eraserBtn.setAttribute('aria-pressed', String(eraserLocked));
+    eraserBtn.setAttribute('aria-label', eraserLocked ? 'Erase notes, eraser mode on. Long press to leave' : 'Erase notes');
     const redoable = !paused && !finished && canRedo(state);
     const redoHadFocus = doc.activeElement === redoBtn;
     redoBtn.hidden = !redoable;
@@ -307,26 +330,21 @@ export function gameScreen(
   // a pointer gesture has detail >= 1 and is ignored; keyboard / assistive activation has
   // detail 0 and counts as a tap, so nothing fires twice.
   const presses: LongPress[] = [];
-  digitBtns.forEach((btn, k) => {
-    const digit = k + 1;
+  /** Wire one key to the long-press controller: a tap and a hold, plus the keyboard click (detail 0). */
+  function wireHold(btn: HTMLButtonElement, onTap: () => void, onLong: () => void, slop = SLOP_PX): void {
     const lp = createLongPress({
       onProgress: (holding) => btn.classList.toggle('holding', holding),
       onTap: () => {
-        if (active()) apply(pressDigit(state, digit));
+        if (active()) onTap();
       },
       onLongPress: () => {
-        if (active()) apply(longPressDigit(state, digit));
+        if (active()) onLong();
       },
     });
     presses.push(lp);
     const inside = (e: PointerEvent): boolean => {
       const r = btn.getBoundingClientRect();
-      return (
-        e.clientX >= r.left - SLOP_PX &&
-        e.clientX <= r.right + SLOP_PX &&
-        e.clientY >= r.top - SLOP_PX &&
-        e.clientY <= r.bottom + SLOP_PX
-      );
+      return e.clientX >= r.left - slop && e.clientX <= r.right + slop && e.clientY >= r.top - slop && e.clientY <= r.bottom + slop;
     };
     btn.addEventListener('pointerdown', (e) => {
       if (!active() || !e.isPrimary || e.button !== 0 || btn.disabled) return;
@@ -347,9 +365,18 @@ export function gameScreen(
     btn.addEventListener('pointercancel', (e) => lp.cancel(e.pointerId));
     btn.addEventListener('lostpointercapture', (e) => lp.cancel(e.pointerId));
     btn.addEventListener('click', (e) => {
-      if (e.detail === 0 && active()) apply(pressDigit(state, digit));
+      if (e.detail === 0 && active()) onTap();
     });
+  }
+  digitBtns.forEach((btn, k) => {
+    const digit = k + 1;
+    wireHold(
+      btn,
+      () => apply(pressDigit(state, digit)),
+      () => apply(longPressDigit(state, digit)),
+    );
   });
+  wireHold(eraserBtn, () => apply(pressEraser(state)), () => apply(longPressEraser(state)), ERASER_SLOP_PX);
   function cancelPresses(): void {
     for (const lp of presses) lp.cancel();
   }

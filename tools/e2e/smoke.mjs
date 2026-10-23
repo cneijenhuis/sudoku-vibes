@@ -2,7 +2,7 @@
 // number-first mode -> board metrics. Run: npm run build && node tools/e2e/smoke.mjs
 import assert from 'node:assert/strict';
 import { access } from 'node:fs/promises';
-import { sweepUndoRedo, boardMetrics, cellSel, digitSel, firstIndexOf, gameState, hold, launch, makePuzzle, phone, seedPuzzle, serveDist, sleep, startGame, tap, trackErrors } from './lib.mjs';
+import { sweepKeys, sweepUndoRedo, boardMetrics, cellSel, digitSel, firstIndexOf, gameState, hold, launch, makePuzzle, phone, seedPuzzle, serveDist, sleep, startGame, tap, trackErrors } from './lib.mjs';
 
 await access('dist/index.html').catch(() => { throw new Error('dist/ not found: run `npm run build` first'); });
 const server = await serveDist();
@@ -42,6 +42,10 @@ try {
   await np.tap(digitSel(1));
   await np.tap('[data-action=undo]');
   assert.deepEqual(await sweepUndoRedo(np), ['undo', 'redo'], 'undo and redo touch areas meet with no dead gap');
+  await np.tap('[data-action=notes]'); // a note makes the eraser appear next to the pencil
+  await np.tap(digitSel(1));
+  await np.tap('[data-action=notes]');
+  assert.deepEqual(await sweepKeys(np, '.act-btn.eraser', '.notes-btn'), ['eraser', 'pencil'], 'eraser and pencil touch areas meet with no dead gap');
   await narrow.close();
 
   // cell-first: a wrong digit (a 2 where the 1 belongs; 2 still has an empty cell, so its key is enabled)
@@ -68,6 +72,31 @@ try {
   assert.deepEqual(s.locked, ['5']);
   await tap(page, cellSel(empty[2]));
   assert.equal(await page.locator(cellSel(empty[2])).textContent(), '5');
+
+  // eraser: hidden until a note exists, then key-sized under the 8 without moving anything; clears a cell's notes
+  await hold(page, '.digit.locked', 650); // leave number-first (completing the 5 advanced the locked digit)
+  assert.equal((await boardMetrics(page)).eraser, null, 'no eraser without notes');
+  const rowBefore = await page.evaluate(() => [...document.querySelectorAll('.action-row .act-btn:not([hidden])')].map((b) => b.getBoundingClientRect().left));
+  await tap(page, '[data-action=notes]');
+  await tap(page, cellSel(empty[1]));
+  await tap(page, digitSel(2));
+  await tap(page, '[data-action=notes]');
+  const em = await boardMetrics(page);
+  assert.ok(em.eraser && Math.abs(em.eraser[0] - em.key9[0]) < 1 && Math.abs(em.eraser[1] - em.key9[1]) < 1, `eraser is key-sized (${em.eraser})`);
+  assert.ok(Math.abs(em.eraserLeft - em.key8Left) < 1 && Math.abs(em.eraserRight - em.key8Right) < 1, 'eraser sits under the 8');
+  const rowAfter = await page.evaluate(() => [...document.querySelectorAll('.action-row .act-btn:not([hidden])')].map((b) => b.getBoundingClientRect().left));
+  assert.deepEqual(rowAfter.slice(0, rowBefore.length - 1), rowBefore.slice(0, -1), 'the eraser shifts nothing');
+  await tap(page, '[data-action=eraser]'); // cell-first: clears the selected cell's notes
+  assert.equal((await boardMetrics(page)).eraser, null, 'eraser hides with the last note');
+  await tap(page, '[data-action=notes]'); // the cell is still selected after erasing
+  await tap(page, digitSel(2));
+  await tap(page, '[data-action=notes]');
+  await hold(page, '[data-action=eraser]', 650); // number-first: locked like a digit
+  assert.equal(await page.locator('[data-action=eraser]').evaluate((e) => e.classList.contains('locked')), true, 'eraser locks on hold');
+  await tap(page, cellSel(empty[1])); // erasing the last note ends the mode
+  s = await gameState(page);
+  assert.equal(s.mode, 'cell-first');
+  assert.equal((await boardMetrics(page)).eraser, null, 'eraser hides after erasing the last note');
 
   assert.deepEqual(errors, [], 'no console errors or failed requests');
   console.log('OK', JSON.stringify(m));

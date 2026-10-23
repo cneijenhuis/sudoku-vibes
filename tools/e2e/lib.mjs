@@ -120,6 +120,7 @@ export const boardMetrics = (page) =>
     const r = (s) => document.querySelector(s)?.getBoundingClientRect();
     const rd = (n) => Math.round(n * 100) / 100;
     const b = r('.board'), t = r('.topbar'), n = r('.notes-btn'), k = r('[data-digit="9"]');
+    const er = document.querySelector('.act-btn.eraser'), era = er && !er.hidden ? er.getBoundingClientRect() : null, k8 = r('[data-digit="8"]');
     const u = r('.act-btn.undo'), k1 = r('[data-digit="1"]'), c = r('.clock');
     const redoEl = document.querySelector('.act-btn.redo'), rd2 = redoEl && !redoEl.hidden ? redoEl.getBoundingClientRect() : null, k2 = r('[data-digit="2"]');
     const portrait = innerHeight >= innerWidth;
@@ -138,6 +139,8 @@ export const boardMetrics = (page) =>
       // undo and redo (redo only while shown): sizes, undo's left edge against the 1 key, redo's against the 2 key
       undo: u && [rd(u.width), rd(u.height)], key1Left: k1 && rd(k1.left), undoLeft: u && rd(u.left),
       redo: rd2 && [rd(rd2.width), rd(rd2.height)], redoLeft: rd2 && rd(rd2.left), key2Left: k2 && rd(k2.left),
+      // eraser (null while hidden): size, and left/right edges against the 8 key
+      eraser: era && [rd(era.width), rd(era.height)], eraserLeft: era && rd(era.left), key8Left: k8 && rd(k8.left), eraserRight: era && rd(era.right), key8Right: k8 && rd(k8.right),
       // Timer pill centre minus the centre of the top bar (the screen in portrait, the panel in landscape).
       pillOffset: c && t ? rd((c.left + c.right) / 2 - (t.left + t.right) / 2) : null,
       pencilRight: n && rd(n.right), key9Right: k && rd(k.right),
@@ -146,23 +149,27 @@ export const boardMetrics = (page) =>
   });
 
 /**
- * With undo and redo both shown: what every point (0.25px steps, at the buttons' vertical centre) from undo's
- * left edge to redo's right edge resolves to. Returns the distinct names in order, e.g. ['undo', 'redo'];
- * anything else ('row', 'other') means a dead or wrong spot, including in the gap between the two keys.
+ * What every point (0.25px steps, at the keys' vertical centre) from the left edge of one action-row key to the
+ * right edge of another resolves to. Returns the distinct names in order, e.g. ['undo', 'redo']; anything else
+ * ('row', 'other') means a dead or wrong spot, including in the gap between the keys.
  */
-export const sweepUndoRedo = (page) =>
-  page.evaluate(() => {
-    const u = document.querySelector('.act-btn.undo').getBoundingClientRect();
-    const r = document.querySelector('.act-btn.redo').getBoundingClientRect();
+export const sweepKeys = (page, fromSel, toSel) =>
+  page.evaluate(([fromSel, toSel]) => {
+    const u = document.querySelector(fromSel).getBoundingClientRect();
+    const r = document.querySelector(toSel).getBoundingClientRect();
+    const name = (b) => (b.classList.contains('undo') ? 'undo' : b.classList.contains('redo') ? 'redo' : b.classList.contains('eraser') ? 'eraser' : 'pencil');
     const y = u.top + u.height / 2, seen = [];
     for (let x = u.left; x < r.right; x += 0.25) {
       const el = document.elementFromPoint(x, y);
       const b = el?.closest('.act-btn');
-      const n = b?.classList.contains('undo') ? 'undo' : b?.classList.contains('redo') ? 'redo' : el?.closest('.action-row') ? 'row' : 'other';
+      const n = b ? name(b) : el?.closest('.action-row') ? 'row' : 'other';
       if (seen[seen.length - 1] !== n) seen.push(n);
     }
     return seen;
-  });
+  }, [fromSel, toSel]);
+
+/** With undo and redo both shown: the sweep from undo to redo. */
+export const sweepUndoRedo = (page) => sweepKeys(page, '.act-btn.undo', '.act-btn.redo');
 
 /**
  * Emulate device safe-area insets (notch / home indicator) by rewriting env(safe-area-inset-*) in the CSS
