@@ -59,8 +59,34 @@ Notes SHALL appear in an empty cell as small digits on a 3x3 grid in fixed posit
 
 #### Scenario: Placing clears notes
 - **WHEN** a cell has notes and the player places a digit in it
-- **THEN** the cell shows only the digit, and after undoing that entry the cell is empty without notes
+- **THEN** the cell shows only the digit
 
 #### Scenario: Accessible label
 - **WHEN** a cell has notes 1 and 9
 - **THEN** its accessible label ends with "notes 1, 9"
+
+### Requirement: Placing a digit prunes peer notes
+Placing a correct digit SHALL remove that digit's note from every other cell in the same row, column and 3x3 box. A wrong digit SHALL NOT remove any notes. Cells without that note SHALL be unchanged.
+
+#### Scenario: Peers pruned
+- **WHEN** cells in the same row, column and box as an empty cell all have note 5 and the player places the correct 5 in that cell
+- **THEN** those cells no longer have note 5 and keep their other notes
+
+#### Scenario: Other cells untouched
+- **WHEN** a cell outside the row, column and box of the entry has note 5 and a correct 5 is placed
+- **THEN** that cell still has note 5
+
+#### Scenario: Wrong digit
+- **WHEN** the player places a wrong 5 in a cell
+- **THEN** no peer loses its note 5
+
+### Requirement: Undo restores removed notes
+Undoing an entry SHALL restore the notes that entry removed: the entry cell's own notes and the peer notes it pruned. An entry restored from a save has no such record, so undoing it restores no notes.
+
+#### Scenario: Undo restores
+- **WHEN** a cell has notes 2 and 5, peers have note 5, the player places the correct 5 and then taps undo
+- **THEN** the cell is empty with notes 2 and 5 and the peers have note 5 again
+
+#### Scenario: Undo after resume
+- **WHEN** a game is resumed from a save and the player undoes an entry saved earlier
+- **THEN** the cell is empty and no notes are restored
