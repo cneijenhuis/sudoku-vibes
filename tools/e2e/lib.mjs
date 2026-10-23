@@ -115,13 +115,13 @@ export const gameState = (page) =>
 export const boardMetrics = (page) =>
   page.evaluate(() => {
     const r = (s) => document.querySelector(s)?.getBoundingClientRect();
-    const b = r('.board'), t = r('.topbar'), p = r('.pad');
+    const b = r('.board'), t = r('.topbar'), p = r('.notes-row') ?? r('.pad');
     const portrait = innerHeight >= innerWidth;
     return {
       viewport: [innerWidth, innerHeight],
       board: b && [Math.round(b.width * 100) / 100, Math.round(b.height * 100) / 100],
       boardLeft: b?.left, boardTop: b?.top,
-      // Portrait only (in landscape the controls sit in a side panel): space above/below the board.
+      // Portrait only (in landscape the controls sit in a side panel): space above the board and below it (down to the notes row).
       gapAbove: portrait && b && t ? Math.round((b.top - t.bottom) * 100) / 100 : null,
       gapBelow: portrait && b && p ? Math.round((p.top - b.bottom) * 100) / 100 : null,
       scrolls: document.documentElement.scrollHeight > innerHeight + 1 || document.documentElement.scrollWidth > innerWidth + 1,

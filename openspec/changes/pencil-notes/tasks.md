@@ -12,4 +12,4 @@
 
 ## 3. Docs and gates
 
-- [ ] 3.1 Update `README.md` (input section, persistence); verify `npm run typecheck`, `npm test`, `npm run build`, `openspec validate --all --strict`
+- [x] 3.1 Update `README.md` (input section, persistence); verify `npm run typecheck`, `npm test`, `npm run build`, `openspec validate --all --strict`

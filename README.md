@@ -23,12 +23,20 @@ keep tapping; finishing the last digit finishes the puzzle. Mistakes block
 placing until undone, exactly as in cell-first mode, and undo does not select a cell.
 Pad buttons use pointer events (`src/ui/longpress.ts`); keyboard Enter/Space still taps.
 
+**Pencil notes:** the pencil button below the board, on the right (in landscape under the keypad), toggles
+notes mode (yellow while on). With it on, tapping a digit with an empty cell selected adds or removes that
+digit as a small note and keeps the cell selected, so several candidates fit in one cell, shown as a 3x3
+grid (1 2 3 / 4 5 6 / 7 8 9). In number-first mode a tap on an empty cell toggles the active digit as a
+note. Notes are never checked and never count as mistakes, also work while a mistake is on the board,
+and placing a digit clears that cell's notes. Undo covers placed digits only (note toggles are not in
+the history, and undo does not bring notes back). Notes mode starts off in every game, also after resume.
+
 Pausing (or backgrounding the page) hides the board. Finishing the puzzle shows a
 congratulations screen (a CSS-only celebration, toned down under reduced motion) with the level,
 time and mistakes (a flawless run gets its own message), and three actions: **Next difficulty**
 (one level harder; not offered after Almost Impossible), **Same difficulty** and **Menu**. The
 two start actions use the normal loading / Cancel / error flow. Errors offer Retry / Back to menu.
-Navigation lives in `src/ui/router.ts`; DOM-free game logic (state, stopwatch) lives in
+Navigation lives in `src/ui/router.ts`; DOM-free game logic (state, notes, stopwatch) lives in
 `src/game/`. In dev, `?smoke`
 runs a generator smoke test (not included in production builds).
 
@@ -69,13 +77,14 @@ surface, shadows; components never use literal colours, which `src/theme/tokens.
 ## Saving, resuming and the Back button
 
 The game in progress is saved automatically in the browser (`localStorage`, key
-`sudoku-vibes:game`, about 1 KB): after every entry or undo, on pause, when the page is hidden or
+`sudoku-vibes:game`, about 1 KB): after every entry, note change or undo, on pause, when the page is hidden or
 closed, and when you leave mid-game. The menu then shows a **Resume** card (difficulty and elapsed
-time); resuming opens the game **paused** with the board, undo history, mistakes and time restored.
+time); resuming opens the game **paused** with the board, notes, undo history, mistakes and time restored
+(older saves without notes still load; the optional `notes` field holds 81 bitmasks).
 Quit to menu and the Back button keep the save; finishing the puzzle clears it. Starting a new game
 while a save exists asks first (an in-app sheet) and only replaces the save once confirmed. Saved
 data is never trusted: it is validated strictly (version, 81-digit puzzle/solution, valid solution
-grid, givens matching it, entries only on empty cells, plausible mistakes and time) and silently
+grid, givens matching it, entries and notes only on empty cells, plausible mistakes and time) and silently
 discarded if anything is off. If storage is blocked or full the game simply plays without saving.
 Code: `src/storage/` (pure `serialize`/`restore`, never-throwing key-value wrapper) and
 `restoreGame` in `src/game/state.ts`.
