@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   activeMode,
   canEnter,
+  canRedo,
   canUndo,
   completedDigits,
   createGame,
@@ -14,6 +15,7 @@ import {
   longPressDigit,
   nextIncompleteDigit,
   pressDigit,
+  redo,
   restoreGame,
   select,
   startNumberFirst,
@@ -811,5 +813,133 @@ describe('pencil notes', () => {
     const g = notesGame();
     toggleNote(g, 0, 5);
     expect(g.notes[0]).toBe(0);
+  });
+});
+
+describe('redo', () => {
+  const noted = () => {
+    let g = fresh();
+    g = toggleNote(g, 1, 3);
+    g = toggleNote(g, 1, 4);
+    g = toggleNote(g, 80, 9);
+    return g;
+  };
+  const same = (a: GameState, b: GameState) => {
+    expect(Array.from(a.cells)).toEqual(Array.from(b.cells));
+    expect(Array.from(a.notes)).toEqual(Array.from(b.notes));
+    expect(a.mistakes).toBe(b.mistakes);
+  };
+
+  it('has nothing to redo at first, and redo is a no-op', () => {
+    const g = fresh();
+    expect(canRedo(g)).toBe(false);
+    expect(redo(g)).toBe(g);
+  });
+
+  it('undo then redo returns the same board and note pruning, selecting nothing', () => {
+    const g0 = noted();
+    const entered = enter(select(g0, 0), 5); // 5 is the solution of cell 0
+    const g = redo(undo(entered));
+    same(g, entered);
+    expect(g.selected).toBeNull();
+    expect(g.history).toEqual(entered.history);
+    expect(canRedo(g)).toBe(false);
+  });
+
+  it('prunes peer notes again and a second undo restores them', () => {
+    let g0 = fresh();
+    g0 = toggleNote(g0, 1, 5); // cell 1 is a peer of cell 0 (same row)
+    const entered = enter(select(g0, 0), 5);
+    expect(notesOf(entered, 1)).toEqual([]);
+    const r = redo(undo(entered));
+    expect(notesOf(r, 1)).toEqual([]);
+    expect(notesOf(undo(r), 1)).toEqual([5]);
+  });
+
+  it('redoes several undone entries in their original order', () => {
+    let g = enter(select(fresh(), 0), 5);
+    g = enter(select(g, 1), 3);
+    const done = g;
+    g = undo(undo(g));
+    expect(canRedo(g)).toBe(true);
+    g = redo(g);
+    expect(g.cells[0]).toBe(5);
+    expect(g.cells[1]).toBe(0);
+    g = redo(g);
+    same(g, done);
+    expect(canRedo(g)).toBe(false);
+  });
+
+  it('a new entry clears what can be redone', () => {
+    let g = undo(enter(select(fresh(), 0), 5));
+    expect(canRedo(g)).toBe(true);
+    g = enter(select(g, 1), 3);
+    expect(canRedo(g)).toBe(false);
+    expect(g.redoStack).toEqual([]);
+  });
+
+  it('notes toggles and selection keep the redo stack', () => {
+    let g = undo(enter(select(fresh(), 0), 5));
+    g = toggleNote(select(g, 1), 1, 3);
+    expect(canRedo(g)).toBe(true);
+  });
+
+  it('redo of a wrong digit does not count another mistake and blocks entry', () => {
+    let g = enter(select(fresh(), 0), wrongFor(0));
+    expect(g.mistakes).toBe(1);
+    g = redo(undo(g));
+    expect(g.mistakes).toBe(1);
+    expect(g.cells[0]).toBe(wrongFor(0));
+    expect(isMistakeCell(g, 0)).toBe(true);
+    const blocked = enter(select(g, 1), 3);
+    expect(Array.from(blocked.cells)).toEqual(Array.from(g.cells));
+  });
+
+  it('refuses to redo while a mistake is on the board', () => {
+    // A wrong digit is always the newest entry, so it is the last one that can be redone; hand-build
+    // the stack the other way round to reach the refusal.
+    const wrong = enter(select(fresh(), 0), wrongFor(0));
+    const stacked: GameState = { ...wrong, redoStack: [{ index: 80, previous: 0, value: 9 }] };
+    expect(canRedo(stacked)).toBe(false);
+    expect(redo(stacked)).toBe(stacked);
+  });
+
+  it('is unavailable after restoreGame', () => {
+    const g = restoreGame({ puzzle: PUZZLE, solution: SOLUTION, moves: [[0, 5]], mistakes: 0 });
+    expect(canRedo(g)).toBe(false);
+    expect(g.redoStack).toEqual([]);
+  });
+
+  it('in number-first mode redo selects nothing and keeps the mode and digit', () => {
+    const placed = tapCell(startNumberFirst(row(), 5), 0); // another 5 is still missing at cell 14
+    const g = redo(undo(placed));
+    expect(g.cells[0]).toBe(5);
+    expect(g.selected).toBeNull();
+    expect(g.mode).toBe('number-first');
+    expect(effectiveHighlight(g)).toBe(5);
+  });
+
+  it('advances to the next digit when the redo completes a digit', () => {
+    const p = [...SOLUTION];
+    const at2 = p.indexOf('2');
+    const at3 = p.indexOf('3');
+    p[at2] = '0';
+    p[at3] = '0';
+    const game = startNumberFirst(createGame(p.join(''), SOLUTION), 2);
+    const placed = tapCell(game, at2);
+    expect(placed.highlight).toBe(3);
+    const g = redo(undo(placed));
+    expect(g.highlight).toBe(3);
+    expect(g.mode).toBe('number-first');
+    expect(completedDigits(g)[2]).toBe(true);
+  });
+
+  it('does not change what undo does', () => {
+    const entered = enter(select(fresh(), 0), 5);
+    const u = undo(entered);
+    expect(u.cells[0]).toBe(0);
+    expect(u.selected).toBe(0);
+    expect(u.history).toEqual([]);
+    expect(u.redoStack).toEqual([entered.history[0]]);
   });
 });

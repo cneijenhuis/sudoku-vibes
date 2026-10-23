@@ -34,6 +34,11 @@ export interface GameState {
    */
   readonly highlight: number | null;
   readonly history: readonly Move[];
+  /**
+   * Undone entries, the next one to redo last. In memory only: empty after `createGame` and
+   * `restoreGame`, and cleared by every new entry.
+   */
+  readonly redoStack: readonly Move[];
   /** Every wrong entry ever made; undoing a mistake does not reduce it. */
   readonly mistakes: number;
   readonly mode: InputMode;
@@ -58,6 +63,7 @@ export function createGame(puzzle: string, solution: string): GameState {
     selected: null,
     highlight: null,
     history: [],
+    redoStack: [],
     mistakes: 0,
     mode: 'cell-first',
     notesOn: false,
@@ -148,6 +154,11 @@ export function canUndo(state: GameState): boolean {
   return state.history.length > 0;
 }
 
+/** Whether an undone entry can be re-entered: something was undone and no mistake is on the board. */
+export function canRedo(state: GameState): boolean {
+  return state.redoStack.length > 0 && !hasMistake(state);
+}
+
 /**
  * Place `digit` (1-9) in the selected cell, deselect it and highlight the digit. Does nothing
  * when no cell is selected, the cell is already filled, or a mistake is on the board.
@@ -180,7 +191,7 @@ function peersOf(i: number): number[] {
  * Notes: the cell's own notes are cleared and a correct digit is removed from its peers' notes;
  * the previous masks are recorded in the move so undo can restore them.
  */
-function place(state: GameState, i: number, digit: number): GameState {
+function place(state: GameState, i: number, digit: number, redoing = false): GameState {
   if (!Number.isInteger(digit) || digit < 1 || digit > 9) return state;
   if (state.cells[i] !== 0 || hasMistake(state)) return state;
   const cells = Uint8Array.from(state.cells);
@@ -205,7 +216,9 @@ function place(state: GameState, i: number, digit: number): GameState {
     selected: null,
     highlight: digit,
     history: [...state.history, removed.length > 0 ? { index: i, previous: 0, value: digit, notes: removed } : { index: i, previous: 0, value: digit }],
-    mistakes: state.mistakes + (digit === state.solution[i] ? 0 : 1),
+    redoStack: redoing ? state.redoStack.slice(0, -1) : [],
+    // A redone wrong digit was counted when it was first entered.
+    mistakes: state.mistakes + (redoing || digit === state.solution[i] ? 0 : 1),
   };
   const completed = completedDigits(next);
   // Only the entry that completes the digit advances (a stray entry of an already complete digit does not).
@@ -265,7 +278,25 @@ export function undo(state: GameState): GameState {
     notes = Uint16Array.from(notes);
     for (const [index, mask] of move.notes) notes[index] = (notes[index] ?? 0) | mask;
   }
-  return { ...state, cells, notes, selected: activeMode(state) === 'number-first' ? null : move.index, history: state.history.slice(0, -1) };
+  return {
+    ...state,
+    cells,
+    notes,
+    selected: activeMode(state) === 'number-first' ? null : move.index,
+    history: state.history.slice(0, -1),
+    redoStack: [...state.redoStack, move],
+  };
+}
+
+/**
+ * Re-enter the most recently undone entry through the same path as an entry (notes cleared, a
+ * correct digit pruned from its peers, advance-on-complete), without counting a mistake again and
+ * selecting nothing. Does nothing when there is nothing to redo or a mistake is on the board.
+ */
+export function redo(state: GameState): GameState {
+  const move = state.redoStack[state.redoStack.length - 1];
+  if (!move) return state;
+  return place(state, move.index, move.value, true);
 }
 
 /** The mode to act on: number-first only while its active digit is set and not yet complete. */

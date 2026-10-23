@@ -2,7 +2,7 @@
 
 ## 1. Logic
 
-- [ ] 1.1 Add redo to `src/game/state.ts` (`redoStack`, `redo`, `canRedo`; undo pushes, entries clear, restore starts empty); verify unit tests: undo then redo returns the same board and notes pruning, several undos and redos in order, new entry clears the stack, redo of a wrong digit does not count another mistake and blocks further entry like any mistake, redo after `restoreGame` unavailable, redo in number-first mode (no selection, mode kept), advance-on-complete on redo, nothing changes for undo behaviour
+- [x] 1.1 Add redo to `src/game/state.ts` (`redoStack`, `redo`, `canRedo`; undo pushes, entries clear, restore starts empty); verify unit tests: undo then redo returns the same board and notes pruning, several undos and redos in order, new entry clears the stack, redo of a wrong digit does not count another mistake and blocks further entry like any mistake, redo after `restoreGame` unavailable, redo in number-first mode (no selection, mode kept), advance-on-complete on redo, nothing changes for undo behaviour
 
 ## 2. UI and layout
 
