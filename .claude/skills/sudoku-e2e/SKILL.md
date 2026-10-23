@@ -19,11 +19,12 @@ scripts and screenshots in the scratchpad, not the repo, and view screenshots wi
   digits whose nine instances are all placed are complete and their keys disabled, so wrong-digit tests
   need a digit that still has an empty cell. Never add test hooks to production code.
 - **Interaction:** selectors are `[data-difficulty]`, `[data-i]` (cell), `[data-digit]`,
-  `[data-action=undo|pause|resume|quit]`. `tap()` uses real touch taps; `hold()` is a CDP touch hold
+  `[data-action=undo|redo|notes|pause|resume|quit]`. `tap()` uses real touch taps; `hold()` is a CDP touch hold
   (number-first needs at least 450 ms, 650 is safe). After undo the cleared cell is already selected.
 - **Layout:** `boardMetrics(page)` gives board size, scroll check and, in portrait, the three gaps (`gapAbove`: bar to
-  board, `gapBelow`: board to digit row, `gapPad`: digit row to pencil; equal by design), the pencil and 9 key sizes
-  (`pencil`, `key9`) and right edges (`pencilRight`, `key9Right`), and `hit43` (a point 43px left of the pencil's
+  board, `gapBelow`: board to digit row, `gapPad`: digit row to action row; equal by design), the pencil, undo, redo (null
+  while hidden) and 9 key sizes (`pencil`, `undo`, `redo`, `key9`), edges (`pencilRight`/`key9Right`, `undoLeft`/`key1Left`,
+  `redoLeft`/`key2Left`), `pillOffset` (timer pill centre minus top-bar centre, 0 = centred), and `hit43` (a point 43px left of the pencil's
   right edge hits the pencil: touch target >= 44px). Check 390x844, 375x667, 320x568, 768x1024 and landscape 844x390, 667x375, 568x320,
   1024x768.
 - **Notch:** `simulateSafeArea(ctx, {left: 47, right: 47, bottom: 21})` rewrites `env(safe-area-inset-*)`

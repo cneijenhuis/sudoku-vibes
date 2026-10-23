@@ -6,12 +6,14 @@ Mobile-first Sudoku game in TypeScript (Vite, plain DOM). No runtime dependencie
 
 The app opens on a start menu with the six difficulty levels (Super Easy, Easy, Medium,
 Hard, Extreme, Almost Impossible). Choosing one shows a loading screen (with Cancel) while a
-puzzle is generated in a Web Worker, then the game screen: top bar (undo, timer, pause),
-the board and a 1-9 number pad. Input is cell-first: tap a cell, then a digit. Tapping a digit with no empty cell selected
+puzzle is generated in a Web Worker, then the game screen: top bar (pause, timer),
+the board, a 1-9 number pad and below it an action row (undo under the 1, redo under the 2 while there is
+something to redo, the pencil under the 9). Input is cell-first: tap a cell, then a digit. Tapping a digit with no empty cell selected
 highlights every cell holding it (tap again to clear); entering a digit keeps that digit
 highlighted, and once all nine are placed correctly its pad button is greyed out. Wrong digits
 show immediately as mistakes, block further entry until undone, and are counted; undo is
-unlimited.
+unlimited. After an undo a redo button appears and re-enters the undone entries in order (also re-pruning
+notes, never counting a mistake twice); any new entry clears it and it is not saved.
 
 **Number-first mode:** long-press a digit button (about half a second; the button fills up
 from the bottom while you hold) to lock that digit in. Every cell holding it is highlighted
@@ -70,8 +72,8 @@ surface, shadows; components never use literal colours, which `src/theme/tokens.
   precaches it for offline play.
 - **Play screen layout:** no wordmark on the play screen (it is on the menu). In portrait the board
   is centred between the bar and the number keys with a 6px side gutter (`--board-gutter`, the header
-  keeps 12px) and is at most 720px. Whenever the screen is landscape (width greater than height) undo,
-  the clock and pause sit in a panel on the right above a 3x3 keypad and the board takes the full
+  keeps 12px) and is at most 720px. Whenever the screen is landscape (width greater than height) pause
+  and the clock sit in a panel on the right above a 3x3 keypad with a compact undo/redo/pencil row and the board takes the full
   height minus the gutter; rotation is pure CSS, so game state is untouched.
 - **Per-level colours** are small accents (bar, pips, chips) kept dark enough for the light glass.
 - **Browser chrome:** `theme-color` and the manifest background are `#F6E9D2`. The iOS status bar
