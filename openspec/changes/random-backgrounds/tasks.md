@@ -7,4 +7,4 @@
 
 ## 2. Visual check and docs
 
-- [ ] 2.1 Screenshot menu, game and results with each of the three backgrounds at 390x844, 375x667, 320x568 and 844x390; board and text stay legible, focal subjects visible; verify standalone simulation covers the whole screen for the new images; update README background bullet; `npm run typecheck`, `npm test`, `npm run build`, `openspec validate --all --strict`
+- [x] 2.1 Screenshot menu, game and results with each of the three backgrounds at 390x844, 375x667, 320x568 and 844x390; board and text stay legible, focal subjects visible; verify standalone simulation covers the whole screen for the new images; update README background bullet; `npm run typecheck`, `npm test`, `npm run build`, `openspec validate --all --strict`

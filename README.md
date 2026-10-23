@@ -65,9 +65,11 @@ surface, shadows; components never use literal colours, which `src/theme/tokens.
   opaque `#FFFDF8` with no blur.
 - **Background photo:** `src/theme/backgrounds.ts` lists the available backgrounds (id, image,
   fallback colour, focal position). To add one, put an optimised image (WebP, about 1170 px tall)
-  in `src/assets/backgrounds/` and add an entry; one is picked per page load and exposed to the CSS
-  as `--bg-image`. `index.html` preloads the first entry's image, so with several entries only that
-  one benefits from the preload. The plain fallback colour `#F6E9D2` shows while the photo loads or
+  in `src/assets/backgrounds/` and add an entry. One is picked at random at launch and another (never
+  the same twice in a row) whenever a new game starts (menu, results, error retry); resuming a game or
+  going back to the menu keeps it. The new image is applied once decoded, so the swap never flashes
+  the fallback colour. The choice is exposed to the CSS as `--bg-image`; there is no preload (the
+  service worker precaches every image, so switches are instant and offline). The plain fallback colour `#F6E9D2` shows while the photo loads or
   if it fails. The photo is the page canvas (the `<html>` background), not a fixed layer. In iOS
   home-screen mode the layout viewport is shorter than the screen (e.g. 793 against 852 points, the
   status-bar height) and fixed layers stop at that edge, which left a beige strip under the app;
