@@ -2,6 +2,7 @@ import { DIFFICULTY_LABELS } from '../engine/grading';
 import {
   CELLS,
   activeMode,
+  canRedo,
   canUndo,
   completedDigits,
   createGame,
@@ -11,6 +12,7 @@ import {
   longPressDigit,
   notesOf,
   pressDigit,
+  redo,
   restoreGame,
   tapCell,
   toggleNotes,
@@ -92,8 +94,6 @@ export function gameScreen(
   let tick: ReturnType<typeof setInterval> | null = null;
 
   // --- DOM ---------------------------------------------------------------
-  const undoBtn = iconButton('undo', 'Undo', UNDO_ICON);
-  undoBtn.dataset.action = 'undo';
   const pauseBtn = iconButton('pause', 'Pause', PAUSE_ICON);
   pauseBtn.dataset.action = 'pause';
   const timeEl = h('span', { class: 'time', text: '0:00', attrs: { 'data-testid': 'time' } });
@@ -101,9 +101,8 @@ export function gameScreen(
   const bar = h(
     'header',
     { class: 'topbar' },
-    undoBtn,
-    h('div', { class: 'clock glass' }, timeEl, subEl),
     pauseBtn,
+    h('div', { class: 'clock glass' }, timeEl, subEl),
   );
 
   const cells: HTMLButtonElement[] = [];
@@ -119,9 +118,18 @@ export function gameScreen(
   }
   const region = h('section', { class: 'board-region' }, board);
 
-  const notesBtn = h('button', { class: 'notes-btn glass', attrs: { type: 'button', 'aria-label': 'Notes', 'aria-pressed': 'false', 'data-action': 'notes' } });
-  notesBtn.innerHTML = PENCIL_ICON; // static markup defined above
-  const notesRow = h('div', { class: 'notes-row' }, notesBtn);
+  /** A key-sized button of the action row below the digits. */
+  function actionButton(cls: string, label: string, svg: string, action: string): HTMLButtonElement {
+    const b = h('button', { class: `act-btn glass ${cls}`, attrs: { type: 'button', 'aria-label': label, 'data-action': action } });
+    b.innerHTML = svg; // static markup defined above
+    return b;
+  }
+  const undoBtn = actionButton('undo', 'Undo', UNDO_ICON, 'undo');
+  const redoBtn = actionButton('redo', 'Redo', UNDO_ICON, 'redo');
+  redoBtn.hidden = true;
+  const notesBtn = actionButton('notes-btn', 'Notes', PENCIL_ICON, 'notes');
+  notesBtn.setAttribute('aria-pressed', 'false');
+  const actionRow = h('div', { class: 'action-row' }, undoBtn, redoBtn, notesBtn);
 
   const digitBtns: HTMLButtonElement[] = [];
   const pad = h('div', { class: 'pad', attrs: { role: 'group', 'aria-label': 'Number pad' } });
@@ -145,7 +153,7 @@ export function gameScreen(
   );
   overlay.hidden = true;
 
-  const el = h('main', { class: `screen game-screen accent-${game.difficulty}` }, bar, region, pad, notesRow, overlay);
+  const el = h('main', { class: `screen game-screen accent-${game.difficulty}` }, bar, region, pad, actionRow, overlay);
 
   // --- rendering ---------------------------------------------------------
   function paintTime(): void {
@@ -207,6 +215,9 @@ export function gameScreen(
     notesBtn.classList.toggle('on', state.notesOn);
     notesBtn.setAttribute('aria-pressed', String(state.notesOn));
     undoBtn.disabled = paused || finished || !canUndo(state);
+    const redoable = !paused && !finished && canRedo(state);
+    redoBtn.hidden = !redoable;
+    actionRow.classList.toggle('has-redo', redoable);
     const n = state.mistakes;
     // Level and mistakes are separate spans so landscape can stack them without the dot.
     subEl.replaceChildren(
@@ -342,6 +353,9 @@ export function gameScreen(
   el.addEventListener('contextmenu', (e) => e.preventDefault());
   undoBtn.addEventListener('click', () => {
     if (active()) apply(undo(state));
+  });
+  redoBtn.addEventListener('click', () => {
+    if (active()) apply(redo(state));
   });
   notesBtn.addEventListener('click', () => {
     if (active()) apply(toggleNotes(state));

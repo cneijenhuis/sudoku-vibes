@@ -113,13 +113,15 @@ export const gameState = (page) =>
 
 /**
  * Board size and the portrait gaps: above the board (from the top bar), below it (to the digit row) and
- * between the digit row and the pencil button, plus the pencil button and 9 key sizes and right edges.
+ * between the digit row and the action row, plus the undo/redo/pencil sizes against the digit keys and their edges.
  */
 export const boardMetrics = (page) =>
   page.evaluate(() => {
     const r = (s) => document.querySelector(s)?.getBoundingClientRect();
     const rd = (n) => Math.round(n * 100) / 100;
     const b = r('.board'), t = r('.topbar'), n = r('.notes-btn'), k = r('[data-digit="9"]');
+    const u = r('.act-btn.undo'), k1 = r('[data-digit="1"]'), c = r('.clock');
+    const redoEl = document.querySelector('.act-btn.redo'), rd2 = redoEl && !redoEl.hidden ? redoEl.getBoundingClientRect() : null, k2 = r('[data-digit="2"]');
     const portrait = innerHeight >= innerWidth;
     return {
       viewport: [innerWidth, innerHeight],
@@ -133,6 +135,11 @@ export const boardMetrics = (page) =>
       key9: k && [rd(k.width), rd(k.height)],
       // Does a point 43px left of the pencil's right edge (vertical centre) hit the pencil button? (touch target >= 44px)
       hit43: n ? document.elementFromPoint(n.right - 43, n.top + n.height / 2)?.closest('.notes-btn') != null : null,
+      // undo and redo (redo only while shown): sizes, undo's left edge against the 1 key, redo's against the 2 key
+      undo: u && [rd(u.width), rd(u.height)], key1Left: k1 && rd(k1.left), undoLeft: u && rd(u.left),
+      redo: rd2 && [rd(rd2.width), rd(rd2.height)], redoLeft: rd2 && rd(rd2.left), key2Left: k2 && rd(k2.left),
+      // Timer pill centre minus the centre of the top bar (the screen in portrait, the panel in landscape).
+      pillOffset: c && t ? rd((c.left + c.right) / 2 - (t.left + t.right) / 2) : null,
       pencilRight: n && rd(n.right), key9Right: k && rd(k.right),
       scrolls: document.documentElement.scrollHeight > innerHeight + 1 || document.documentElement.scrollWidth > innerWidth + 1,
     };

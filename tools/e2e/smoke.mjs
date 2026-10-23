@@ -23,6 +23,10 @@ try {
   assert.ok(Math.abs(m.pencil[0] - m.key9[0]) < 1 && Math.abs(m.pencil[1] - m.key9[1]) < 1, `pencil is key-sized (${m.pencil} / ${m.key9})`);
   assert.ok(Math.abs(m.pencilRight - m.key9Right) < 1, 'pencil right edge matches the 9 key');
 
+  assert.ok(Math.abs(m.undo[0] - m.key9[0]) < 1 && Math.abs(m.undo[1] - m.key9[1]) < 1, `undo is key-sized (${m.undo})`);
+  assert.ok(Math.abs(m.undoLeft - m.key1Left) < 1, `undo sits under the 1 (${m.undoLeft} / ${m.key1Left})`);
+  assert.equal(m.redo, null, 'no redo before an undo');
+  assert.ok(Math.abs(m.pillOffset) < 1, `timer pill centred (${m.pillOffset})`);
   assert.equal(m.hit43, true, 'pencil touch target is at least 44px wide');
 
   // narrowest phone: the key-sized pencil is narrower than 44px, its hit area must still reach 44px
@@ -42,7 +46,15 @@ try {
   await tap(page, digitSel(2));
   assert.match((await gameState(page)).status, /1 mistake/);
   await tap(page, '[data-action=undo]'); // undo re-selects the cleared cell, so no cell tap is needed
+  const um = await boardMetrics(page);
+  assert.ok(um.redo && Math.abs(um.redoLeft - um.key2Left) < 1 && Math.abs(um.redo[0] - um.key9[0]) < 1, `redo appears under the 2 (${um.redoLeft} / ${um.key2Left})`);
+  await tap(page, '[data-action=redo]'); // the wrong 2 comes back; the mistake is not counted again
+  assert.match((await gameState(page)).status, /1 mistake/);
+  assert.equal(await page.locator(cellSel(empty[0])).textContent(), '2');
+  assert.equal((await boardMetrics(page)).redo, null, 'redo hidden when nothing is left');
+  await tap(page, '[data-action=undo]');
   await tap(page, digitSel(1));
+  assert.equal((await boardMetrics(page)).redo, null, 'a new entry clears redo');
   assert.equal(await page.locator(cellSel(empty[0])).textContent(), '1');
 
   // number-first: long-press locks the digit, tapping empty cells places it

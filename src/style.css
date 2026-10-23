@@ -628,6 +628,11 @@ h2 {
   grid-row: 1;
 }
 
+/* Pause in the first slot, the last slot empty, so the timer pill stays centred. */
+.topbar .clock {
+  grid-column: 2;
+}
+
 /* Raised glass button: a solid navy drop edge underneath, pressed down on :active. */
 .icon-btn {
   width: 52px;
@@ -867,24 +872,25 @@ h2 {
 }
 
 /*
- * Notes row: the pencil button is one digit key (same grid column width, same height) in the ninth
- * column, so its right edge is the 9 key's. It is the bottom element: the 14px of padding under it
- * keeps its drop edge clear of the screen edge; the gap above it is a flexible grid track.
+ * Action row: undo (column 1, under the 1), redo (column 2, only while there is something to redo)
+ * and the pencil (column 9, under the 9), each one digit key in size (same grid column width, same
+ * height). Column 8 stays free for a later eraser. It is the bottom element: the 14px of padding
+ * under it keeps the drop edges clear of the screen edge; the gap above it is a flexible grid track.
  */
-.notes-row {
+.action-row {
   grid-row: 7;
   display: grid;
   grid-template-columns: repeat(9, minmax(0, 1fr));
-  gap: 5px;
+  --act-gap: 5px;
+  gap: var(--act-gap);
   width: 100%;
   max-width: calc(var(--board-max) + 2 * var(--board-gutter));
   margin: 0 auto;
   padding: 0 var(--board-gutter) 14px;
 }
 
-.notes-btn {
+.act-btn {
   position: relative;
-  grid-column: 9;
   min-width: 0;
   height: var(--key-h);
   padding: 0;
@@ -897,8 +903,12 @@ h2 {
   cursor: pointer;
 }
 
-/* Touch target of at least 44px: where the key is narrower, a transparent area extends leftwards. */
-.notes-btn::after {
+/*
+ * Touch target of at least 44px: where a key is narrower, a transparent area extends into free
+ * space. The pencil extends leftwards, undo and redo rightwards; where undo and redo are both
+ * shown their areas meet in the middle of the gap between them and never overlap.
+ */
+.act-btn::after {
   content: '';
   position: absolute;
   top: 0;
@@ -907,7 +917,41 @@ h2 {
   left: min(0px, calc(100% - var(--tap)));
 }
 
-.notes-btn:active:not(:disabled) {
+.act-btn.undo::after,
+.act-btn.redo::after {
+  left: 0;
+  right: min(0px, calc(100% - var(--tap)));
+}
+
+.act-btn.redo::after {
+  left: calc(-0.5 * var(--act-gap));
+}
+
+.action-row.has-redo .act-btn.undo::after {
+  right: calc(-0.5 * var(--act-gap));
+}
+
+.act-btn[hidden] {
+  display: none;
+}
+
+.act-btn.undo {
+  grid-column: 1;
+}
+
+.act-btn.redo {
+  grid-column: 2;
+}
+
+.act-btn.redo svg {
+  transform: scaleX(-1);
+}
+
+.notes-btn {
+  grid-column: 9;
+}
+
+.act-btn:active:not(:disabled) {
   transform: translateY(2px);
   box-shadow: 0 1px 0 var(--line-strong);
 }
@@ -924,12 +968,16 @@ h2 {
   box-shadow: 0 1px 0 var(--highlight-edge);
 }
 
-.notes-btn:disabled {
+.act-btn:disabled {
   color: var(--done-text);
   cursor: default;
 }
 
-.notes-btn:focus-visible {
+.act-btn:disabled svg {
+  opacity: 0.5;
+}
+
+.act-btn:focus-visible {
   outline: 3px solid var(--ink);
   outline-offset: 2px;
 }
@@ -1073,7 +1121,7 @@ h2 {
 /* Pause: the board and header are hidden (not just covered); a glass card sits over the photo. */
 .game-screen.paused .topbar,
 .game-screen.paused .board-region,
-.game-screen.paused .notes-row,
+.game-screen.paused .action-row,
 .game-screen.paused .pad {
   visibility: hidden;
 }
@@ -1165,13 +1213,13 @@ h2 {
 }
 
 /*
- * Landscape (width greater than height): undo, the clock and pause sit in a panel on the right
+ * Landscape (width greater than height): pause, the clock and the digits sit in a panel on the right
  * with the digits as a 3x3 keypad below them, so the board gets the full height. The key height
  * follows the available height (screen height minus safe areas, the two gutters, the bar and the
  * gaps), so the panel never outgrows the screen; it is at most 110px. The board column
  * is as wide as the screen is tall (so the board is the height minus two gutters, at most the
  * cap) and the panel takes the rest, between 240px and 320px; the pair is centred, so on wide
- * tablets the spare width is split evenly at both sides. Rows: spacer, bar, keypad, pencil, spacer, which
+ * tablets the spare width is split evenly at both sides. Rows: spacer, bar, keypad, action row, spacer, which
  * centres the panel vertically while the board region spans all of them.
  */
 @media (orientation: landscape) {
@@ -1235,19 +1283,22 @@ h2 {
   .digit {
     height: var(--key-h);
   }
-  /* The pencil sits right-aligned under the keypad, a key gap below it. */
-  .notes-row {
+  /* Undo and redo at the left, the pencil at the right under the keypad, a key gap below the keypad. */
+  .action-row {
     grid-column: 2;
     grid-row: 4;
     display: flex;
-    justify-content: flex-end;
+    --act-gap: var(--key-gap);
     max-width: none;
     margin: 0;
     padding: var(--key-gap) 8px 0;
   }
-  .notes-btn {
+  .act-btn {
     width: 56px;
     height: var(--tap);
+  }
+  .notes-btn {
+    margin-left: auto;
   }
 }
 
