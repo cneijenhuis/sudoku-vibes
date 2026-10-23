@@ -8,16 +8,21 @@ import {
   createGame,
   effectiveHighlight,
   enter,
+  eraseNotes,
   exitNumberFirst,
   hasMistake,
+  hasVisibleNotes,
   isComplete,
   isMistakeCell,
   longPressDigit,
+  longPressEraser,
   nextIncompleteDigit,
   pressDigit,
+  pressEraser,
   redo,
   restoreGame,
   select,
+  startErasing,
   startNumberFirst,
   tapCell,
   toggleNote,
@@ -962,5 +967,154 @@ describe('redo', () => {
     expect(u.selected).toBe(0);
     expect(u.history).toEqual([]);
     expect(u.redoStack).toEqual([entered.history[0]]);
+  });
+});
+
+describe('eraser', () => {
+  // ROW_PUZZLE: rows 0 and 1 are empty (cells 0-17).
+  const withNotes = () => {
+    let g = row();
+    for (const d of [2, 5, 7]) g = toggleNote(g, 0, d);
+    g = toggleNote(g, 1, 3);
+    g = toggleNote(g, 9, 4);
+    return g;
+  };
+
+  it('has no visible notes on a fresh game and with only hidden ones', () => {
+    expect(hasVisibleNotes(row())).toBe(false);
+    expect(hasVisibleNotes(withNotes())).toBe(true);
+    // notes of a complete digit are hidden on the board and do not count
+    const p = [...SOLUTION];
+    const at = p.indexOf('4');
+    const at2 = p.indexOf('6');
+    p[at] = '0';
+    p[at2] = '0';
+    let g = toggleNote(createGame(p.join(''), SOLUTION), at, 6);
+    expect(hasVisibleNotes(g)).toBe(true);
+    g = enter(select(createGame(p.join(''), SOLUTION), at2), 6); // the 6 is complete now
+    g = { ...g, notes: Uint16Array.from(toggleNote(createGame(p.join(''), SOLUTION), at, 6).notes) };
+    expect(hasVisibleNotes(g)).toBe(false);
+  });
+
+  it('cell-first: erases the selected cell, keeps the selection and other cells', () => {
+    const g0 = select(withNotes(), 0);
+    const g = pressEraser(g0);
+    expect(g.notes[0]).toBe(0);
+    expect(g.selected).toBe(0);
+    expect(notesOf(g, 1)).toEqual([3]);
+    expect(notesOf(g, 9)).toEqual([4]);
+    expect(g.history).toEqual([]);
+    expect(g.mode).toBe('cell-first');
+  });
+
+  it('cell-first: nothing selected, filled cell and a cell without notes change nothing', () => {
+    const g0 = withNotes();
+    expect(pressEraser(g0)).toBe(g0);
+    const filled = select(g0, 20);
+    expect(pressEraser(filled)).toBe(filled);
+    expect(eraseNotes(g0, 20)).toBe(g0);
+    const plain = select(g0, 5);
+    expect(pressEraser(plain)).toBe(plain);
+  });
+
+  it('never erases placed digits or counts as a mistake', () => {
+    const g0 = select(withNotes(), 0);
+    const g = pressEraser(g0);
+    expect(Array.from(g.cells)).toEqual(Array.from(g0.cells));
+    expect(g.mistakes).toBe(0);
+  });
+
+  it('long press starts the eraser tool: nothing selected, no digit active', () => {
+    const g = longPressEraser(select(withNotes(), 3));
+    expect(g.mode).toBe('number-first');
+    expect(g.erasing).toBe(true);
+    expect(activeMode(g)).toBe('number-first');
+    expect(g.selected).toBeNull();
+    expect(effectiveHighlight(g)).toBeNull();
+  });
+
+  it('cannot start without visible notes', () => {
+    const g = row();
+    expect(startErasing(g)).toBe(g);
+    expect(longPressEraser(g)).toBe(g);
+  });
+
+  it('long press again leaves the mode with nothing selected', () => {
+    const g = longPressEraser(longPressEraser(withNotes()));
+    expect(g.mode).toBe('cell-first');
+    expect(g.erasing).toBe(false);
+    expect(g.selected).toBeNull();
+    expect(activeMode(g)).toBe('cell-first');
+  });
+
+  it('erases cells by tapping them and stays active while notes remain', () => {
+    let g = longPressEraser(withNotes());
+    g = tapCell(g, 0);
+    expect(g.notes[0]).toBe(0);
+    g = tapCell(g, 1);
+    expect(g.notes[1]).toBe(0);
+    expect(g.erasing).toBe(true);
+    expect(activeMode(g)).toBe('number-first');
+    expect(notesOf(g, 9)).toEqual([4]);
+    expect(g.selected).toBeNull();
+  });
+
+  it('tapping a filled cell or a cell without notes does nothing', () => {
+    const g = longPressEraser(withNotes());
+    expect(tapCell(g, 20)).toBe(g);
+    expect(tapCell(g, 5)).toBe(g);
+  });
+
+  it('the last visible note ending the mode', () => {
+    let g = longPressEraser(withNotes());
+    for (const i of [0, 1]) g = tapCell(g, i);
+    expect(g.erasing).toBe(true);
+    g = tapCell(g, 9);
+    expect(hasVisibleNotes(g)).toBe(false);
+    expect(g.erasing).toBe(false);
+    expect(g.mode).toBe('cell-first');
+    expect(activeMode(g)).toBe('cell-first');
+  });
+
+  it('a digit tap switches from the eraser to that digit, a plain eraser tap switches back', () => {
+    let g = longPressEraser(withNotes());
+    g = pressDigit(g, 5);
+    expect(g.erasing).toBe(false);
+    expect(g.highlight).toBe(5);
+    expect(activeMode(g)).toBe('number-first');
+    g = pressEraser(g);
+    expect(g.erasing).toBe(true);
+    expect(g.highlight).toBeNull();
+    expect(pressEraser(g)).toBe(g);
+    g = longPressDigit(g, 7);
+    expect(g.erasing).toBe(false);
+    expect(g.highlight).toBe(7);
+  });
+
+  it('leaving the mode clears the eraser flag', () => {
+    const g = exitNumberFirst(longPressEraser(withNotes()));
+    expect(g.erasing).toBe(false);
+    expect(g.mode).toBe('cell-first');
+  });
+
+  it('is not part of undo; undo and redo keep working while erasing', () => {
+    let g = enter(select(withNotes(), 2), 4); // cell 2 is a 4
+    g = longPressEraser(g);
+    g = tapCell(g, 0);
+    expect(g.history.length).toBe(1);
+    g = undo(g);
+    expect(g.cells[2]).toBe(0);
+    expect(g.notes[0]).toBe(0); // erased notes are not restored
+    expect(g.erasing).toBe(true);
+    expect(g.selected).toBeNull();
+    g = redo(g);
+    expect(g.cells[2]).toBe(4);
+    expect(g.erasing).toBe(true);
+    expect(g.highlight).toBeNull();
+  });
+
+  it('a new game and a restored game never start erasing', () => {
+    expect(row().erasing).toBe(false);
+    expect(restoreGame({ puzzle: PUZZLE, solution: SOLUTION, moves: [], mistakes: 0 }).erasing).toBe(false);
   });
 });

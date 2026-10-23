@@ -42,6 +42,11 @@ export interface GameState {
   /** Every wrong entry ever made; undoing a mistake does not reduce it. */
   readonly mistakes: number;
   readonly mode: InputMode;
+  /**
+   * The eraser is the active number-first tool (only ever true together with `mode === 'number-first'`):
+   * `highlight` is then null and tapping an empty cell clears its notes. In memory only.
+   */
+  readonly erasing: boolean;
   /** Whether digit input adds pencil notes instead of placing digits. */
   readonly notesOn: boolean;
   /** Pencil notes per cell: bit `d-1` set = digit d noted. Always 0 for filled cells. Treated as immutable. */
@@ -66,6 +71,7 @@ export function createGame(puzzle: string, solution: string): GameState {
     redoStack: [],
     mistakes: 0,
     mode: 'cell-first',
+    erasing: false,
     notesOn: false,
     notes: new Uint16Array(CELLS),
   };
@@ -192,6 +198,10 @@ function peersOf(i: number): number[] {
  * the previous masks are recorded in the move so undo can restore them.
  */
 function place(state: GameState, i: number, digit: number, redoing = false): GameState {
+  return settleEraser(placeDigit(state, i, digit, redoing));
+}
+
+function placeDigit(state: GameState, i: number, digit: number, redoing: boolean): GameState {
   if (!Number.isInteger(digit) || digit < 1 || digit > 9) return state;
   if (state.cells[i] !== 0 || hasMistake(state)) return state;
   const cells = Uint8Array.from(state.cells);
@@ -258,7 +268,7 @@ export function canEnter(state: GameState): boolean {
 export function pressDigit(state: GameState, digit: number): GameState {
   if (!Number.isInteger(digit) || digit < 1 || digit > 9 || completedDigits(state)[digit]) return state;
   if (activeMode(state) === 'number-first') {
-    return state.highlight === digit ? state : { ...state, highlight: digit };
+    return state.highlight === digit && !state.erasing ? state : { ...state, erasing: false, highlight: digit };
   }
   const sel = state.selected;
   if (state.notesOn && sel !== null && state.cells[sel] === 0) return toggleNote(state, sel, digit);
@@ -304,8 +314,10 @@ export function redo(state: GameState): GameState {
 
 /** The mode to act on: number-first only while its active digit is set and not yet complete. */
 export function activeMode(state: GameState): InputMode {
+  if (state.mode !== 'number-first') return 'cell-first';
+  if (state.erasing) return 'number-first';
   const d = state.highlight;
-  if (state.mode !== 'number-first' || d === null || completedDigits(state)[d]) return 'cell-first';
+  if (d === null || completedDigits(state)[d]) return 'cell-first';
   return 'number-first';
 }
 
@@ -315,13 +327,13 @@ export function activeMode(state: GameState): InputMode {
  */
 export function startNumberFirst(state: GameState, digit: number): GameState {
   if (!Number.isInteger(digit) || digit < 1 || digit > 9 || completedDigits(state)[digit]) return state;
-  return { ...state, mode: 'number-first', selected: null, highlight: digit };
+  return { ...state, mode: 'number-first', erasing: false, selected: null, highlight: digit };
 }
 
 /** Back to cell-first mode with nothing selected; the highlight stays. */
 export function exitNumberFirst(state: GameState): GameState {
-  if (state.mode === 'cell-first' && state.selected === null) return state;
-  return { ...state, mode: 'cell-first', selected: null };
+  if (state.mode === 'cell-first' && state.selected === null && !state.erasing) return state;
+  return { ...state, mode: 'cell-first', erasing: false, selected: null };
 }
 
 /** A long press on a digit button: leave the mode on the active digit, otherwise (re)start it. */
@@ -339,6 +351,7 @@ export function longPressDigit(state: GameState, digit: number): GameState {
 export function tapCell(state: GameState, index: number): GameState {
   if (activeMode(state) === 'cell-first') return select(state, index);
   if (!Number.isInteger(index) || index < 0 || index >= CELLS) return state;
+  if (state.erasing) return eraseNotes(state, index);
   const v = state.cells[index] ?? 0;
   if (v === 0) return state.notesOn ? toggleNote(state, index, state.highlight ?? 0) : place(state, index, state.highlight ?? 0);
   if (completedDigits(state)[v] || v === state.highlight) return state;
@@ -369,4 +382,56 @@ export function notesOf(state: GameState, index: number): number[] {
   const out: number[] = [];
   for (let d = 1; d <= 9; d++) if (mask & (1 << (d - 1))) out.push(d);
   return out;
+}
+
+/**
+ * Whether any empty cell shows a note: a noted digit that is not complete (notes of a complete
+ * digit are hidden on the board and do not count). Drives the eraser button.
+ */
+export function hasVisibleNotes(state: GameState): boolean {
+  const done = completedDigits(state);
+  const doneMask = done.reduce((m, c, d) => (c ? m | (1 << (d - 1)) : m), 0);
+  for (let i = 0; i < CELLS; i++) {
+    if (state.cells[i] === 0 && ((state.notes[i] ?? 0) & ~doneMask) !== 0) return true;
+  }
+  return false;
+}
+
+/** The eraser mode ends (back to cell-first) as soon as no note is left to erase. */
+function settleEraser(state: GameState): GameState {
+  return state.erasing && !hasVisibleNotes(state) ? { ...state, mode: 'cell-first', erasing: false } : state;
+}
+
+/**
+ * Clear all notes of empty cell `index`; the selection is kept. Ignored for filled cells, invalid
+ * input and cells without notes. Not part of the undo history (like toggling a note). Ends the
+ * eraser mode when it removed the last visible note.
+ */
+export function eraseNotes(state: GameState, index: number): GameState {
+  if (!Number.isInteger(index) || index < 0 || index >= CELLS) return state;
+  if (state.cells[index] !== 0 || (state.notes[index] ?? 0) === 0) return state;
+  const notes = Uint16Array.from(state.notes);
+  notes[index] = 0;
+  return settleEraser({ ...state, notes });
+}
+
+/** Start number-first mode with the eraser as the active tool (nothing selected, no digit active). */
+export function startErasing(state: GameState): GameState {
+  if (!hasVisibleNotes(state)) return state;
+  return { ...state, mode: 'number-first', erasing: true, selected: null, highlight: null };
+}
+
+/**
+ * A tap on the eraser button. Cell-first: clear the notes of the selected empty cell (it stays
+ * selected). Number-first: make the eraser the active tool (no change when it already is).
+ */
+export function pressEraser(state: GameState): GameState {
+  if (activeMode(state) === 'number-first') return state.erasing ? state : startErasing(state);
+  return state.selected === null ? state : eraseNotes(state, state.selected);
+}
+
+/** A long press on the eraser: leave the mode when it is active, otherwise start it. */
+export function longPressEraser(state: GameState): GameState {
+  if (activeMode(state) === 'number-first' && state.erasing) return exitNumberFirst(state);
+  return startErasing(state);
 }

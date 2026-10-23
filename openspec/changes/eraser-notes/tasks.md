@@ -2,7 +2,7 @@
 
 ## 1. Logic
 
-- [ ] 1.1 Add `erasing`, `eraseNotes`, `hasVisibleNotes` and the transitions in `src/game/state.ts`; verify unit tests: cell-first erase of the selected cell (selection kept, digits untouched, filled cell and no selection no-ops), number-first erase by tapping cells, long-press enter/leave, switching to a digit and back to the eraser, tapping a filled cell does nothing, last note erased ends the mode, hidden notes of a complete digit do not count as visible, erase not in undo history and untouched mistakes, undo/redo behaviour unchanged in eraser mode
+- [x] 1.1 Add `erasing`, `eraseNotes`, `hasVisibleNotes` and the transitions in `src/game/state.ts`; verify unit tests: cell-first erase of the selected cell (selection kept, digits untouched, filled cell and no selection no-ops), number-first erase by tapping cells, long-press enter/leave, switching to a digit and back to the eraser, tapping a filled cell does nothing, last note erased ends the mode, hidden notes of a complete digit do not count as visible, erase not in undo history and untouched mistakes, undo/redo behaviour unchanged in eraser mode
 
 ## 2. UI and layout
 
