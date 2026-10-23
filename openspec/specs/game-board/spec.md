@@ -6,19 +6,19 @@ Defines what the player sees while playing: the board, top bar and number pad, a
 ## Requirements
 
 ### Requirement: Screen layout
-In portrait the game screen SHALL show, top to bottom, a bar with an undo button on the left, the running time in the centre and a pause button on the right; the 9x9 board; a pencil button the same size as a digit key, right edge in line with the 9 key; and the digits 1 to 9 in a row at the bottom. The free space between bar and digits SHALL be split into three equal gaps around the board and the pencil button. No wordmark.
+In portrait the game screen SHALL show, top to bottom, a bar with an undo button on the left, the running time in the centre and a pause button on the right; the 9x9 board; the digits 1 to 9 in a row; and below them a pencil button the same size as a digit key, right edge in line with the 9 key. The free space between bar and pencil SHALL be split into three equal gaps. No wordmark.
 
 #### Scenario: Phone portrait
 - **WHEN** the game screen is shown at 375x667 CSS pixels
-- **THEN** the top bar, a square fully visible board, the pencil button and all nine digit buttons are visible without scrolling, the board is horizontally centred and no wordmark is shown
+- **THEN** the top bar, a square fully visible board, all nine digit buttons and the pencil button below them are visible without scrolling, the board is horizontally centred and no wordmark is shown
 
 #### Scenario: Board centred vertically
 - **WHEN** the game screen is shown at 390x844
-- **THEN** the gaps above the board, between the board and the pencil button, and between the pencil button and the digit row differ by no more than 1px
+- **THEN** the gaps above the board, between the board and the digit row, and between the digit row and the pencil button differ by no more than 1px
 
 #### Scenario: Pencil is key-sized
 - **WHEN** the game screen is shown in portrait
-- **THEN** the pencil button has the same width and height as the 9 key (within 1px) and its right edge matches the 9 key's
+- **THEN** the pencil button has the same width and height as the 9 key (within 1px), its right edge matches the 9 key's and it is below the digit row
 
 ### Requirement: Portrait board size
 In portrait the board SHALL be a square sized to the largest size that fits between the top bar and the number keys, at most 720 CSS pixels.
