@@ -8,7 +8,7 @@ The app opens on a start menu with the six difficulty levels (Super Easy, Easy, 
 Hard, Extreme, Almost Impossible). Choosing one shows a loading screen (with Cancel) while a
 puzzle is generated in a Web Worker, then the game screen: top bar (pause, timer),
 the board, a 1-9 number pad and below it an action row (undo under the 1, redo under the 2 while there is
-something to redo, the pencil under the 9). Input is cell-first: tap a cell, then a digit. Tapping a digit with no empty cell selected
+something to redo, an eraser under the 8 once notes exist, the pencil under the 9). Input is cell-first: tap a cell, then a digit. Tapping a digit with no empty cell selected
 highlights every cell holding it (tap again to clear); entering a digit keeps that digit
 highlighted, and once all nine are placed correctly its pad button is greyed out. Wrong digits
 show immediately as mistakes, block further entry until undone, and are counted; undo is
@@ -36,6 +36,13 @@ from every other cell in its row, column and 3x3 box (a wrong digit prunes nothi
 digits only (note toggles are not in the history) but brings back the notes the undone entry removed;
 an entry loaded from a save has no such record, so undoing it after a resume restores no notes.
 Notes mode starts off in every game, also after resume.
+
+**Eraser:** once notes are visible on the board an eraser button appears left of the pencil (under the 8; hidden
+otherwise, nothing shifts). In cell-first mode a tap clears all notes of the selected empty cell, which stays
+selected. In number-first mode the eraser is a tool like a digit: hold it (same fill and padlock as a digit key) and
+tap cells to clear their notes (filled cells do nothing); tap a digit to switch to it, tap the eraser to come
+back, hold it again to leave. When the last visible note is gone the eraser hides and the mode ends. Clearing notes
+is not part of undo (like toggling a note) and never touches placed digits. The state lives in `GameState.erasing`.
 
 Pausing (or backgrounding the page) hides the board. Finishing the puzzle shows a
 congratulations screen (a CSS-only celebration, toned down under reduced motion) with the level,
