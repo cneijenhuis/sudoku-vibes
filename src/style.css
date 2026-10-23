@@ -602,7 +602,14 @@ h2 {
 .screen.game-screen {
   position: relative;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  /*
+   * Portrait rows: bar, gap, board, gap, pencil, gap, digits. The three gaps are equal flexible
+   * tracks (never under 6px); the board row grows to the board's largest size (the width limit) and
+   * otherwise takes what is left after the gaps, so the board only shrinks when the screen is short.
+   */
+  --key-h: 60px;
+  --board-h: min(calc(100vw - env(safe-area-inset-left) - env(safe-area-inset-right) - 2 * var(--board-gutter)), var(--board-max));
+  grid-template-rows: auto minmax(6px, 1fr) minmax(0, var(--board-h)) minmax(6px, 1fr) auto minmax(6px, 1fr) auto;
   grid-template-columns: minmax(0, 1fr);
   align-items: stretch;
   justify-content: stretch;
@@ -617,7 +624,8 @@ h2 {
   grid-template-columns: 52px minmax(0, 1fr) 52px;
   align-items: center;
   gap: 12px;
-  padding: 8px 12px 10px;
+  padding: 8px 12px 0;
+  grid-row: 1;
 }
 
 /* Raised glass button: a solid navy drop edge underneath, pressed down on :active. */
@@ -685,13 +693,15 @@ h2 {
 
 /*
  * The board region is a size container holding only the board, which is centred in it on both
- * axes (equal space above and below). The padding is the board gutter, so the board is the
- * viewport width minus two gutters where the width is the limit.
+ * axes. Its grid row is exactly as tall as the board can be, so it hugs the board; the side
+ * padding is the board gutter, so the board is the viewport width minus two gutters where the
+ * width is the limit.
  */
 .board-region {
+  grid-row: 3;
   min-height: 0;
   min-width: 0;
-  padding: var(--board-gutter);
+  padding: 0 var(--board-gutter);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -852,16 +862,20 @@ h2 {
   width: 100%;
   max-width: calc(var(--board-max) + 2 * var(--board-gutter));
   margin: 0 auto;
-  padding: 8px var(--board-gutter) 14px;
+  padding: 0 var(--board-gutter) 14px;
+  grid-row: 7;
 }
 
 /*
- * Notes row: the pencil button at the right end, in line with the right edge of the number keys.
- * The row is exactly the tap target high; the pad's top padding leaves room for the drop edge.
+ * Notes row: the pencil button is one digit key (same grid column width, same height) in the ninth
+ * column, so its right edge is the 9 key's. The row is exactly one key high; the gap below it is a
+ * flexible grid track of the screen, not padding.
  */
 .notes-row {
-  display: flex;
-  justify-content: flex-end;
+  grid-row: 5;
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 5px;
   width: 100%;
   max-width: calc(var(--board-max) + 2 * var(--board-gutter));
   margin: 0 auto;
@@ -869,8 +883,9 @@ h2 {
 }
 
 .notes-btn {
-  width: 56px;
-  height: var(--tap);
+  grid-column: 9;
+  min-width: 0;
+  height: var(--key-h);
   padding: 0;
   display: grid;
   place-items: center;
@@ -912,7 +927,7 @@ h2 {
 .digit {
   position: relative;
   min-width: 0;
-  height: 60px;
+  height: var(--key-h);
   padding: 0;
   overflow: hidden;
   isolation: isolate;
@@ -1167,6 +1182,7 @@ h2 {
   .board-region {
     grid-column: 1;
     grid-row: 1 / -1;
+    padding: var(--board-gutter);
   }
   .topbar {
     grid-column: 2;
@@ -1212,9 +1228,15 @@ h2 {
   .notes-row {
     grid-column: 2;
     grid-row: 4;
+    display: flex;
+    justify-content: flex-end;
     max-width: none;
     margin: 0;
     padding: var(--key-gap) 8px 0;
+  }
+  .notes-btn {
+    width: 56px;
+    height: var(--tap);
   }
 }
 

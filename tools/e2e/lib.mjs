@@ -111,19 +111,27 @@ export const gameState = (page) =>
     vibrations: window.__vib?.length ?? 0,
   }));
 
-/** Board size and the gaps around it (portrait: above/below; landscape: left/right of the panel). */
+/**
+ * Board size and the portrait gaps: above the board (from the top bar), below it (to the pencil button) and
+ * between the pencil button and the digit row, plus the pencil button and 9 key sizes and right edges.
+ */
 export const boardMetrics = (page) =>
   page.evaluate(() => {
     const r = (s) => document.querySelector(s)?.getBoundingClientRect();
-    const b = r('.board'), t = r('.topbar'), p = r('.notes-row') ?? r('.pad');
+    const rd = (n) => Math.round(n * 100) / 100;
+    const b = r('.board'), t = r('.topbar'), n = r('.notes-btn'), k = r('[data-digit="9"]');
     const portrait = innerHeight >= innerWidth;
     return {
       viewport: [innerWidth, innerHeight],
-      board: b && [Math.round(b.width * 100) / 100, Math.round(b.height * 100) / 100],
+      board: b && [rd(b.width), rd(b.height)],
       boardLeft: b?.left, boardTop: b?.top,
-      // Portrait only (in landscape the controls sit in a side panel): space above the board and below it (down to the notes row).
-      gapAbove: portrait && b && t ? Math.round((b.top - t.bottom) * 100) / 100 : null,
-      gapBelow: portrait && b && p ? Math.round((p.top - b.bottom) * 100) / 100 : null,
+      // Portrait only (in landscape the controls sit in a side panel).
+      gapAbove: portrait && b && t ? rd(b.top - t.bottom) : null,
+      gapBelow: portrait && b && n ? rd(n.top - b.bottom) : null,
+      gapPad: portrait && n && k ? rd(k.top - n.bottom) : null,
+      pencil: n && [rd(n.width), rd(n.height)],
+      key9: k && [rd(k.width), rd(k.height)],
+      pencilRight: n && rd(n.right), key9Right: k && rd(k.right),
       scrolls: document.documentElement.scrollHeight > innerHeight + 1 || document.documentElement.scrollWidth > innerWidth + 1,
     };
   });

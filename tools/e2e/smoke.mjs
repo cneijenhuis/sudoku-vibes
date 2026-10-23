@@ -19,7 +19,9 @@ try {
   const m = await boardMetrics(page);
   assert.equal(m.scrolls, false, 'no scrolling');
   assert.ok(m.board[0] >= 360, `board is large (${m.board})`);
-  assert.ok(Math.abs(m.gapAbove - m.gapBelow) < 1.01, `board centred (${m.gapAbove} / ${m.gapBelow})`);
+  assert.ok(Math.abs(m.gapAbove - m.gapBelow) < 1.01 && Math.abs(m.gapBelow - m.gapPad) < 1.01, `three equal gaps (${m.gapAbove} / ${m.gapBelow} / ${m.gapPad})`);
+  assert.ok(Math.abs(m.pencil[0] - m.key9[0]) < 1 && Math.abs(m.pencil[1] - m.key9[1]) < 1, `pencil is key-sized (${m.pencil} / ${m.key9})`);
+  assert.ok(Math.abs(m.pencilRight - m.key9Right) < 1, 'pencil right edge matches the 9 key');
 
   // cell-first: a wrong digit (a 2 where the 1 belongs; 2 still has an empty cell, so its key is enabled)
   // is a mistake and blocks further entry until undone
