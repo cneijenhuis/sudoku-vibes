@@ -28,8 +28,11 @@ notes mode (yellow while on). With it on, tapping a digit with an empty cell sel
 digit as a small note and keeps the cell selected, so several candidates fit in one cell, shown as a 3x3
 grid (1 2 3 / 4 5 6 / 7 8 9). In number-first mode a tap on an empty cell toggles the active digit as a
 note. Notes are never checked and never count as mistakes, also work while a mistake is on the board,
-and placing a digit clears that cell's notes. Undo covers placed digits only (note toggles are not in
-the history, and undo does not bring notes back). Notes mode starts off in every game, also after resume.
+and placing a digit clears that cell's notes. Placing a correct digit also removes that digit's note
+from every other cell in its row, column and 3x3 box (a wrong digit prunes nothing). Undo covers placed
+digits only (note toggles are not in the history) but brings back the notes the undone entry removed;
+an entry loaded from a save has no such record, so undoing it after a resume restores no notes.
+Notes mode starts off in every game, also after resume.
 
 Pausing (or backgrounding the page) hides the board. Finishing the puzzle shows a
 congratulations screen (a CSS-only celebration, toned down under reduced motion) with the level,
