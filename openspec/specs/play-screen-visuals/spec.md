@@ -6,11 +6,11 @@ Defines the exact look of the play screen: header, wordmark, board, cells and nu
 ## Requirements
 
 ### Requirement: Header controls
-The header SHALL show undo (left), the timer pill (centre) and pause (right). Undo and pause SHALL be 52x52px glass buttons with radius 18px, no border, a 0 3px 0 strong-line drop edge, 24px ink stroke icons, and accessible names "Undo" and "Pause". The timer pill SHALL be a glass pill (radius 20px) with the time in 34px Fredoka 600 and below it, 6px lower, the status line in 15px 500 in the status colour.
+The header SHALL show pause (left) and the timer pill centred in the row. Pause SHALL be a 52x52px glass button with radius 18px, no border, a 0 3px 0 strong-line drop edge, a 24px ink stroke icon and the accessible name "Pause". The timer pill SHALL be a glass pill (radius 20px) with the time in 34px Fredoka 600 and below it, 6px lower, the status line in 15px 500 in the status colour.
 
 #### Scenario: Header contents
 - **WHEN** the play screen is shown
-- **THEN** the undo button, timer pill and pause button appear in one row with the specified sizes and accessible names
+- **THEN** the pause button and the timer pill appear in one row with pause on the left and the pill centred, with the specified sizes and accessible name
 
 ### Requirement: Board frame
 The board SHALL be a glass surface with a 3px strong-line border, 22px outer radius, board shadow and hidden overflow. 3x3 boxes SHALL be divided by 3px strong-line dividers (each box drawing a 1.5px strong-line edge) and single cells by 1px soft lines.
