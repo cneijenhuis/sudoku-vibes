@@ -23,8 +23,8 @@ keep tapping; finishing the last digit finishes the puzzle. Mistakes block
 placing until undone, exactly as in cell-first mode, and undo does not select a cell.
 Pad buttons use pointer events (`src/ui/longpress.ts`); keyboard Enter/Space still taps.
 
-**Pencil notes:** the pencil button, one digit key in size and stacked above the 9 key (the free space above the
-board, above the pencil and above the digits is three equal gaps; in landscape a compact button under
+**Pencil notes:** the pencil button, one digit key in size, below the digit row and right-aligned under the 9 key (the free
+space above the board, above the digits and above the pencil is three equal gaps; in landscape a compact button under
 the keypad), toggles notes mode (yellow while on). With it on, tapping a digit with an empty cell selected adds or removes that
 digit as a small note and keeps the cell selected, so several candidates fit in one cell, shown as a 3x3
 grid (1 2 3 / 4 5 6 / 7 8 9). In number-first mode a tap on an empty cell toggles the active digit as a
