@@ -44,11 +44,15 @@ With notes mode on in number-first mode, tapping an empty cell SHALL toggle the 
 - **THEN** the cell has note 5 after the first tap and no notes after the second, and nothing is placed
 
 ### Requirement: Note display
-Notes SHALL appear in an empty cell as small digits on a 3x3 grid in fixed positions (1 2 3 on top, 4 5 6 in the middle, 7 8 9 at the bottom), much smaller than a placed digit, so a cell with all nine notes reads 123/456/789. A cell holding a digit SHALL show no notes. The cell's accessible label SHALL list its notes.
+Notes SHALL appear in an empty cell as small digits on a 3x3 grid in fixed positions (1 2 3 on top, 4 5 6 in the middle, 7 8 9 at the bottom), much smaller than a placed digit, so a cell with all nine notes reads 123/456/789. A cell holding a digit SHALL show no notes, and notes of a digit that is complete SHALL be hidden. The cell's accessible label SHALL list its notes.
 
 #### Scenario: Full cell
 - **WHEN** a cell has all nine notes
 - **THEN** it shows 1 2 3, 4 5 6 and 7 8 9 on three rows, each digit smaller than half the size of a placed digit, all inside the cell
+
+#### Scenario: Complete digit hides its notes
+- **WHEN** a cell has notes 4 and 6 and the ninth 4 is placed elsewhere
+- **THEN** the cell shows only note 6
 
 #### Scenario: Placing clears notes
 - **WHEN** a cell has notes and the player places a digit in it

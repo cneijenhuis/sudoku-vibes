@@ -157,6 +157,7 @@ export function gameScreen(
     const sel = state.selected;
     const hl = effectiveHighlight(state) ?? 0;
     const done = completedDigits(state);
+    const doneMask = done.reduce((m, c, d) => (c ? m | (1 << (d - 1)) : m), 0);
     const numberFirst = activeMode(state) === 'number-first';
     el.dataset.mode = numberFirst ? 'number-first' : 'cell-first';
     pad.dataset.mode = el.dataset.mode;
@@ -166,7 +167,7 @@ export function gameScreen(
       const mistake = isMistakeCell(state, i);
       const isSel = i === sel;
       const same = !isSel && hl !== 0 && v === hl;
-      const mask = v === 0 ? (state.notes[i] ?? 0) : 0;
+      const mask = v === 0 ? (state.notes[i] ?? 0) & ~doneMask : 0; // notes of a complete digit are hidden
       const key = `${v}|${given ? 'g' : ''}${mistake ? 'm' : ''}${isSel ? 's' : ''}${same ? 'h' : ''}|${mask}`;
       if (cache[i] === key) continue;
       cache[i] = key;
@@ -187,7 +188,7 @@ export function gameScreen(
       b.setAttribute('aria-pressed', String(isSel));
       const where = `Row ${Math.floor(i / 9) + 1}, column ${(i % 9) + 1}`;
       const what = v === 0 ? 'empty' : String(v);
-      const noted = mask !== 0 ? `, notes ${notesOf(state, i).join(', ')}` : '';
+      const noted = mask !== 0 ? `, notes ${notesOf(state, i).filter((d) => !done[d]).join(', ')}` : '';
       b.setAttribute('aria-label', `${where}, ${what}${given ? ', given' : ''}${mistake ? ', mistake' : ''}${noted}`);
     }
     digitBtns.forEach((b, k) => {
