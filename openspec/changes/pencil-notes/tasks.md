@@ -2,8 +2,8 @@
 
 ## 1. Logic and persistence
 
-- [ ] 1.1 Add notes state and `toggleNotes`/`toggleNote`, wire `pressDigit`, `tapCell`, `place` in `src/game/state.ts`; verify unit tests for toggle on/off, several notes per cell, no note on filled cell or complete digit, cell stays selected, number-first toggle, notes not blocked by a mistake, placement clears the cell's notes, undo leaves notes alone, mistakes and history untouched by notes
-- [ ] 1.2 Save and restore `notes` in `src/storage/save.ts` and `restoreGame`; verify unit tests for round trip, absent field (old save) loads, wrong length, out-of-range value, note on a filled cell rejected, save without notes unchanged in shape
+- [x] 1.1 Add notes state and `toggleNotes`/`toggleNote`, wire `pressDigit`, `tapCell`, `place` in `src/game/state.ts`; verify unit tests for toggle on/off, several notes per cell, no note on filled cell or complete digit, cell stays selected, number-first toggle, notes not blocked by a mistake, placement clears the cell's notes, undo leaves notes alone, mistakes and history untouched by notes
+- [x] 1.2 Save and restore `notes` in `src/storage/save.ts` and `restoreGame`; verify unit tests for round trip, absent field (old save) loads, wrong length, out-of-range value, note on a filled cell rejected, save without notes unchanged in shape
 
 ## 2. UI
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Difficulty } from '../engine/grading';
-import { createGame, enter, restoreGame, select, tapCell, undo, canUndo, type GameState } from '../game/state';
+import { createGame, enter, restoreGame, select, tapCell, toggleNote, undo, canUndo, type GameState } from '../game/state';
 import { createKeyValue, type KeyValue, type StorageLike } from './kv';
 import { SAVE_KEY, createSaves, restore, serialize } from './save';
 
@@ -35,6 +35,30 @@ describe('serialize / restore', () => {
     expect(r.mode).toBe('cell-first');
     expect(r.selected).toBeNull();
     expect(r.highlight).toBeNull();
+  });
+
+  it('round-trips notes and starts with notes mode off', () => {
+    let g = sample();
+    g = toggleNote(toggleNote(toggleNote(g, 6, 2), 6, 7), 10, 9);
+    const saved = restore(serialize(g, Difficulty.Hard, 1, 1))!;
+    expect(saved.notes).toHaveLength(81);
+    const r = restoreGame(saved);
+    expect(Array.from(r.notes)).toEqual(Array.from(g.notes));
+    expect(r.notes[6]).toBe((1 << 1) | (1 << 6));
+    expect(r.notesOn).toBe(false);
+  });
+
+  it('keeps the save shape unchanged when there are no notes', () => {
+    const data = JSON.parse(serialize(sample(), Difficulty.Hard, 1, 1)) as Record<string, unknown>;
+    expect('notes' in data).toBe(false);
+    expect(Object.keys(data).sort()).toEqual(['difficulty', 'elapsedMs', 'mistakes', 'moves', 'puzzle', 'savedAt', 'solution', 'v']);
+    expect(restore(JSON.stringify(data))!.notes).toBeUndefined();
+    expect(Array.from(restoreGame(restore(JSON.stringify(data))!).notes)).toEqual(new Array(81).fill(0));
+  });
+
+  it('loads an all-zero notes array as no notes', () => {
+    const data = { ...(JSON.parse(serialize(sample(), 0, 1, 1)) as object), notes: new Array(81).fill(0) };
+    expect(restore(JSON.stringify(data))!.notes).toBeUndefined();
   });
 
   it('keeps mistakes that were undone', () => {
@@ -73,6 +97,7 @@ describe('serialize / restore', () => {
 describe('restore rejects invalid saves', () => {
   const good = () => JSON.parse(serialize(sample(), Difficulty.Hard, 1000, 5)) as Record<string, unknown>;
   const withField = (k: string, v: unknown) => JSON.stringify({ ...good(), [k]: v });
+  const noteAt = (i: number, mask: unknown) => Array.from({ length: 81 }, (_, k) => (k === i ? mask : 0));
   const oneWrong = (i: number) => (sol(i) === 1 ? 2 : 1);
 
   const cases: [string, string | null][] = [
@@ -124,6 +149,17 @@ describe('restore rejects invalid saves', () => {
     ['elapsed null (NaN stored)', withField('elapsedMs', null)],
     ['elapsed absurd', withField('elapsedMs', 1e15)],
     ['savedAt missing', JSON.stringify({ ...good(), savedAt: undefined })],
+    ['notes not an array', withField('notes', 'x')],
+    ['notes object', withField('notes', {})],
+    ['notes too short', withField('notes', new Array(80).fill(0))],
+    ['notes too long', withField('notes', new Array(82).fill(0))],
+    ['notes null', withField('notes', null)],
+    ['note above 511', withField('notes', noteAt(6, 512))],
+    ['note negative', withField('notes', noteAt(6, -1))],
+    ['note fractional', withField('notes', noteAt(6, 1.5))],
+    ['note string', withField('notes', noteAt(6, '1'))],
+    ['note on a given cell', withField('notes', noteAt(2, 1))],
+    ['note on an entered cell', withField('notes', noteAt(0, 1))],
     ['complete board', withField('moves', EMPTY.map((i) => [i, sol(i)])).replace(/"mistakes":\d+/, '"mistakes":0')],
   ];
 

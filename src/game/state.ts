@@ -32,6 +32,10 @@ export interface GameState {
   /** Every wrong entry ever made; undoing a mistake does not reduce it. */
   readonly mistakes: number;
   readonly mode: InputMode;
+  /** Whether digit input adds pencil notes instead of placing digits. */
+  readonly notesOn: boolean;
+  /** Pencil notes per cell: bit `d-1` set = digit d noted. Always 0 for filled cells. Treated as immutable. */
+  readonly notes: Uint16Array;
 }
 
 function parse(s: string, what: string): Uint8Array {
@@ -51,6 +55,8 @@ export function createGame(puzzle: string, solution: string): GameState {
     history: [],
     mistakes: 0,
     mode: 'cell-first',
+    notesOn: false,
+    notes: new Uint16Array(CELLS),
   };
 }
 
@@ -65,6 +71,8 @@ export function restoreGame(saved: {
   solution: string;
   moves: readonly (readonly [number, number])[];
   mistakes: number;
+  /** Optional note masks (81 values); absent = no notes. */
+  notes?: readonly number[];
 }): GameState {
   const game = createGame(saved.puzzle, saved.solution);
   const cells = Uint8Array.from(game.cells);
@@ -73,7 +81,8 @@ export function restoreGame(saved: {
     cells[index] = value;
     history.push({ index, previous: 0, value });
   }
-  return { ...game, cells, history, mistakes: saved.mistakes };
+  const notes = saved.notes ? Uint16Array.from(saved.notes) : game.notes;
+  return { ...game, cells, history, mistakes: saved.mistakes, notes };
 }
 
 /** Number of cells holding the correct digit, per digit (index 1-9; index 0 unused). */
@@ -155,9 +164,15 @@ function place(state: GameState, i: number, digit: number): GameState {
   if (state.cells[i] !== 0 || hasMistake(state)) return state;
   const cells = Uint8Array.from(state.cells);
   cells[i] = digit;
+  let notes = state.notes;
+  if (notes[i] !== 0) {
+    notes = Uint16Array.from(notes);
+    notes[i] = 0; // placing a digit clears the cell's notes; undo does not bring them back
+  }
   const next: GameState = {
     ...state,
     cells,
+    notes,
     selected: null,
     highlight: digit,
     history: [...state.history, { index: i, previous: 0, value: digit }],
@@ -189,7 +204,8 @@ export function canEnter(state: GameState): boolean {
 }
 
 /**
- * Handle a tap on a digit button: place the digit when an empty cell is selected and entry
+ * Handle a tap on a digit button: with notes mode on and an empty cell selected, toggle the note
+ * (the cell stays selected); otherwise place the digit when an empty cell is selected and entry
  * is allowed, otherwise highlight it (tapping the highlighted digit clears the highlight).
  * Complete digits are ignored. In number-first mode it makes the digit the active one instead
  * (tapping the active digit changes nothing).
@@ -199,6 +215,8 @@ export function pressDigit(state: GameState, digit: number): GameState {
   if (activeMode(state) === 'number-first') {
     return state.highlight === digit ? state : { ...state, highlight: digit };
   }
+  const sel = state.selected;
+  if (state.notesOn && sel !== null && state.cells[sel] === 0) return toggleNote(state, sel, digit);
   if (canEnter(state)) return enter(state, digit);
   return { ...state, highlight: effectiveHighlight(state) === digit ? null : digit };
 }
@@ -245,14 +263,41 @@ export function longPressDigit(state: GameState, digit: number): GameState {
 
 /**
  * A tap on a board cell. Cell-first: select it. Number-first: an empty cell receives the active
- * digit (unselected; blocked while a mistake is on the board), a filled cell makes its digit
+ * digit (unselected; blocked while a mistake is on the board) or, with notes mode on, toggles it
+ * as a note, a filled cell makes its digit
  * the active one unless that digit is complete.
  */
 export function tapCell(state: GameState, index: number): GameState {
   if (activeMode(state) === 'cell-first') return select(state, index);
   if (!Number.isInteger(index) || index < 0 || index >= CELLS) return state;
   const v = state.cells[index] ?? 0;
-  if (v === 0) return place(state, index, state.highlight ?? 0);
+  if (v === 0) return state.notesOn ? toggleNote(state, index, state.highlight ?? 0) : place(state, index, state.highlight ?? 0);
   if (completedDigits(state)[v] || v === state.highlight) return state;
   return { ...state, highlight: v };
+}
+
+/** Flip notes mode. Nothing else changes. */
+export function toggleNotes(state: GameState): GameState {
+  return { ...state, notesOn: !state.notesOn };
+}
+
+/**
+ * Toggle `digit` as a note in empty cell `index`. Ignored for filled cells, invalid input and
+ * complete digits. Leaves history, mistakes, selection and highlight alone.
+ */
+export function toggleNote(state: GameState, index: number, digit: number): GameState {
+  if (!Number.isInteger(index) || index < 0 || index >= CELLS) return state;
+  if (!Number.isInteger(digit) || digit < 1 || digit > 9 || completedDigits(state)[digit]) return state;
+  if (state.cells[index] !== 0) return state;
+  const notes = Uint16Array.from(state.notes);
+  notes[index] = (notes[index] ?? 0) ^ (1 << (digit - 1));
+  return { ...state, notes };
+}
+
+/** The digits (ascending) noted in cell `index`. */
+export function notesOf(state: GameState, index: number): number[] {
+  const mask = state.notes[index] ?? 0;
+  const out: number[] = [];
+  for (let d = 1; d <= 9; d++) if (mask & (1 << (d - 1))) out.push(d);
+  return out;
 }

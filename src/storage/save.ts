@@ -19,6 +19,8 @@ export interface SavedGame {
   /** The player's entries in order, as `[cell index, digit]`. */
   moves: [number, number][];
   mistakes: number;
+  /** Pencil-note masks (81 values, bit d-1 = digit d); absent when the game has no notes. */
+  notes?: number[];
   elapsedMs: number;
   savedAt: number;
 }
@@ -35,6 +37,7 @@ export function serialize(state: GameState, difficulty: Difficulty, elapsedMs: n
     elapsedMs: Math.max(0, Math.round(elapsedMs)),
     savedAt,
   };
+  if (state.notes.some((m) => m !== 0)) saved.notes = Array.from(state.notes);
   return JSON.stringify(saved);
 }
 
@@ -61,14 +64,14 @@ function isValidGrid(solution: string): boolean {
  * Parse and strictly validate saved JSON. Returns null for anything that is not a trustworthy
  * save of an unfinished game: wrong version, malformed fields, givens that disagree with the
  * solution, a solution that is not a valid grid, entries on given, out-of-range or repeated
- * cells, impossible mistakes, or a bad time. Never throws.
+ * cells, impossible mistakes, bad notes (wrong shape, out of range, on a filled cell) or a bad time. Never throws.
  */
 export function restore(json: string | null): SavedGame | null {
   try {
     if (typeof json !== 'string' || json.length > MAX_JSON_CHARS) return null;
     const data: unknown = JSON.parse(json);
     if (!isRecord(data) || data.v !== SAVE_VERSION) return null;
-    const { puzzle, solution, difficulty, moves, mistakes, elapsedMs, savedAt } = data;
+    const { puzzle, solution, difficulty, moves, mistakes, elapsedMs, savedAt, notes } = data;
     if (!isDigits(puzzle) || !isDigits(solution) || !isValidGrid(solution)) return null;
     for (let i = 0; i < CELLS; i++) if (puzzle[i] !== '0' && puzzle[i] !== solution[i]) return null;
     if (typeof difficulty !== 'number' || !Number.isInteger(difficulty) || DIFFICULTY_LABELS[difficulty as Difficulty] === undefined) return null;
@@ -95,6 +98,14 @@ export function restore(json: string | null): SavedGame | null {
     if (typeof savedAt !== 'number' || !Number.isFinite(savedAt)) return null;
 
     const result: SavedGame = { puzzle, solution, difficulty: difficulty as Difficulty, moves: checked, mistakes, elapsedMs, savedAt };
+    if (notes !== undefined) {
+      if (!Array.isArray(notes) || notes.length !== CELLS) return null;
+      for (const [i, mask] of notes.entries()) {
+        if (typeof mask !== 'number' || !Number.isInteger(mask) || mask < 0 || mask > 511) return null;
+        if (mask !== 0 && (puzzle[i] !== '0' || filled.has(i))) return null; // a note on a filled cell
+      }
+      if (notes.some((m) => m !== 0)) result.notes = notes as number[];
+    }
     // A finished game is never kept, so a "complete" save is bogus.
     if (isComplete(restoreGame(result))) return null;
     return result;

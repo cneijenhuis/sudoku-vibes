@@ -17,6 +17,9 @@ import {
   select,
   startNumberFirst,
   tapCell,
+  toggleNote,
+  toggleNotes,
+  notesOf,
   undo,
   type GameState,
 } from './state';
@@ -543,5 +546,135 @@ describe('nextIncompleteDigit', () => {
   });
   it('is null when every digit is complete', () => {
     expect(nextIncompleteDigit(5, only())).toBeNull();
+  });
+});
+
+describe('pencil notes', () => {
+  const notesGame = () => toggleNotes(fresh());
+
+  it('starts off with no notes, and toggleNotes flips only the flag', () => {
+    const g = fresh();
+    expect(g.notesOn).toBe(false);
+    expect(Array.from(g.notes)).toEqual(new Array(81).fill(0));
+    const on = toggleNotes(g);
+    expect(on.notesOn).toBe(true);
+    expect({ ...on, notesOn: false }).toEqual(g);
+    expect(toggleNotes(on).notesOn).toBe(false);
+  });
+
+  it('adds several notes to a selected cell and keeps it selected', () => {
+    let g = select(notesGame(), 0);
+    for (const d of [5, 3, 9]) g = pressDigit(g, d);
+    expect(notesOf(g, 0)).toEqual([3, 5, 9]);
+    expect(g.selected).toBe(0);
+    expect(g.cells[0]).toBe(0);
+    expect(g.history).toEqual([]);
+    expect(g.mistakes).toBe(0);
+  });
+
+  it('removes a noted digit when it is pressed again', () => {
+    let g = select(notesGame(), 0);
+    g = pressDigit(pressDigit(g, 5), 3);
+    g = pressDigit(g, 5);
+    expect(notesOf(g, 0)).toEqual([3]);
+  });
+
+  it('does not touch the highlight when noting', () => {
+    let g = pressDigit(notesGame(), 5); // no cell selected: highlight
+    expect(g.highlight).toBe(5);
+    g = select(g, 0);
+    g = pressDigit(g, 3);
+    expect(g.highlight).toBe(5);
+    expect(notesOf(g, 0)).toEqual([3]);
+  });
+
+  it('highlights as usual with no empty cell selected and adds no note', () => {
+    const g = pressDigit(select(notesGame(), 40), 3); // 40 is a given holding 5
+    expect(g.highlight).toBe(3);
+    expect(Array.from(g.notes).every((m) => m === 0)).toBe(true);
+    const h = pressDigit(notesGame(), 5);
+    expect(h.highlight).toBe(5);
+    expect(Array.from(h.notes).every((m) => m === 0)).toBe(true);
+  });
+
+  it('never notes on a filled cell or a complete digit', () => {
+    const g = notesGame();
+    expect(toggleNote(g, 2, 5)).toBe(g); // given
+    expect(completedDigits(g)[4]).toBe(true);
+    expect(toggleNote(g, 0, 4)).toBe(g);
+    expect(pressDigit(select(g, 0), 4).notes[0]).toBe(0);
+    expect(toggleNote(g, 0, 0)).toBe(g);
+    expect(toggleNote(g, 0, 10)).toBe(g);
+    expect(toggleNote(g, 81, 5)).toBe(g);
+    const filled = enter(select(fresh(), 0), 5);
+    expect(toggleNote(filled, 0, 3)).toBe(filled);
+  });
+
+  it('is not blocked by a mistake on the board', () => {
+    let g = enter(select(fresh(), 0), wrongFor(0));
+    expect(hasMistake(g)).toBe(true);
+    g = select(toggleNotes(g), 1);
+    g = pressDigit(g, 3);
+    expect(notesOf(g, 1)).toEqual([3]);
+    expect(g.mistakes).toBe(1);
+  });
+
+  it('leaves mistakes and history alone', () => {
+    let g = enter(select(fresh(), 0), Number(SOLUTION[0]));
+    const before = g;
+    g = toggleNote(toggleNotes(g), 1, 3);
+    expect(g.history).toBe(before.history);
+    expect(g.mistakes).toBe(before.mistakes);
+    expect(g.cells).toBe(before.cells);
+  });
+
+  it('toggles the active digit as a note in number-first mode', () => {
+    let g = toggleNotes(startNumberFirst(fresh(), 5));
+    g = tapCell(g, 0);
+    expect(notesOf(g, 0)).toEqual([5]);
+    expect(g.cells[0]).toBe(0);
+    expect(g.history).toEqual([]);
+    g = tapCell(g, 0);
+    expect(notesOf(g, 0)).toEqual([]);
+    expect(g.mode).toBe('number-first');
+  });
+
+  it('still switches the active digit on a filled cell in number-first notes mode', () => {
+    const g = tapCell(toggleNotes(startNumberFirst(fresh(), 5)), 2); // cell 2 holds 4, complete
+    expect(g.highlight).toBe(5);
+    const h = tapCell(toggleNotes(startNumberFirst(fresh(), 5)), 3); // holds 6 (complete too)
+    expect(h.highlight).toBe(5);
+    const placed = enter(select(fresh(), 0), 3); // a wrong 3, so 3 is not complete
+    const k = tapCell(toggleNotes(startNumberFirst(placed, 9)), 0);
+    expect(k.highlight).toBe(3);
+  });
+
+  it('placing a digit clears that cell notes only, and undo does not restore them', () => {
+    let g = select(notesGame(), 0);
+    g = pressDigit(pressDigit(g, 5), 3); // notes 3, 5 in cell 0
+    g = select(select(g, 1), 1); // select then deselect, no-op for notes
+    g = toggleNote(g, 1, 9);
+    g = select(g, 0);
+    g = enter(g, 5);
+    expect(g.cells[0]).toBe(5);
+    expect(g.notes[0]).toBe(0);
+    expect(notesOf(g, 1)).toEqual([9]);
+    g = undo(g);
+    expect(g.cells[0]).toBe(0);
+    expect(g.notes[0]).toBe(0);
+    expect(notesOf(g, 1)).toEqual([9]);
+  });
+
+  it('placing in number-first mode clears notes too', () => {
+    let g = toggleNote(fresh(), 0, 3);
+    g = tapCell(startNumberFirst(g, 5), 0);
+    expect(g.cells[0]).toBe(5);
+    expect(g.notes[0]).toBe(0);
+  });
+
+  it('does not mutate the previous state', () => {
+    const g = notesGame();
+    toggleNote(g, 0, 5);
+    expect(g.notes[0]).toBe(0);
   });
 });
