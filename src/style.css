@@ -603,7 +603,7 @@ h2 {
   position: relative;
   display: grid;
   /*
-   * Portrait rows: bar, gap, board, gap, pencil, gap, digits. The three gaps are equal flexible
+   * Portrait rows: bar, gap, board, gap, digits, gap, pencil. The three gaps are equal flexible
    * tracks (never under 6px); the board row grows to the board's largest size (the width limit) and
    * otherwise takes what is left after the gaps, so the board only shrinks when the screen is short.
    */
@@ -862,24 +862,24 @@ h2 {
   width: 100%;
   max-width: calc(var(--board-max) + 2 * var(--board-gutter));
   margin: 0 auto;
-  padding: 0 var(--board-gutter) 14px;
-  grid-row: 7;
+  padding: 0 var(--board-gutter);
+  grid-row: 5;
 }
 
 /*
  * Notes row: the pencil button is one digit key (same grid column width, same height) in the ninth
- * column, so its right edge is the 9 key's. The row is exactly one key high; the gap below it is a
- * flexible grid track of the screen, not padding.
+ * column, so its right edge is the 9 key's. It is the bottom element: the 14px of padding under it
+ * keeps its drop edge clear of the screen edge; the gap above it is a flexible grid track.
  */
 .notes-row {
-  grid-row: 5;
+  grid-row: 7;
   display: grid;
   grid-template-columns: repeat(9, minmax(0, 1fr));
   gap: 5px;
   width: 100%;
   max-width: calc(var(--board-max) + 2 * var(--board-gutter));
   margin: 0 auto;
-  padding: 0 var(--board-gutter);
+  padding: 0 var(--board-gutter) 14px;
 }
 
 .notes-btn {

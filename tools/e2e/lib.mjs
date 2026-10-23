@@ -112,8 +112,8 @@ export const gameState = (page) =>
   }));
 
 /**
- * Board size and the portrait gaps: above the board (from the top bar), below it (to the pencil button) and
- * between the pencil button and the digit row, plus the pencil button and 9 key sizes and right edges.
+ * Board size and the portrait gaps: above the board (from the top bar), below it (to the digit row) and
+ * between the digit row and the pencil button, plus the pencil button and 9 key sizes and right edges.
  */
 export const boardMetrics = (page) =>
   page.evaluate(() => {
@@ -127,8 +127,8 @@ export const boardMetrics = (page) =>
       boardLeft: b?.left, boardTop: b?.top,
       // Portrait only (in landscape the controls sit in a side panel).
       gapAbove: portrait && b && t ? rd(b.top - t.bottom) : null,
-      gapBelow: portrait && b && n ? rd(n.top - b.bottom) : null,
-      gapPad: portrait && n && k ? rd(k.top - n.bottom) : null,
+      gapBelow: portrait && b && k ? rd(k.top - b.bottom) : null,
+      gapPad: portrait && n && k ? rd(n.top - k.bottom) : null,
       pencil: n && [rd(n.width), rd(n.height)],
       key9: k && [rd(k.width), rd(k.height)],
       // Does a point 43px left of the pencil's right edge (vertical centre) hit the pencil button? (touch target >= 44px)

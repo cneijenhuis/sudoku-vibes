@@ -145,7 +145,7 @@ export function gameScreen(
   );
   overlay.hidden = true;
 
-  const el = h('main', { class: `screen game-screen accent-${game.difficulty}` }, bar, region, notesRow, pad, overlay);
+  const el = h('main', { class: `screen game-screen accent-${game.difficulty}` }, bar, region, pad, notesRow, overlay);
 
   // --- rendering ---------------------------------------------------------
   function paintTime(): void {
