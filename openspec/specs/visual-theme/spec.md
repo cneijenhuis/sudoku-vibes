@@ -17,7 +17,7 @@ Every screen SHALL show a full-screen beach photo behind all content, covering t
 - **THEN** the page background is #F6E9D2 and all text remains legible
 
 ### Requirement: Backgrounds are configurable
-Available backgrounds SHALL be defined in a single list (identifier, image, fallback colour, focal position). Adding another background SHALL require only a new image and a list entry. The app SHALL use one background per load; with a single entry, that entry.
+Available backgrounds SHALL be defined in a single list (identifier, image, fallback colour, focal position). Adding another SHALL require only a new image and a list entry. The app SHALL pick one at random at launch and again whenever a new game starts, avoiding the previous one when several exist. Resuming a game or returning to the menu SHALL NOT change it.
 
 #### Scenario: One background configured
 - **WHEN** the list contains one entry
@@ -25,7 +25,15 @@ Available backgrounds SHALL be defined in a single list (identifier, image, fall
 
 #### Scenario: Second entry added
 - **WHEN** a second entry is added to the list
-- **THEN** the app shows one of the entries per load without any component changes
+- **THEN** the app can show it without any component changes
+
+#### Scenario: New game changes the background
+- **WHEN** the player starts a new game while several backgrounds exist
+- **THEN** a randomly chosen background different from the current one is shown
+
+#### Scenario: Resume keeps it
+- **WHEN** the player resumes a saved game or returns to the menu
+- **THEN** the background does not change
 
 ### Requirement: Colour tokens
 The theme SHALL define named tokens for surface (rgba(255,253,248,0.86)), ink (#10233A), entry (#067684), strong line (#1E4D6B), soft line (rgba(30,77,107,0.42)), key text (#1E4D6B), highlight (#FFE08A), highlight text (#6E4300), highlight ring (#F4B400), highlight edge (#D9A100), done text (#4F6E82), done edge (#6F8FA3), accent (#E2533F), status (#B83A28), fallback (#F6E9D2) and board shadow (0 14px 30px rgba(40,30,10,0.22)), and components SHALL use these tokens rather than literal colours.
