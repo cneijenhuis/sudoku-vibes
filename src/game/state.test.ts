@@ -919,6 +919,27 @@ describe('redo', () => {
     expect(effectiveHighlight(g)).toBe(5);
   });
 
+  it('in number-first mode redo leaves the locked digit alone', () => {
+    const entered = enter(select(row(), 1), 3); // cell 1 is a 3
+    const g = redo(startNumberFirst(undo(entered), 7));
+    expect(g.cells[1]).toBe(3);
+    expect(g.mode).toBe('number-first');
+    expect(g.highlight).toBe(7);
+    expect(activeMode(g)).toBe('number-first');
+  });
+
+  it('a redo that completes another digit does not move the locked digit either', () => {
+    const p = [...SOLUTION];
+    const at2 = p.indexOf('2');
+    p[at2] = '0';
+    p[p.indexOf('7')] = '0'; // the 7 stays open so it can be locked
+    const entered = enter(select(createGame(p.join(''), SOLUTION), at2), 2); // cell-first, completes the 2
+    const g = redo(startNumberFirst(undo(entered), 7));
+    expect(completedDigits(g)[2]).toBe(true);
+    expect(g.highlight).toBe(7);
+    expect(activeMode(g)).toBe('number-first');
+  });
+
   it('advances to the next digit when the redo completes a digit', () => {
     const p = [...SOLUTION];
     const at2 = p.indexOf('2');

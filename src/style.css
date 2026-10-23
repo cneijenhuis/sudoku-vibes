@@ -652,16 +652,6 @@ h2 {
   box-shadow: 0 1px 0 var(--line-strong);
 }
 
-.icon-btn:disabled {
-  /* Keep the glass surface and edge at full strength; only the icon dims. */
-  color: var(--done-text);
-  cursor: default;
-}
-
-.icon-btn:disabled svg {
-  opacity: 0.5;
-}
-
 .clock {
   justify-self: center;
   max-width: 100%;
@@ -917,18 +907,27 @@ h2 {
   left: min(0px, calc(100% - var(--tap)));
 }
 
+/*
+ * The pseudo-element is positioned against the padding box, inside the 2px border, so edge offsets
+ * start 2px further in than the visible key. Undo also reaches over the board gutter on the left.
+ */
 .act-btn.undo::after,
 .act-btn.redo::after {
-  left: 0;
+  --reach-left: 0px;
+  left: var(--reach-left);
   right: min(0px, calc(100% - var(--tap)));
 }
 
+.act-btn.undo::after {
+  --reach-left: calc(-2px - var(--board-gutter));
+}
+
 .act-btn.redo::after {
-  left: calc(-0.5 * var(--act-gap));
+  --reach-left: calc(-2px - 0.5 * var(--act-gap));
 }
 
 .action-row.has-redo .act-btn.undo::after {
-  right: calc(-0.5 * var(--act-gap));
+  right: calc(-2px - 0.5 * var(--act-gap));
 }
 
 .act-btn[hidden] {
@@ -1173,6 +1172,7 @@ h2 {
 
 @media (prefers-reduced-motion: reduce) {
   .icon-btn:active:not(:disabled),
+  .act-btn:active:not(:disabled),
   .digit:active:not(:disabled) {
     transform: none;
   }
@@ -1296,6 +1296,9 @@ h2 {
   .act-btn {
     width: 56px;
     height: var(--tap);
+  }
+  .act-btn.undo::after {
+    --reach-left: 0px;
   }
   .notes-btn {
     margin-left: auto;

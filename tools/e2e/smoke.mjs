@@ -2,7 +2,7 @@
 // number-first mode -> board metrics. Run: npm run build && node tools/e2e/smoke.mjs
 import assert from 'node:assert/strict';
 import { access } from 'node:fs/promises';
-import { boardMetrics, cellSel, digitSel, firstIndexOf, gameState, hold, launch, makePuzzle, phone, seedPuzzle, serveDist, sleep, startGame, tap, trackErrors } from './lib.mjs';
+import { sweepUndoRedo, boardMetrics, cellSel, digitSel, firstIndexOf, gameState, hold, launch, makePuzzle, phone, seedPuzzle, serveDist, sleep, startGame, tap, trackErrors } from './lib.mjs';
 
 await access('dist/index.html').catch(() => { throw new Error('dist/ not found: run `npm run build` first'); });
 const server = await serveDist();
@@ -38,6 +38,10 @@ try {
   const nm = await boardMetrics(np);
   assert.ok(nm.pencil[0] < 44 && nm.hit43 === true, `320 wide: pencil ${nm.pencil}, hit43 ${nm.hit43}`);
   assert.equal(await np.evaluate(() => { const r = document.querySelector('[data-digit="8"]').getBoundingClientRect(); return document.elementFromPoint(r.left + r.width / 2, r.top + 5)?.closest('[data-digit]')?.dataset.digit; }), '8', 'the 8 key is not overlapped');
+  await np.tap(cellSel(empty[0]));
+  await np.tap(digitSel(1));
+  await np.tap('[data-action=undo]');
+  assert.deepEqual(await sweepUndoRedo(np), ['undo', 'redo'], 'undo and redo touch areas meet with no dead gap');
   await narrow.close();
 
   // cell-first: a wrong digit (a 2 where the 1 belongs; 2 still has an empty cell, so its key is enabled)

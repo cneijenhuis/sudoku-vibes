@@ -209,17 +209,20 @@ function place(state: GameState, i: number, digit: number, redoing = false): Gam
     const bit = 1 << (digit - 1);
     for (const p of peersOf(i)) if ((notes[p] ?? 0) & bit) setMask(p, (notes[p] ?? 0) & ~bit);
   }
+  // Redoing another digit in number-first mode must not move the locked digit.
+  const keepActive = redoing && activeMode(state) === 'number-first' && state.highlight !== digit;
   const next: GameState = {
     ...state,
     cells,
     notes,
     selected: null,
-    highlight: digit,
+    highlight: keepActive ? state.highlight : digit,
     history: [...state.history, removed.length > 0 ? { index: i, previous: 0, value: digit, notes: removed } : { index: i, previous: 0, value: digit }],
     redoStack: redoing ? state.redoStack.slice(0, -1) : [],
     // A redone wrong digit was counted when it was first entered.
     mistakes: state.mistakes + (redoing || digit === state.solution[i] ? 0 : 1),
   };
+  if (keepActive) return next;
   const completed = completedDigits(next);
   // Only the entry that completes the digit advances (a stray entry of an already complete digit does not).
   if (!completed[digit] || completedDigits(state)[digit]) return next;

@@ -216,7 +216,10 @@ export function gameScreen(
     notesBtn.setAttribute('aria-pressed', String(state.notesOn));
     undoBtn.disabled = paused || finished || !canUndo(state);
     const redoable = !paused && !finished && canRedo(state);
+    const redoHadFocus = doc.activeElement === redoBtn;
     redoBtn.hidden = !redoable;
+    // A focused button that disappears would drop focus to the page: hand it to the next best key.
+    if (redoHadFocus && !redoable && !paused) (undoBtn.disabled ? notesBtn : undoBtn).focus({ preventScroll: true });
     actionRow.classList.toggle('has-redo', redoable);
     const n = state.mistakes;
     // Level and mistakes are separate spans so landscape can stack them without the dot.

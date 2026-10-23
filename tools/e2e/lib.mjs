@@ -146,6 +146,25 @@ export const boardMetrics = (page) =>
   });
 
 /**
+ * With undo and redo both shown: what every point (0.25px steps, at the buttons' vertical centre) from undo's
+ * left edge to redo's right edge resolves to. Returns the distinct names in order, e.g. ['undo', 'redo'];
+ * anything else ('row', 'other') means a dead or wrong spot, including in the gap between the two keys.
+ */
+export const sweepUndoRedo = (page) =>
+  page.evaluate(() => {
+    const u = document.querySelector('.act-btn.undo').getBoundingClientRect();
+    const r = document.querySelector('.act-btn.redo').getBoundingClientRect();
+    const y = u.top + u.height / 2, seen = [];
+    for (let x = u.left; x < r.right; x += 0.25) {
+      const el = document.elementFromPoint(x, y);
+      const b = el?.closest('.act-btn');
+      const n = b?.classList.contains('undo') ? 'undo' : b?.classList.contains('redo') ? 'redo' : el?.closest('.action-row') ? 'row' : 'other';
+      if (seen[seen.length - 1] !== n) seen.push(n);
+    }
+    return seen;
+  });
+
+/**
  * Emulate device safe-area insets (notch / home indicator) by rewriting env(safe-area-inset-*) in the CSS
  * responses. Injecting padding on #app instead is misleading: layout maths that reads env() never sees it.
  */
