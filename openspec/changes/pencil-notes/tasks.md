@@ -7,8 +7,8 @@
 
 ## 2. UI
 
-- [ ] 2.1 Pencil button, notes rendering, aria labels, save on note change in `src/ui/game.ts` and `src/style.css`; verify with Playwright (`tools/e2e/`) on a seeded puzzle: toggle, add several notes, remove one, full 123/456/789 cell, number-first note, place a digit clears notes, reload and resume shows notes, notes mode off after resume
-- [ ] 2.2 Measure and screenshot portrait 390x844, 375x667, 320x568 and landscape 844x390 and 1024x768 (button right-aligned, 44px minimum, nothing clipped, board size reported), and review the screenshots for legibility of the notes in a full cell
+- [x] 2.1 Pencil button, notes rendering, aria labels, save on note change in `src/ui/game.ts` and `src/style.css`; verify with Playwright (`tools/e2e/`) on a seeded puzzle: toggle, add several notes, remove one, full 123/456/789 cell, number-first note, place a digit clears notes, reload and resume shows notes, notes mode off after resume
+- [x] 2.2 Measure and screenshot portrait 390x844, 375x667, 320x568 and landscape 844x390 and 1024x768 (button right-aligned, 44px minimum, nothing clipped, board size reported), and review the screenshots for legibility of the notes in a full cell
 
 ## 3. Docs and gates
 

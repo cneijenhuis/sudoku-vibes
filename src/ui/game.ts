@@ -9,9 +9,11 @@ import {
   isComplete,
   isMistakeCell,
   longPressDigit,
+  notesOf,
   pressDigit,
   restoreGame,
   tapCell,
+  toggleNotes,
   undo,
   type GameState,
 } from '../game/state';
@@ -34,7 +36,7 @@ export interface GameHandlers {
   /** The last cell was filled correctly. */
   onComplete: (result: GameResult) => void;
   /**
-   * The game should be persisted now: after each entry or undo, on pause, when the page is
+   * The game should be persisted now: after each entry, note change or undo, on pause, when the page is
    * hidden or closing and when the screen is left mid-game. Never called once finished.
    */
   onSave?: (state: GameState, elapsedMs: number) => void;
@@ -64,6 +66,9 @@ const UNDO_ICON =
   '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>';
 const PAUSE_ICON =
   '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4.2" height="14" rx="1.4"/><rect x="13.8" y="5" width="4.2" height="14" rx="1.4"/></svg>';
+
+const PENCIL_ICON =
+  '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.2 5.3l3.5 3.5"/><path d="M4 20l1-4.5L16.6 3.9a1.9 1.9 0 0 1 2.7 0l.8.8a1.9 1.9 0 0 1 0 2.7L8.5 19 4 20Z"/></svg>';
 
 function iconButton(cls: string, label: string, svg: string): HTMLButtonElement {
   const b = h('button', { class: `icon-btn glass ${cls}`, attrs: { type: 'button', 'aria-label': label } });
@@ -114,6 +119,10 @@ export function gameScreen(
   }
   const region = h('section', { class: 'board-region' }, board);
 
+  const notesBtn = h('button', { class: 'notes-btn glass', attrs: { type: 'button', 'aria-label': 'Notes', 'aria-pressed': 'false', 'data-action': 'notes' } });
+  notesBtn.innerHTML = PENCIL_ICON; // static markup defined above
+  const notesRow = h('div', { class: 'notes-row' }, notesBtn);
+
   const digitBtns: HTMLButtonElement[] = [];
   const pad = h('div', { class: 'pad', attrs: { role: 'group', 'aria-label': 'Number pad' } });
   pad.style.setProperty('--hold-ms', `${LONG_PRESS_MS}ms`);
@@ -136,7 +145,7 @@ export function gameScreen(
   );
   overlay.hidden = true;
 
-  const el = h('main', { class: `screen game-screen accent-${game.difficulty}` }, bar, region, pad, overlay);
+  const el = h('main', { class: `screen game-screen accent-${game.difficulty}` }, bar, region, notesRow, pad, overlay);
 
   // --- rendering ---------------------------------------------------------
   function paintTime(): void {
@@ -157,11 +166,19 @@ export function gameScreen(
       const mistake = isMistakeCell(state, i);
       const isSel = i === sel;
       const same = !isSel && hl !== 0 && v === hl;
-      const key = `${v}|${given ? 'g' : ''}${mistake ? 'm' : ''}${isSel ? 's' : ''}${same ? 'h' : ''}`;
+      const mask = v === 0 ? (state.notes[i] ?? 0) : 0;
+      const key = `${v}|${given ? 'g' : ''}${mistake ? 'm' : ''}${isSel ? 's' : ''}${same ? 'h' : ''}|${mask}`;
       if (cache[i] === key) continue;
       cache[i] = key;
       const b = cells[i]!;
-      b.textContent = v === 0 ? '' : String(v);
+      if (mask !== 0) {
+        // Nine fixed positions (1 2 3 / 4 5 6 / 7 8 9); only the noted digits have text.
+        const grid = h('span', { class: 'notes', attrs: { 'aria-hidden': 'true' } });
+        for (let d = 1; d <= 9; d++) grid.append(h('span', { text: mask & (1 << (d - 1)) ? String(d) : '' }));
+        b.replaceChildren(grid);
+      } else {
+        b.textContent = v === 0 ? '' : String(v);
+      }
       b.classList.toggle('given', given);
       b.classList.toggle('entry', !given && v !== 0);
       b.classList.toggle('mistake', mistake);
@@ -170,7 +187,8 @@ export function gameScreen(
       b.setAttribute('aria-pressed', String(isSel));
       const where = `Row ${Math.floor(i / 9) + 1}, column ${(i % 9) + 1}`;
       const what = v === 0 ? 'empty' : String(v);
-      b.setAttribute('aria-label', `${where}, ${what}${given ? ', given' : ''}${mistake ? ', mistake' : ''}`);
+      const noted = mask !== 0 ? `, notes ${notesOf(state, i).join(', ')}` : '';
+      b.setAttribute('aria-label', `${where}, ${what}${given ? ', given' : ''}${mistake ? ', mistake' : ''}${noted}`);
     }
     digitBtns.forEach((b, k) => {
       const d = k + 1;
@@ -184,6 +202,9 @@ export function gameScreen(
       b.setAttribute('aria-pressed', String(isActive));
       b.setAttribute('aria-label', complete ? `${d}, all placed` : locked ? `${d}, number mode on. Long press to leave` : String(d));
     });
+    notesBtn.disabled = paused || finished;
+    notesBtn.classList.toggle('on', state.notesOn);
+    notesBtn.setAttribute('aria-pressed', String(state.notesOn));
     undoBtn.disabled = paused || finished || !canUndo(state);
     const n = state.mistakes;
     // Level and mistakes are separate spans so landscape can stack them without the dot.
@@ -241,7 +262,7 @@ export function gameScreen(
 
   function apply(next: GameState): void {
     if (next === state) return;
-    const boardChanged = next.cells !== state.cells;
+    const saveNeeded = next.cells !== state.cells || next.notes !== state.notes;
     const modeBefore = activeMode(state);
     const mistakesBefore = state.mistakes;
     state = next;
@@ -258,7 +279,7 @@ export function gameScreen(
     render();
     if (state.mistakes > mistakesBefore) haptics.fire('mistake');
     else if (activeMode(state) !== modeBefore) haptics.fire('mode');
-    if (boardChanged) persist();
+    if (saveNeeded) persist();
   }
 
   board.addEventListener('click', (e) => {
@@ -320,6 +341,9 @@ export function gameScreen(
   el.addEventListener('contextmenu', (e) => e.preventDefault());
   undoBtn.addEventListener('click', () => {
     if (active()) apply(undo(state));
+  });
+  notesBtn.addEventListener('click', () => {
+    if (active()) apply(toggleNotes(state));
   });
   pauseBtn.addEventListener('click', () => pause());
   resumeBtn.addEventListener('click', resume);

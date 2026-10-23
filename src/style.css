@@ -602,7 +602,7 @@ h2 {
 .screen.game-screen {
   position: relative;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
   grid-template-columns: minmax(0, 1fr);
   align-items: stretch;
   justify-content: stretch;
@@ -777,6 +777,20 @@ h2 {
   cursor: pointer;
 }
 
+/* Pencil notes: a 3x3 grid of small digits at fixed positions (1 2 3 / 4 5 6 / 7 8 9). */
+.cell .notes {
+  display: grid;
+  grid-template: repeat(3, minmax(0, 1fr)) / repeat(3, minmax(0, 1fr));
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 7% 9%;
+  font-size: calc(100cqw / 9 * 0.3);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--done-text);
+}
+
 .cell.given {
   color: var(--ink);
   font-weight: 600;
@@ -839,6 +853,59 @@ h2 {
   max-width: calc(var(--board-max) + 2 * var(--board-gutter));
   margin: 0 auto;
   padding: 8px var(--board-gutter) 14px;
+}
+
+/*
+ * Notes row: the pencil button at the right end, in line with the right edge of the number keys.
+ * The row is exactly the tap target high; the pad's top padding leaves room for the drop edge.
+ */
+.notes-row {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  max-width: calc(var(--board-max) + 2 * var(--board-gutter));
+  margin: 0 auto;
+  padding: 0 var(--board-gutter);
+}
+
+.notes-btn {
+  width: 56px;
+  height: var(--tap);
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--line-strong);
+  border-radius: 14px;
+  box-shadow: 0 3px 0 var(--line-strong);
+  color: var(--key-text);
+  cursor: pointer;
+}
+
+.notes-btn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--line-strong);
+}
+
+/* Notes mode on: the same butter yellow as the selected key (never red). */
+.notes-btn.on {
+  background: var(--highlight);
+  border-color: var(--highlight-edge);
+  box-shadow: 0 3px 0 var(--highlight-edge);
+  color: var(--highlight-text);
+}
+
+.notes-btn.on:active:not(:disabled) {
+  box-shadow: 0 1px 0 var(--highlight-edge);
+}
+
+.notes-btn:disabled {
+  color: var(--done-text);
+  cursor: default;
+}
+
+.notes-btn:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
 }
 
 /* Number keys: raised glass with a navy drop edge. */
@@ -980,6 +1047,7 @@ h2 {
 /* Pause: the board and header are hidden (not just covered); a glass card sits over the photo. */
 .game-screen.paused .topbar,
 .game-screen.paused .board-region,
+.game-screen.paused .notes-row,
 .game-screen.paused .pad {
   visibility: hidden;
 }
@@ -1077,7 +1145,7 @@ h2 {
  * gaps), so the panel never outgrows the screen; it is at most 110px. The board column
  * is as wide as the screen is tall (so the board is the height minus two gutters, at most the
  * cap) and the panel takes the rest, between 240px and 320px; the pair is centred, so on wide
- * tablets the spare width is split evenly at both sides. Rows: spacer, bar, keypad, spacer, which
+ * tablets the spare width is split evenly at both sides. Rows: spacer, bar, keypad, pencil, spacer, which
  * centres the panel vertically while the board region spans all of them.
  */
 @media (orientation: landscape) {
@@ -1088,11 +1156,11 @@ h2 {
     --key-gap: 8px;
     --key-h: clamp(
       var(--tap),
-      calc((var(--app-h) - 2 * var(--board-gutter) - var(--bar-h) - 10px - 2 * var(--key-gap)) / 3),
+      calc((var(--app-h) - 2 * var(--board-gutter) - var(--bar-h) - 10px - 3 * var(--key-gap) - var(--tap)) / 3),
       110px
     );
     --panel-w: clamp(240px, calc(100vw - env(safe-area-inset-left) - env(safe-area-inset-right) - var(--board-col)), 320px);
-    grid-template-rows: minmax(0, 1fr) auto auto minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto auto auto minmax(0, 1fr);
     grid-template-columns: minmax(0, var(--board-col)) var(--panel-w);
     justify-content: center;
   }
@@ -1139,6 +1207,14 @@ h2 {
   }
   .digit {
     height: var(--key-h);
+  }
+  /* The pencil sits right-aligned under the keypad, a key gap below it. */
+  .notes-row {
+    grid-column: 2;
+    grid-row: 4;
+    max-width: none;
+    margin: 0;
+    padding: var(--key-gap) 8px 0;
   }
 }
 
