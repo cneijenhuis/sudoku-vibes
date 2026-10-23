@@ -15,8 +15,8 @@ export interface Move {
   previous: number;
   value: number;
   /**
-   * Previous note mask of every cell whose notes this entry changed (the entry cell if it had
-   * notes, each peer that lost the digit). Absent for moves restored from a save.
+   * The note bits this entry removed, per cell (the entry cell's own notes, each peer that lost
+   * the digit). Undo ORs them back, keeping notes toggled since. Absent for restored moves.
    */
   notes?: readonly [index: number, mask: number][];
 }
@@ -189,7 +189,7 @@ function place(state: GameState, i: number, digit: number): GameState {
   const removed: [number, number][] = [];
   const setMask = (p: number, mask: number) => {
     if (notes === state.notes) notes = Uint16Array.from(notes); // copy on first change
-    removed.push([p, notes[p] ?? 0]);
+    removed.push([p, (notes[p] ?? 0) & ~mask]);
     notes[p] = mask;
   };
   if (notes[i] !== 0) setMask(i, 0); // placing a digit clears the cell's notes
@@ -251,8 +251,9 @@ export function pressDigit(state: GameState, digit: number): GameState {
 }
 
 /**
- * Revert the most recent entry, restoring the notes it removed; the mistake count is kept. Cell-first mode selects the freed
- * cell, number-first mode keeps the mode and selects nothing.
+ * Revert the most recent entry, adding back the note bits it removed (notes toggled since are
+ * kept); the mistake count is kept. Cell-first mode selects the freed cell, number-first mode
+ * keeps the mode and selects nothing.
  */
 export function undo(state: GameState): GameState {
   const move = state.history[state.history.length - 1];
@@ -262,7 +263,7 @@ export function undo(state: GameState): GameState {
   let notes = state.notes;
   if (move.notes) {
     notes = Uint16Array.from(notes);
-    for (const [index, mask] of move.notes) notes[index] = mask;
+    for (const [index, mask] of move.notes) notes[index] = (notes[index] ?? 0) | mask;
   }
   return { ...state, cells, notes, selected: activeMode(state) === 'number-first' ? null : move.index, history: state.history.slice(0, -1) };
 }

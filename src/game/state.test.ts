@@ -732,6 +732,67 @@ describe('pencil notes', () => {
       expect(g.cells[0]).toBe(5);
     });
 
+    it('undo keeps notes toggled on a peer after the entry', () => {
+      let g = enter(select(noted(), 0), 5);
+      g = toggleNote(g, 1, 7);
+      g = toggleNote(g, 1, 3); // peer 1 now {3, 7, 9}
+      g = undo(g);
+      expect(notesOf(g, 1)).toEqual([3, 5, 7, 9]);
+    });
+
+    it('undo restores the entry cell notes (cell-first)', () => {
+      let g = noted(); // cell 0 has note 5
+      g = toggleNote(g, 0, 9);
+      g = undo(enter(select(g, 0), 5));
+      expect(notesOf(g, 0)).toEqual([5, 9]);
+      expect(g.selected).toBe(0);
+    });
+
+    it('undo of a wrong digit restores the cell own notes and nothing else', () => {
+      let g = toggleNote(noted(), 0, 9);
+      g = enter(select(g, 0), wrongFor(0));
+      expect(g.notes[0]).toBe(0);
+      g = undo(g);
+      expect(notesOf(g, 0)).toEqual([5, 9]);
+      for (const i of [1, 9, 10, 40]) expect(notesOf(g, i)).toEqual([5, 9]);
+    });
+
+    it('undo after a resume, then a new entry and undo, restores only the new entry', () => {
+      let g = restoreGame({ puzzle, solution: SOLUTION, moves: [[40, 5]], mistakes: 0 });
+      for (const i of [1, 9]) g = toggleNote(toggleNote(g, i, 5), i, 9);
+      g = enter(select(g, 0), 5);
+      expect(notesOf(g, 1)).toEqual([9]);
+      g = undo(g);
+      expect(notesOf(g, 1)).toEqual([5, 9]);
+      g = undo(g); // the restored entry: no record
+      expect(g.cells[40]).toBe(0);
+      expect(notesOf(g, 1)).toEqual([5, 9]);
+    });
+
+    it('does not mutate earlier states', () => {
+      const g0 = select(noted(), 0);
+      const notes0 = Array.from(g0.notes);
+      const g1 = enter(g0, 5);
+      expect(Array.from(g0.notes)).toEqual(notes0);
+      expect(g0.history).toEqual([]);
+      const notes1 = Array.from(g1.notes);
+      const hist1 = [...g1.history];
+      const g2 = undo(g1);
+      expect(Array.from(g1.notes)).toEqual(notes1);
+      expect(g1.history).toEqual(hist1);
+      expect(g2.notes).not.toBe(g1.notes);
+    });
+
+    it('number-first placement of the last 5 prunes peers and still advances', () => {
+      const last = [...SOLUTION].map((c, i) => ([0, 1].includes(i) ? '0' : c)).join('');
+      let g = toggleNote(toggleNote(createGame(last, SOLUTION), 1, 5), 1, 3);
+      g = tapCell(startNumberFirst(g, 5), 0);
+      expect(g.cells[0]).toBe(5);
+      expect(notesOf(g, 1)).toEqual([3]);
+      expect(g.highlight).toBe(3);
+      expect(activeMode(g)).toBe('number-first');
+    });
+
     it('undoing a restored entry restores no notes', () => {
       const g = undo(restoreGame({ puzzle: PUZZLE, solution: SOLUTION, moves: [[0, 5]], mistakes: 0, notes: new Array(81).fill(0) }));
       expect(g.cells[0]).toBe(0);
