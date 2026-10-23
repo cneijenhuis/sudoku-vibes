@@ -3,7 +3,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Screen layout
-In portrait the game screen SHALL show, top to bottom, a bar with a pause button on the left and the running time beside it; the 9x9 board; the digits 1 to 9 in a row; and below them an action row with the undo button, key-sized, under the 1, the redo button next to it (under the 2) while there is something to redo, and the pencil button, key-sized, under the 9. The free space between bar and action row SHALL be split into three equal gaps. No wordmark.
+In portrait the game screen SHALL show, top to bottom, a bar with a pause button on the left and the running time centred; the 9x9 board; the digits 1 to 9 in a row; and below them an action row with the undo button, key-sized, under the 1, the redo button next to it (under the 2) while there is something to redo, and the pencil button, key-sized, under the 9. The free space between bar and action row SHALL be split into three equal gaps. No wordmark.
 
 #### Scenario: Phone portrait
 - **WHEN** the game screen is shown at 375x667 CSS pixels
