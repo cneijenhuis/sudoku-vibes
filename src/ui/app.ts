@@ -41,15 +41,24 @@ function buildScreen(state: AppState, router: Router): MountedScreen<HTMLElement
   }
 }
 
-/** Pick a fresh background whenever a new game starts loading (menu, results, error retry); resume and menu keep it. */
+/**
+ * Pick a fresh background for every new game (menu, results, error retry) and show it once the game
+ * appears, so cancelling the loading screen, resuming and the menu keep the current one.
+ */
 function watchNewGames(router: Router, initial?: Background): void {
-  let current = initial;
+  let shown = initial;
+  let pending: Background | undefined;
   let previous = router.state.screen;
   router.subscribe((state) => {
-    if (state.screen === 'loading' && previous !== 'loading') {
-      const next = pickBackground(undefined, undefined, current?.id);
-      current = next;
-      void applyBackgroundWhenLoaded(next, () => current === next);
+    if (state.screen === 'loading') {
+      if (previous !== 'loading') pending = pickBackground(undefined, undefined, shown?.id);
+    } else if (state.screen === 'game' && pending) {
+      const next = pending;
+      pending = undefined;
+      shown = next;
+      void applyBackgroundWhenLoaded(next, () => shown === next);
+    } else {
+      pending = undefined;
     }
     previous = state.screen;
   });
