@@ -14,6 +14,7 @@ import {
   longPressDigit,
   nextIncompleteDigit,
   pressDigit,
+  restoreGame,
   select,
   startNumberFirst,
   tapCell,
@@ -649,20 +650,93 @@ describe('pencil notes', () => {
     expect(k.highlight).toBe(3);
   });
 
-  it('placing a digit clears that cell notes only, and undo does not restore them', () => {
+  it('placing a digit clears that cell notes only, and undo restores them', () => {
     let g = select(notesGame(), 0);
     g = pressDigit(pressDigit(g, 5), 3); // notes 3, 5 in cell 0
-    g = select(select(g, 1), 1); // select then deselect, no-op for notes
-    g = toggleNote(g, 1, 9);
-    g = select(g, 0);
-    g = enter(g, 5);
+    g = toggleNote(g, 80, 9); // unrelated cell
+    g = enter(g, 5); // cell 0 is still selected
     expect(g.cells[0]).toBe(5);
     expect(g.notes[0]).toBe(0);
-    expect(notesOf(g, 1)).toEqual([9]);
+    expect(notesOf(g, 80)).toEqual([9]);
     g = undo(g);
     expect(g.cells[0]).toBe(0);
-    expect(g.notes[0]).toBe(0);
-    expect(notesOf(g, 1)).toEqual([9]);
+    expect(notesOf(g, 0)).toEqual([3, 5]);
+    expect(notesOf(g, 80)).toEqual([9]);
+  });
+
+  describe('pruning peer notes', () => {
+    // Empty cells: 0 (solution 5), its peers 1 (row), 9 (column), 10 (box), and the unrelated 40 and 80.
+    const puzzle = [...SOLUTION].map((c, i) => ([0, 1, 9, 10, 40, 80].includes(i) ? '0' : c)).join('');
+    const noted = () => {
+      let g = createGame(puzzle, SOLUTION);
+      for (const i of [1, 9, 10, 40]) g = toggleNote(toggleNote(g, i, 5), i, 9);
+      return toggleNote(g, 0, 5);
+    };
+
+    it('removes a correct digit from row, column and box peers, keeping other notes', () => {
+      let g = enter(select(noted(), 0), 5);
+      for (const i of [1, 9, 10]) expect(notesOf(g, i)).toEqual([9]);
+      expect(notesOf(g, 40)).toEqual([5, 9]);
+      expect(g.notes[0]).toBe(0);
+    });
+
+    it('does not change cells without the note or the notes array identity needlessly', () => {
+      const g = createGame(puzzle, SOLUTION);
+      expect(enter(select(g, 0), 5).notes).toBe(g.notes);
+      expect(enter(select(g, 0), 5).history[0]).toEqual({ index: 0, previous: 0, value: 5 });
+    });
+
+    it('a wrong digit prunes nothing', () => {
+      const g0 = noted();
+      const g = enter(select(g0, 0), wrongFor(0));
+      expect(g.mistakes).toBe(1);
+      expect(g.notes[0]).toBe(0);
+      for (const i of [1, 9, 10, 40]) expect(notesOf(g, i)).toEqual([5, 9]);
+      const wrong5 = enter(select(g0, 1), 5); // 5 is wrong in cell 1 (solution 3)
+      expect(notesOf(wrong5, 9)).toEqual([5, 9]);
+      expect(Array.from(undo(wrong5).notes)).toEqual(Array.from(g0.notes));
+    });
+
+    it('undo restores peers and the entry cell notes', () => {
+      const g0 = noted();
+      const g = undo(enter(select(g0, 0), 5));
+      expect(Array.from(g.notes)).toEqual(Array.from(g0.notes));
+      expect(g.cells[0]).toBe(0);
+      expect(g.history).toEqual([]);
+    });
+
+    it('undo restores only the last entry notes', () => {
+      let g = noted();
+      g = enter(select(g, 0), 5);
+      g = toggleNote(g, 1, 3);
+      g = enter(select(g, 1), 3); // cell 1 solution 3; its notes 3, 9 are cleared
+      expect(g.notes[1]).toBe(0);
+      g = undo(g);
+      expect(notesOf(g, 1)).toEqual([3, 9]);
+      expect(notesOf(g, 9)).toEqual([9]); // still pruned by the first entry
+      g = undo(g);
+      expect(notesOf(g, 9)).toEqual([5, 9]);
+    });
+
+    it('prunes in number-first mode', () => {
+      const g = tapCell(startNumberFirst(noted(), 5), 0);
+      expect(g.cells[0]).toBe(5);
+      for (const i of [1, 9, 10]) expect(notesOf(g, i)).toEqual([9]);
+      expect(Array.from(undo(g).notes)).toEqual(Array.from(noted().notes));
+    });
+
+    it('keeps cells, history and mistakes behaviour', () => {
+      const g = enter(select(noted(), 0), 5);
+      expect(g.history.map((m) => [m.index, m.previous, m.value])).toEqual([[0, 0, 5]]);
+      expect(g.mistakes).toBe(0);
+      expect(g.cells[0]).toBe(5);
+    });
+
+    it('undoing a restored entry restores no notes', () => {
+      const g = undo(restoreGame({ puzzle: PUZZLE, solution: SOLUTION, moves: [[0, 5]], mistakes: 0, notes: new Array(81).fill(0) }));
+      expect(g.cells[0]).toBe(0);
+      expect(Array.from(g.notes)).toEqual(new Array(81).fill(0));
+    });
   });
 
   it('placing in number-first mode clears notes too', () => {

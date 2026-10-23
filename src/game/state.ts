@@ -14,6 +14,11 @@ export interface Move {
   /** Value before the move (always 0 today: only empty cells can be filled). */
   previous: number;
   value: number;
+  /**
+   * Previous note mask of every cell whose notes this entry changed (the entry cell if it had
+   * notes, each peer that lost the digit). Absent for moves restored from a save.
+   */
+  notes?: readonly [index: number, mask: number][];
 }
 
 export interface GameState {
@@ -154,10 +159,26 @@ export function enter(state: GameState, digit: number): GameState {
   return place(state, i, digit);
 }
 
+/** The 20 other cells sharing a row, column or 3x3 box with `i`. */
+function peersOf(i: number): number[] {
+  const row = Math.floor(i / 9);
+  const col = i % 9;
+  const out: number[] = [];
+  for (let p = 0; p < CELLS; p++) {
+    if (p === i) continue;
+    const r = Math.floor(p / 9);
+    const c = p % 9;
+    if (r === row || c === col || (Math.floor(r / 3) === Math.floor(row / 3) && Math.floor(c / 3) === Math.floor(col / 3))) out.push(p);
+  }
+  return out;
+}
+
 /**
  * Put `digit` into empty cell `i` (no entry when a mistake is on the board), record it, highlight
  * the digit and clear the selection. Completing the digit in number-first mode makes the next
  * incomplete digit active; in cell-first mode (or when nothing is left) the mode is cell-first.
+ * Notes: the cell's own notes are cleared and a correct digit is removed from its peers' notes;
+ * the previous masks are recorded in the move so undo can restore them.
  */
 function place(state: GameState, i: number, digit: number): GameState {
   if (!Number.isInteger(digit) || digit < 1 || digit > 9) return state;
@@ -165,9 +186,17 @@ function place(state: GameState, i: number, digit: number): GameState {
   const cells = Uint8Array.from(state.cells);
   cells[i] = digit;
   let notes = state.notes;
-  if (notes[i] !== 0) {
-    notes = Uint16Array.from(notes);
-    notes[i] = 0; // placing a digit clears the cell's notes; undo does not bring them back
+  const removed: [number, number][] = [];
+  const setMask = (p: number, mask: number) => {
+    if (notes === state.notes) notes = Uint16Array.from(notes); // copy on first change
+    removed.push([p, notes[p] ?? 0]);
+    notes[p] = mask;
+  };
+  if (notes[i] !== 0) setMask(i, 0); // placing a digit clears the cell's notes
+  if (digit === state.solution[i]) {
+    // a correct digit can no longer be a candidate in its row, column or box
+    const bit = 1 << (digit - 1);
+    for (const p of peersOf(i)) if ((notes[p] ?? 0) & bit) setMask(p, (notes[p] ?? 0) & ~bit);
   }
   const next: GameState = {
     ...state,
@@ -175,7 +204,7 @@ function place(state: GameState, i: number, digit: number): GameState {
     notes,
     selected: null,
     highlight: digit,
-    history: [...state.history, { index: i, previous: 0, value: digit }],
+    history: [...state.history, removed.length > 0 ? { index: i, previous: 0, value: digit, notes: removed } : { index: i, previous: 0, value: digit }],
     mistakes: state.mistakes + (digit === state.solution[i] ? 0 : 1),
   };
   const completed = completedDigits(next);
@@ -222,7 +251,7 @@ export function pressDigit(state: GameState, digit: number): GameState {
 }
 
 /**
- * Revert the most recent entry; the mistake count is kept. Cell-first mode selects the freed
+ * Revert the most recent entry, restoring the notes it removed; the mistake count is kept. Cell-first mode selects the freed
  * cell, number-first mode keeps the mode and selects nothing.
  */
 export function undo(state: GameState): GameState {
@@ -230,7 +259,12 @@ export function undo(state: GameState): GameState {
   if (!move) return state;
   const cells = Uint8Array.from(state.cells);
   cells[move.index] = move.previous;
-  return { ...state, cells, selected: activeMode(state) === 'number-first' ? null : move.index, history: state.history.slice(0, -1) };
+  let notes = state.notes;
+  if (move.notes) {
+    notes = Uint16Array.from(notes);
+    for (const [index, mask] of move.notes) notes[index] = mask;
+  }
+  return { ...state, cells, notes, selected: activeMode(state) === 'number-first' ? null : move.index, history: state.history.slice(0, -1) };
 }
 
 /** The mode to act on: number-first only while its active digit is set and not yet complete. */
