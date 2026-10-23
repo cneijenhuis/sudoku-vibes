@@ -1,0 +1,3 @@
+# Design
+
+The portrait grid from `pencil-key-size` swaps its last two rows: bar, gap, board, gap, digits, gap, pencil. The gaps stay `minmax(6px, 1fr)` tracks so they remain equal; the pencil row is still a 9-column grid with the button in column 9 at key height, and the hit-area extension to at least 44px wide still extends leftwards over the empty columns (nothing overlaps: the digit row is a full gap above). The pencil is now the bottom element, so the bottom safe-area inset and the drop edge must not be clipped or crowd the home indicator: measure with `simulateSafeArea`. DOM order puts the digits before the pencil in portrait so tab order matches visual order; landscape keeps its explicit grid placement (pencil under the keypad), so check tab order there too.
