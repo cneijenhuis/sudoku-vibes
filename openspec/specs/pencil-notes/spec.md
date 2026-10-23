@@ -6,7 +6,7 @@ Lets the player jot candidate digits into empty cells as small notes, without pl
 ## Requirements
 
 ### Requirement: Notes mode toggle
-A pencil button below the board, on the right, SHALL toggle notes mode on and off. It SHALL show its state (pressed or not) without using red, be at least 44 CSS pixels in both dimensions, and be inactive while the game is paused. A new game and a resumed game SHALL start with notes mode off.
+A pencil button below the board, on the right, SHALL toggle notes mode on and off. In portrait it SHALL look like one digit key; its touch target SHALL be at least 44x44 CSS pixels, extended with a transparent hit area where the key is narrower. It SHALL show its state without using red and be inactive while paused. A new or resumed game SHALL start with notes mode off.
 
 #### Scenario: Toggle
 - **WHEN** the player taps the pencil button twice
@@ -15,6 +15,10 @@ A pencil button below the board, on the right, SHALL toggle notes mode on and of
 #### Scenario: Resume
 - **WHEN** a game saved with notes mode on is resumed
 - **THEN** notes mode is off
+
+#### Scenario: Narrow key still tappable
+- **WHEN** the game screen is shown at 320x568
+- **THEN** a point 43px left of the pencil button's right edge, at its vertical centre, resolves to the pencil button
 
 ### Requirement: Adding notes
 With notes mode on and an empty cell selected, tapping a digit SHALL add that digit to the cell's notes, or remove it if already noted, and SHALL keep the cell selected so several digits can be noted. Notes SHALL NOT change the board, the mistake count, the highlight or the undo history, and are not checked against the solution.
