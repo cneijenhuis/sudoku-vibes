@@ -2,8 +2,8 @@
 
 ## 1. Logic and assets
 
-- [ ] 1.1 Add `newlyCompletedDigits(prev, next)` to `src/game/state.ts` with unit tests (completes, not yet complete, already complete before, wrong digit, undo then re-enter); verify `npm test`
-- [ ] 1.2 Create shrunk WebP stickers in `src/assets/digits/` from `digits/*.png` (Pillow script in the scratchpad, not committed), add `src/ui/digit-sticker.ts`; verify each file's size and alpha channel (alpha has transparent corners) and `npm run build` includes them
+- [x] 1.1 Add `newlyCompletedDigits(prev, next)` to `src/game/state.ts` with unit tests (completes, not yet complete, already complete before, wrong digit, undo then re-enter); verify `npm test`
+- [x] 1.2 Create shrunk WebP stickers in `src/assets/digits/` from `digits/*.png` (Pillow script in the scratchpad, not committed), add `src/ui/digit-sticker.ts`; verify each file's size and alpha channel (alpha has transparent corners) and `npm run build` includes them
 
 ## 2. Play screen
 

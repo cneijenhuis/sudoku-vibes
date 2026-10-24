@@ -148,6 +148,15 @@ export function completedUnits(prev: GameState, next: GameState): number[] {
   return [...hit].sort((a, b) => a - b);
 }
 
+/** The digits (ascending) that have all nine instances correctly placed in `next` but not in `prev`. */
+export function newlyCompletedDigits(prev: GameState, next: GameState): number[] {
+  const before = completedDigits(prev);
+  const after = completedDigits(next);
+  const out: number[] = [];
+  for (let d = 1; d <= 9; d++) if (after[d] && !before[d]) out.push(d);
+  return out;
+}
+
 /** The digit to highlight on screen: the stored one unless it is complete. */
 export function effectiveHighlight(state: GameState): number | null {
   const d = state.highlight;

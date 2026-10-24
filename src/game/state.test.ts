@@ -17,6 +17,7 @@ import {
   isMistakeCell,
   longPressDigit,
   longPressEraser,
+  newlyCompletedDigits,
   nextIncompleteDigit,
   pressDigit,
   pressEraser,
@@ -1178,5 +1179,37 @@ describe('completedUnits', () => {
     const broken = undo(done);
     expect(completedUnits(done, broken)).toEqual([]);
     expect(completedUnits(broken, enter(broken, Number(SOLUTION[8])))).toEqual(range(0, 8));
+  });
+});
+
+describe('newlyCompletedDigits', () => {
+  const put = (g: GameState, i: number) => enter(select(g, i), Number(SOLUTION[i]));
+
+  it('lists the digit whose ninth instance was just placed', () => {
+    const before = put(row(), 0); // 5 is missing at cells 0 and 14
+    expect(newlyCompletedDigits(before, put(before, 14))).toEqual([5]);
+  });
+
+  it('is empty while the digit still has instances to place', () => {
+    expect(newlyCompletedDigits(row(), put(row(), 0))).toEqual([]);
+  });
+
+  it('is empty for a digit that was already complete before', () => {
+    const done = put(put(row(), 0), 14);
+    expect(newlyCompletedDigits(done, put(done, 1))).toEqual([]); // cell 1 is a 3, not complete yet
+    expect(newlyCompletedDigits(done, done)).toEqual([]);
+  });
+
+  it('is empty for a wrong digit', () => {
+    const before = put(row(), 0);
+    expect(newlyCompletedDigits(before, enter(select(before, 14), wrongRow(14)))).toEqual([]);
+  });
+
+  it('lists the digit again when it is completed anew after an undo', () => {
+    const before = put(row(), 0);
+    const done = put(before, 14);
+    const undone = undo(done);
+    expect(newlyCompletedDigits(done, undone)).toEqual([]);
+    expect(newlyCompletedDigits(undone, enter(undone, 5))).toEqual([5]);
   });
 });
