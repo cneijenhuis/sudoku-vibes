@@ -589,11 +589,11 @@ h2 {
  * Digit sticker (src/ui/digit-sticker.ts): a glossy digit that jumps in the play header's right slot
  * (three jumps, then gone) and on the results screen (forever). TUNE THE MOTION HERE: every number
  * below is a plain custom property, change it and reload. The shape of one jump (when it leaves the
- * ground, the apex, the landing squash, the rest at the end) lives in `@keyframes digit-jump` below
- * as percentages of one cycle: the rest is the span from 84% to 100%.
+ * ground, the apex, the landing) lives in `@keyframes digit-jump` below as percentages of one cycle.
+ * There is no rest: the landing squash at 100% is also the crouch the next jump starts from.
  */
 :root {
-  --jump-ms: 700ms; /* one full cycle: jump, landing and rest. The play screen does three. */
+  --jump-ms: 700ms; /* one full cycle: jump and landing, flowing straight into the next. The play screen does three. */
   --jump-count: 3; /* play screen: how many jumps before the sticker goes (results: endless) */
   --jump-height: 9px; /* how far the sticker rises; the header leaves little headroom above the sticker, the screen clips beyond it */
   --stretch-y: 1.12; /* in the air: taller ... */
@@ -637,24 +637,19 @@ h2 {
 
 @keyframes digit-jump {
   0% {
-    transform: translateY(0) scale(1, 1);
+    transform: translateY(0) scale(var(--squash-x), var(--squash-y));
     animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1);
   }
-  35% {
+  38% {
     transform: translateY(calc(var(--jump-height) * -1)) scale(var(--stretch-x), var(--stretch-y));
     animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
   }
-  62% {
+  76% {
     transform: translateY(0) scale(var(--stretch-x), var(--stretch-y));
     animation-timing-function: ease-out;
   }
-  70% {
-    transform: translateY(0) scale(var(--squash-x), var(--squash-y));
-    animation-timing-function: ease-in-out;
-  }
-  84%,
   100% {
-    transform: translateY(0) scale(1, 1);
+    transform: translateY(0) scale(var(--squash-x), var(--squash-y));
   }
 }
 

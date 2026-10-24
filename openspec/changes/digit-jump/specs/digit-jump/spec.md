@@ -27,7 +27,7 @@ Undo, redo, resuming a saved game and the entry that finishes the puzzle SHALL N
 - **THEN** the 4 sticker jumps again
 
 ### Requirement: Jump motion
-Each jump SHALL take about 700 ms: a slight vertical stretch while rising and falling, a slight squash (wider and shorter, anchored at the bottom) on landing, and a short rest. The sticker SHALL be about as large as the pause button, SHALL NOT change layout, block input or hide the timer, and SHALL NOT use red.
+Each jump SHALL take about 700 ms: a slight vertical stretch while rising and falling, a slight squash (wider and shorter, anchored at the bottom) on landing that flows straight into the next jump, with no pause on the ground. The sticker SHALL be about as large as the pause button, SHALL NOT change layout, block input or hide the timer, and SHALL NOT use red.
 
 #### Scenario: Squash and stretch
 - **WHEN** a sticker jumps
