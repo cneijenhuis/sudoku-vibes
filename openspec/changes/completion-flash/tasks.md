@@ -2,7 +2,7 @@
 
 ## 1. Logic
 
-- [ ] 1.1 Add `completedUnits(prev, next)` to `src/game/state.ts` with unit tests (row, column, box, digit, union without duplicates, wrong digit, already complete before, undo-then-redo case via states); verify `npm test`
+- [x] 1.1 Add `completedUnits(prev, next)` to `src/game/state.ts` with unit tests (row, column, box, digit, union without duplicates, wrong digit, already complete before, undo-then-redo case via states); verify `npm test`
 
 ## 2. UI
 

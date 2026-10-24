@@ -117,6 +117,37 @@ export function completedDigits(state: GameState): boolean[] {
   return correctCounts(state).map((n, d) => d !== 0 && n === 9);
 }
 
+/**
+ * The cells to flash for the entry that turned `prev` into `next`, ascending and without
+ * duplicates: every cell of each row, column or box that is entirely correct in `next` but was
+ * not in `prev`, plus every cell holding a digit that `next` completes and `prev` did not.
+ * Wrong cells never count (same notion of correct as `completedDigits`).
+ */
+export function completedUnits(prev: GameState, next: GameState): number[] {
+  const hit = new Set<number>();
+  const correct = (s: GameState, i: number): boolean => s.cells[i] !== 0 && s.cells[i] === s.solution[i];
+  const whole = (s: GameState, unit: number[]): boolean => unit.every((i) => correct(s, i));
+  for (let k = 0; k < 9; k++) {
+    const boxRow = Math.floor(k / 3) * 3;
+    const boxCol = (k % 3) * 3;
+    const units = [
+      Array.from({ length: 9 }, (_, j) => k * 9 + j),
+      Array.from({ length: 9 }, (_, j) => j * 9 + k),
+      Array.from({ length: 9 }, (_, j) => (boxRow + Math.floor(j / 3)) * 9 + boxCol + (j % 3)),
+    ];
+    for (const unit of units) {
+      if (whole(next, unit) && !whole(prev, unit)) for (const i of unit) hit.add(i);
+    }
+  }
+  const before = completedDigits(prev);
+  const after = completedDigits(next);
+  for (let d = 1; d <= 9; d++) {
+    if (!after[d] || before[d]) continue;
+    for (let i = 0; i < CELLS; i++) if (next.cells[i] === d) hit.add(i);
+  }
+  return [...hit].sort((a, b) => a - b);
+}
+
 /** The digit to highlight on screen: the stored one unless it is complete. */
 export function effectiveHighlight(state: GameState): number | null {
   const d = state.highlight;

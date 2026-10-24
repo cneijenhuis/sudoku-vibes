@@ -5,6 +5,7 @@ import {
   canRedo,
   canUndo,
   completedDigits,
+  completedUnits,
   createGame,
   effectiveHighlight,
   enter,
@@ -1116,5 +1117,66 @@ describe('eraser', () => {
   it('a new game and a restored game never start erasing', () => {
     expect(row().erasing).toBe(false);
     expect(restoreGame({ puzzle: PUZZLE, solution: SOLUTION, moves: [], mistakes: 0 }).erasing).toBe(false);
+  });
+});
+
+describe('completedUnits', () => {
+  const put = (g: GameState, i: number) => enter(select(g, i), Number(SOLUTION[i]));
+  const fill = (g: GameState, idx: number[]) => idx.reduce(put, g);
+  const range = (a: number, b: number) => Array.from({ length: b - a + 1 }, (_, k) => a + k);
+
+  it('lists a completed row', () => {
+    const before = fill(row(), range(0, 7));
+    expect(completedUnits(before, put(before, 8))).toEqual(range(0, 8));
+  });
+
+  it('lists a completed column', () => {
+    const before = put(row(), 0);
+    expect(completedUnits(before, put(before, 9))).toEqual([0, 9, 18, 27, 36, 45, 54, 63, 72]);
+  });
+
+  it('lists a completed box', () => {
+    const before = fill(row(), [0, 1, 2, 9, 10]);
+    // Column 2 (cells 2 and 11 were its last gaps) completes with it.
+    expect(completedUnits(before, put(before, 11))).toEqual([0, 1, 2, 9, 10, 11, 18, 19, 20, 29, 38, 47, 56, 65, 74]);
+  });
+
+  it('lists every cell of a completed digit', () => {
+    const before = put(row(), 0);
+    const expected = [...SOLUTION].flatMap((c, i) => (c === '5' ? [i] : []));
+    expect(expected).toHaveLength(9);
+    expect(completedUnits(before, put(before, 14))).toEqual(expected);
+  });
+
+  it('merges several completions into one list without duplicates', () => {
+    const before = fill(row(), [...range(3, 8), 9, 10, 11, 0, 1]);
+    const got = completedUnits(before, put(before, 2));
+    expect(got).toEqual([...range(0, 11), 18, 19, 20, 29, 38, 47, 56, 65, 74]);
+    expect(new Set(got).size).toBe(got.length);
+  });
+
+  it('flashes nothing for a wrong digit, a plain entry or no change', () => {
+    const before = fill(row(), range(0, 7));
+    expect(completedUnits(before, enter(select(before, 8), wrongRow(8)))).toEqual([]);
+    expect(completedUnits(row(), put(row(), 0))).toEqual([]);
+    expect(completedUnits(before, before)).toEqual([]);
+  });
+
+  it('does not repeat a unit that was already complete', () => {
+    const done = fill(createGame(PUZZLE, SOLUTION), [0, 1]); // row 0, digit 5 and others complete here
+    const rowEight = range(72, 80);
+    const colEight = [8, 17, 26, 35, 44, 53, 62, 71, 80];
+    const boxEight = [60, 61, 62, 69, 70, 71, 78, 79, 80];
+    const nines = [...SOLUTION].flatMap((c, i) => (c === '9' ? [i] : []));
+    const expected = [...new Set([...rowEight, ...colEight, ...boxEight, ...nines])].sort((x, y) => x - y);
+    expect(completedUnits(done, put(done, 80))).toEqual(expected);
+  });
+
+  it('flashes again when a broken group is completed anew', () => {
+    const before = fill(row(), range(0, 7));
+    const done = put(before, 8);
+    const broken = undo(done);
+    expect(completedUnits(done, broken)).toEqual([]);
+    expect(completedUnits(broken, enter(broken, Number(SOLUTION[8])))).toEqual(range(0, 8));
   });
 });
