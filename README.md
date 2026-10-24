@@ -25,6 +25,13 @@ keep tapping; finishing the last digit finishes the puzzle. Mistakes block
 placing until undone, exactly as in cell-first mode, and undo does not select a cell.
 Pad buttons use pointer events (`src/ui/longpress.ts`); keyboard Enter/Space still taps.
 
+**Completion flash:** an entry that finishes a row, column or 3x3 box flashes its nine cells
+yellow once (about 700 ms); one that places the ninth correct instance of a digit flashes every
+cell holding it. Several completions from one entry flash together, each cell once. Wrong digits,
+undo, redo, resuming a save and the move that finishes the puzzle flash nothing, and reduced motion
+turns it off. Detection is `completedUnits` in `src/game/state.ts`; the flash is a `::before`
+wash under the digit (`.cell.flash` in `src/style.css`), so it never touches layout or input.
+
 **Pencil notes:** the pencil button, one digit key in size, below the digit row and right-aligned under the 9 key (the free
 space above the board, above the digits and above the pencil is three equal gaps; in landscape a compact button under
 the keypad), toggles notes mode (yellow while on). With it on, tapping a digit with an empty cell selected adds or removes that
