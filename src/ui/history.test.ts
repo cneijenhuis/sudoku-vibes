@@ -111,7 +111,7 @@ describe('history sync', () => {
     resolvers.shift()!(puzzle(Difficulty.Easy));
     await settle();
     expect(router.state.screen).toBe('game');
-    router.navigate({ screen: 'results', game: puzzle(Difficulty.Easy), elapsedMs: 1, mistakes: 0 });
+    router.navigate({ screen: 'results', game: puzzle(Difficulty.Easy), elapsedMs: 1, mistakes: 0, lastDigit: 1 });
     router.startGame(Difficulty.Easy);
     resolvers.shift()!(puzzle(Difficulty.Easy));
     await settle();
@@ -143,7 +143,7 @@ describe('history sync', () => {
   it('Back from results and from the error screen shows the menu', () => {
     const a = setup();
     a.router.startGame(Difficulty.Easy);
-    a.router.navigate({ screen: 'results', game: puzzle(Difficulty.Easy), elapsedMs: 5, mistakes: 1 });
+    a.router.navigate({ screen: 'results', game: puzzle(Difficulty.Easy), elapsedMs: 5, mistakes: 1, lastDigit: 1 });
     a.browser.userBack();
     a.browser.flush();
     expect(a.router.state).toEqual({ screen: 'menu' });
@@ -184,7 +184,7 @@ describe('history sync', () => {
     const { browser, router, startToGame, settle } = setup();
     for (let n = 0; n < 3; n++) {
       await startToGame();
-      router.navigate({ screen: 'results', game: puzzle(Difficulty.Easy), elapsedMs: 1, mistakes: 0 });
+      router.navigate({ screen: 'results', game: puzzle(Difficulty.Easy), elapsedMs: 1, mistakes: 0, lastDigit: 1 });
     }
     router.navigate({ screen: 'menu' });
     browser.flush();

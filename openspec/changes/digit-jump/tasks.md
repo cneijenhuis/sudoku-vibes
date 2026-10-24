@@ -11,7 +11,7 @@
 
 ## 3. Results screen
 
-- [ ] 3.1 Add `lastDigit` to `GameResult`, carry it through the router state to `resultsScreen`, replace the star with the infinitely jumping sticker (burst stays); verify at 390x844, 375x667, 320x568 and 844x390 that nothing scrolls or clips and the final digit shown is the one entered last; reduced motion shows it still
+- [x] 3.1 Add `lastDigit` to `GameResult`, carry it through the router state to `resultsScreen`, replace the star with the infinitely jumping sticker (burst stays); verify at 390x844, 375x667, 320x568 and 844x390 that nothing scrolls or clips and the final digit shown is the one entered last; reduced motion shows it still
 
 ## 4. Wrap-up
 

@@ -1,6 +1,7 @@
 import { DIFFICULTY_LABELS, type Difficulty } from '../engine/grading';
 import { formatTime } from '../game/timer';
 import type { GeneratedPuzzle } from '../generator/generate';
+import { digitSticker } from './digit-sticker';
 import { h } from './dom';
 import { nextDifficulty } from './levels';
 import type { MountedScreen } from './router';
@@ -28,9 +29,6 @@ const PARTICLES = 12;
  */
 const GHOST_CLICK_MS = 400;
 
-const STAR_SVG =
-  '<svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path fill="currentColor" d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z"/></svg>';
-
 function stat(label: string, value: string, testid: string): HTMLElement {
   return h(
     'div',
@@ -40,9 +38,10 @@ function stat(label: string, value: string, testid: string): HTMLElement {
   );
 }
 
-function celebration(): HTMLElement {
-  const badge = h('div', { class: 'badge' });
-  badge.innerHTML = STAR_SVG;
+/** The sticker of the digit that finished the puzzle, jumping forever, inside the burst of rings and sparks. */
+function celebration(lastDigit: number): HTMLElement {
+  const sticker = digitSticker(lastDigit);
+  sticker.classList.add('jump-forever');
   const burst = h('div', { class: 'burst', attrs: { 'aria-hidden': 'true' } }, h('i', { class: 'ring' }), h('i', { class: 'ring r2' }));
   for (let i = 0; i < PARTICLES; i++) {
     const p = h('i', { class: i % 3 === 0 ? 'spark big' : 'spark' });
@@ -51,13 +50,14 @@ function celebration(): HTMLElement {
     p.style.setProperty('--delay', `${(i % 4) * 40}ms`);
     burst.append(p);
   }
-  return h('div', { class: 'celebrate' }, burst, badge);
+  return h('div', { class: 'celebrate' }, burst, sticker);
 }
 
 export function resultsScreen(
   game: GeneratedPuzzle,
   elapsedMs: number,
   mistakes: number,
+  lastDigit: number,
   actions: ResultsActions,
 ): MountedScreen<HTMLElement> {
   const played = game.difficulty;
@@ -86,7 +86,7 @@ export function resultsScreen(
     h(
       'section',
       { class: 'results-hero' },
-      celebration(),
+      celebration(lastDigit),
       h(
         'div',
         { class: 'status-text glass' },

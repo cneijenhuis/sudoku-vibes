@@ -25,15 +25,15 @@ function buildScreen(state: AppState, router: Router): MountedScreen<HTMLElement
         { game: state.game, resume: state.resume },
         {
           onQuit: toMenu,
-          onComplete: ({ elapsedMs, mistakes }) => {
+          onComplete: ({ elapsedMs, mistakes, lastDigit }) => {
             saves.clear(); // a finished game is never resumable
-            router.navigate({ screen: 'results', game: state.game, elapsedMs, mistakes });
+            router.navigate({ screen: 'results', game: state.game, elapsedMs, mistakes, lastDigit });
           },
           onSave: (game, elapsedMs) => saves.save(game, state.game.difficulty, elapsedMs),
         },
       );
     case 'results':
-      return resultsScreen(state.game, state.elapsedMs, state.mistakes, {
+      return resultsScreen(state.game, state.elapsedMs, state.mistakes, state.lastDigit, {
         onSame: (d) => router.startGame(d),
         onNext: (d) => router.startGame(d),
         onMenu: toMenu,

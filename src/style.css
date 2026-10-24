@@ -489,20 +489,7 @@ h2 {
   flex: none;
   display: grid;
   place-items: center;
-}
-
-.badge {
-  position: relative;
-  z-index: 1;
-  width: 84px;
-  height: 84px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  color: var(--surface-solid);
-  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--level) 65%, var(--surface-solid)), var(--level) 70%);
-  box-shadow: 0 0 0 5px var(--surface-solid), 0 0 0 8px var(--line-strong), var(--shadow-board);
-  animation: badge-pop 700ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  container-type: size; /* lets the sticker size itself from the box (cqh), whatever the viewport */
 }
 
 .burst {
@@ -550,7 +537,7 @@ h2 {
   box-shadow: 0 0 0 2px var(--highlight-edge);
 }
 
-@keyframes badge-pop {
+@keyframes sticker-pop {
   from {
     transform: scale(0.3);
     opacity: 0;
@@ -588,7 +575,7 @@ h2 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .badge,
+  .celebrate .digit-sticker,
   .ring,
   .spark {
     animation: none;
@@ -615,6 +602,7 @@ h2 {
   --sticker-size: 46px; /* play screen: sticker height (the pause button is 52px) */
   --sticker-drop: 4px; /* play screen: how far the resting sticker hangs below the header row */
   --sticker-results-size: 96px; /* results screen: sticker height (sources are 192px tall, so 2x) */
+  --jump-height-results: 26px; /* results screen: how far it rises */
 }
 
 /* The box that stays put; only the image inside moves, and only with transform. */
@@ -678,6 +666,15 @@ h2 {
   position: absolute;
   inset-inline: 0;
   bottom: calc(var(--sticker-drop) * -1);
+}
+
+/* Results screen: the sticker replaces the medal in the middle of the burst; it never outgrows 58% of the box's height. */
+.celebrate .digit-sticker {
+  --jump-height: var(--jump-height-results);
+  position: relative;
+  z-index: 1;
+  height: min(var(--sticker-results-size), 58cqh);
+  animation: sticker-pop 700ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1531,14 +1528,9 @@ h2 {
     height: 120px;
     margin-block: -8px;
   }
-  .badge,
   .ring {
     width: 60px;
     height: 60px;
-  }
-  .badge svg {
-    width: 30px;
-    height: 30px;
   }
   .results-hero {
     gap: 8px;
@@ -1592,14 +1584,6 @@ h2 {
   .celebrate {
     width: 112px;
     height: 112px;
-  }
-  .badge {
-    width: 56px;
-    height: 56px;
-  }
-  .badge svg {
-    width: 28px;
-    height: 28px;
   }
   .ring {
     width: 56px;

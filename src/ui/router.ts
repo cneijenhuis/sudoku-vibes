@@ -9,7 +9,7 @@ export type AppState =
   | { screen: 'loading'; difficulty: Difficulty }
   | { screen: 'error'; difficulty: Difficulty; message: string }
   | { screen: 'game'; game: GeneratedPuzzle; resume?: SavedGame }
-  | { screen: 'results'; game: GeneratedPuzzle; elapsedMs: number; mistakes: number };
+  | { screen: 'results'; game: GeneratedPuzzle; elapsedMs: number; mistakes: number; lastDigit: number };
 
 export interface RouterDeps {
   generate: (difficulty: Difficulty) => Promise<GeneratedPuzzle>;

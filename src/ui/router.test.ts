@@ -43,7 +43,7 @@ describe('router', () => {
     expect(a.cancelGeneration).toHaveBeenCalledOnce();
     for (const s of [
       { screen: 'game', game: puzzle(Difficulty.Easy) },
-      { screen: 'results', game: puzzle(Difficulty.Easy), elapsedMs: 1, mistakes: 0 },
+      { screen: 'results', game: puzzle(Difficulty.Easy), elapsedMs: 1, mistakes: 0, lastDigit: 1 },
       { screen: 'error', difficulty: Difficulty.Easy, message: 'x' },
     ] as AppState[]) {
       a.router.navigate(s);
@@ -181,8 +181,8 @@ describe('router', () => {
     const p = puzzle(Difficulty.Easy);
     reqs[0]!.resolve(p);
     await flush();
-    router.navigate({ screen: 'results', game: p, elapsedMs: 65_000, mistakes: 2 });
-    expect(router.state).toEqual({ screen: 'results', game: p, elapsedMs: 65_000, mistakes: 2 });
+    router.navigate({ screen: 'results', game: p, elapsedMs: 65_000, mistakes: 2, lastDigit: 6 });
+    expect(router.state).toEqual({ screen: 'results', game: p, elapsedMs: 65_000, mistakes: 2, lastDigit: 6 });
     router.navigate({ screen: 'menu' });
     expect(router.state).toEqual({ screen: 'menu' });
   });
@@ -224,7 +224,7 @@ describe('bindScreens', () => {
       () => {},
     );
     router.navigate({ screen: 'game', game: p });
-    router.navigate({ screen: 'results', game: p, elapsedMs: 1000, mistakes: 0 });
+    router.navigate({ screen: 'results', game: p, elapsedMs: 1000, mistakes: 0, lastDigit: 1 });
     router.navigate({ screen: 'game', game: p });
     router.navigate({ screen: 'menu' });
     expect(log).toEqual(['dispose menu', 'dispose game', 'dispose results', 'dispose game']);
