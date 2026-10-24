@@ -6,6 +6,7 @@ import {
   canUndo,
   completedDigits,
   completedUnits,
+  newlyCompletedDigits,
   createGame,
   effectiveHighlight,
   isComplete,
@@ -26,6 +27,7 @@ import {
 import { createStopwatch, formatTime } from '../game/timer';
 import type { GeneratedPuzzle } from '../generator/generate';
 import type { SavedGame } from '../storage/save';
+import { digitSticker, parseCssTime } from './digit-sticker';
 import { h } from './dom';
 import { haptics as defaultHaptics, type Haptics } from './haptics';
 import { createLongPress, LONG_PRESS_MS, type LongPress } from './longpress';
@@ -34,6 +36,8 @@ import type { MountedScreen } from './router';
 export interface GameResult {
   elapsedMs: number;
   mistakes: number;
+  /** The digit (1-9) of the entry that finished the puzzle. */
+  lastDigit: number;
 }
 
 export interface GameHandlers {
@@ -64,6 +68,10 @@ export interface GameEnv {
 const TICK_MS = 250;
 /** Safety net: remove a cell's flash class if its animationend never arrives (the CSS lasts 700 ms). */
 const FLASH_FALLBACK_MS = 1000;
+/** A digit sticker does this many jumps on the play screen, then goes away. */
+const STICKER_JUMPS = 3;
+/** Extra time after the three jumps before the safety timer removes a sticker whose animationend never came. */
+const STICKER_SLACK_MS = 500;
 /** How far outside a pad button (px) a held finger may drift before the press is cancelled. */
 const SLOP_PX = 10;
 /** The eraser's touch area reaches further outside the key (narrow key, extended hit area). */
@@ -109,11 +117,14 @@ export function gameScreen(
   pauseBtn.dataset.action = 'pause';
   const timeEl = h('span', { class: 'time', text: '0:00', attrs: { 'data-testid': 'time' } });
   const subEl = h('span', { class: 'sub', attrs: { 'data-testid': 'sub' } });
+  /** The header's right slot: holds the jumping sticker of a digit just completed. */
+  const stickerSlot = h('div', { class: 'sticker-slot', attrs: { 'aria-hidden': 'true' } });
   const bar = h(
     'header',
     { class: 'topbar' },
     pauseBtn,
     h('div', { class: 'clock glass' }, timeEl, subEl),
+    stickerSlot,
   );
 
   const cells: HTMLButtonElement[] = [];
@@ -285,6 +296,28 @@ export function gameScreen(
     }
   }
 
+  // --- digit sticker -----------------------------------------------------
+  let stickerTimer: ReturnType<typeof setTimeout> | null = null;
+  function clearSticker(): void {
+    if (stickerTimer !== null) clearTimeout(stickerTimer);
+    stickerTimer = null;
+    stickerSlot.replaceChildren();
+  }
+  /** Show the sticker of `digit` for three jumps (a sticker still there is replaced and restarts). */
+  function showSticker(digit: number): void {
+    clearSticker();
+    const sticker = digitSticker(digit);
+    sticker.classList.add('jump');
+    stickerSlot.append(sticker);
+    const cycle = parseCssTime(win?.getComputedStyle(stickerSlot).getPropertyValue('--jump-ms') ?? '', 700);
+    const still = win?.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    // Reduced motion never animates, so this timer is the only way out; otherwise it is a safety net.
+    stickerTimer = setTimeout(clearSticker, STICKER_JUMPS * cycle + (still ? 0 : STICKER_SLACK_MS));
+  }
+  stickerSlot.addEventListener('animationend', (e) => {
+    if (e.animationName === 'digit-jump') clearSticker();
+  });
+
   // --- timer plumbing ----------------------------------------------------
   function startTick(): void {
     if (tick === null) tick = setInterval(paintTime, TICK_MS);
@@ -308,6 +341,7 @@ export function gameScreen(
     stopTick();
     if (save) persist();
     pausedTime.textContent = formatTime(sw.elapsed());
+    clearSticker();
     el.classList.add('paused');
     overlay.hidden = false;
     render();
@@ -335,6 +369,7 @@ export function gameScreen(
     const modeBefore = activeMode(state);
     const mistakesBefore = state.mistakes;
     const flashing = entry ? completedUnits(state, next) : [];
+    const jumper = entry ? newlyCompletedDigits(state, next)[0] : undefined;
     state = next;
     // Haptics only ever answer a player action (apply runs only while active, i.e. not paused).
     if (isComplete(state)) {
@@ -343,11 +378,12 @@ export function gameScreen(
       stopTick();
       render();
       haptics.fire('complete');
-      handlers.onComplete({ elapsedMs: sw.elapsed(), mistakes: state.mistakes });
+      handlers.onComplete({ elapsedMs: sw.elapsed(), mistakes: state.mistakes, lastDigit: state.history[state.history.length - 1]?.value ?? 1 });
       return;
     }
     render();
     if (flashing.length > 0) flash(flashing);
+    if (jumper !== undefined) showSticker(jumper);
     if (state.mistakes > mistakesBefore) haptics.fire('mistake');
     else if (activeMode(state) !== modeBefore) haptics.fire('mode');
     if (saveNeeded) persist();
@@ -460,6 +496,7 @@ export function gameScreen(
       sw.stop();
       flashTimers.forEach((t) => clearTimeout(t));
       flashTimers.clear();
+      clearSticker();
       doc.removeEventListener('visibilitychange', onVisibility);
       win?.removeEventListener('pagehide', onPageHide);
     },

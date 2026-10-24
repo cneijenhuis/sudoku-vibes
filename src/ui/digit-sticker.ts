@@ -23,3 +23,11 @@ export function digitSticker(digit: number): HTMLElement {
   const img = h('img', { class: 'digit-sticker-img', attrs: { src, alt: '', draggable: 'false' } });
   return h('span', { class: 'digit-sticker', attrs: { 'aria-hidden': 'true', 'data-digit': String(digit) } }, img);
 }
+
+/** Milliseconds in a CSS time value (`700ms`, `0.7s`), or `fallback` when it is not one. */
+export function parseCssTime(value: string, fallback: number): number {
+  const m = /^\s*(-?\d*\.?\d+)\s*(ms|s)\s*$/.exec(value);
+  if (!m) return fallback;
+  const n = Number(m[1]) * (m[2] === 's' ? 1000 : 1);
+  return n > 0 ? n : fallback;
+}

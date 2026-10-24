@@ -7,7 +7,7 @@
 
 ## 2. Play screen
 
-- [ ] 2.1 Pass the digit through the header's third slot in `src/ui/game.ts` (entries only, not the finishing entry, undo/redo or resume; replace on a new completion; clear on dispose), add the `digit-jump` keyframes, tunable custom properties and reduced-motion fallback to `src/style.css`; verify with `tools/e2e/` (seeded puzzle) at 390x844, 320x568 and 844x390: completing a digit shows exactly that sticker, it ends after three jumps, undo/redo/resume show none, replacement works, taps work during a jump, the header does not shift (measure the timer pill's box before/during), reduced-motion emulation shows it still then removes it; view screenshots at stretch and squash frames
+- [x] 2.1 Pass the digit through the header's third slot in `src/ui/game.ts` (entries only, not the finishing entry, undo/redo or resume; replace on a new completion; clear on dispose), add the `digit-jump` keyframes, tunable custom properties and reduced-motion fallback to `src/style.css`; verify with `tools/e2e/` (seeded puzzle) at 390x844, 320x568 and 844x390: completing a digit shows exactly that sticker, it ends after three jumps, undo/redo/resume show none, replacement works, taps work during a jump, the header does not shift (measure the timer pill's box before/during), reduced-motion emulation shows it still then removes it; view screenshots at stretch and squash frames
 
 ## 3. Results screen
 

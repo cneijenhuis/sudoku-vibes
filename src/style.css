@@ -598,6 +598,95 @@ h2 {
   }
 }
 
+/*
+ * Digit sticker (src/ui/digit-sticker.ts): a glossy digit that jumps in the play header's right slot
+ * (three jumps, then gone) and on the results screen (forever). TUNE THE MOTION HERE: every number
+ * below is a plain custom property, change it and reload. The shape of one jump (when it leaves the
+ * ground, the apex, the landing squash, the rest at the end) lives in `@keyframes digit-jump` below
+ * as percentages of one cycle: the rest is the span from 84% to 100%.
+ */
+:root {
+  --jump-ms: 700ms; /* one full cycle: jump, landing and rest. The play screen does three. */
+  --jump-height: 18px; /* how far the sticker rises (about 24px of headroom above it in the header; the screen clips above that) */
+  --stretch-y: 1.08; /* in the air: taller ... */
+  --stretch-x: 0.95; /* ... and slightly narrower */
+  --squash-y: 0.88; /* on landing: shorter ... */
+  --squash-x: 1.1; /* ... and wider */
+  --sticker-size: 46px; /* play screen: sticker height (the pause button is 52px) */
+  --sticker-drop: 4px; /* play screen: how far the resting sticker hangs below the header row */
+  --sticker-results-size: 96px; /* results screen: sticker height (sources are 192px tall, so 2x) */
+}
+
+/* The box that stays put; only the image inside moves, and only with transform. */
+.digit-sticker {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  height: var(--sticker-size);
+  pointer-events: none;
+}
+
+.digit-sticker-img {
+  display: block;
+  height: 100%;
+  width: auto;
+  transform-origin: 50% 100%;
+  -webkit-user-drag: none;
+  user-select: none;
+  will-change: transform;
+}
+
+.digit-sticker.jump .digit-sticker-img {
+  animation: digit-jump var(--jump-ms) linear 3;
+}
+
+.digit-sticker.jump-forever .digit-sticker-img {
+  animation: digit-jump var(--jump-ms) linear infinite;
+}
+
+@keyframes digit-jump {
+  0% {
+    transform: translateY(0) scale(1, 1);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1);
+  }
+  35% {
+    transform: translateY(calc(var(--jump-height) * -1)) scale(var(--stretch-x), var(--stretch-y));
+    animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
+  }
+  62% {
+    transform: translateY(0) scale(var(--stretch-x), var(--stretch-y));
+    animation-timing-function: ease-out;
+  }
+  70% {
+    transform: translateY(0) scale(var(--squash-x), var(--squash-y));
+    animation-timing-function: ease-in-out;
+  }
+  84%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+}
+
+/* Play screen: the header's third slot, same size as the pause button so the timer stays centred. */
+.sticker-slot {
+  grid-column: 3;
+  position: relative;
+  height: 52px;
+}
+
+.sticker-slot .digit-sticker {
+  position: absolute;
+  inset-inline: 0;
+  bottom: calc(var(--sticker-drop) * -1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .digit-sticker.jump .digit-sticker-img,
+  .digit-sticker.jump-forever .digit-sticker-img {
+    animation: none;
+  }
+}
+
 /* Game screen */
 .screen.game-screen {
   position: relative;
@@ -628,7 +717,7 @@ h2 {
   grid-row: 1;
 }
 
-/* Pause in the first slot, the last slot empty, so the timer pill stays centred. */
+/* Pause in the first slot, the sticker slot (or nothing) in the last, so the timer pill stays centred. */
 .topbar .clock {
   grid-column: 2;
 }
