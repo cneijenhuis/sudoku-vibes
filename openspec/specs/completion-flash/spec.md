@@ -1,6 +1,9 @@
-# Spec Delta
+# completion-flash Specification
 
-## ADDED Requirements
+## Purpose
+Acknowledges progress on the board: a brief yellow flash on the cells of a row, column, box or digit the player has just completed.
+
+## Requirements
 
 ### Requirement: Flash on completed groups
 When a player's entry makes a row, column or 3x3 box hold the correct digit in all nine cells, those nine cells SHALL play a short yellow flash once. When the entry makes a digit have all nine instances correctly placed, every cell holding that digit SHALL flash at the same time. Cells flashing for several reasons flash once together.
@@ -37,7 +40,7 @@ Undo, redo, resuming a saved game and the entry that finishes the puzzle SHALL N
 - **THEN** no flash plays and the results screen appears as before
 
 ### Requirement: Flash look
-The flash SHALL use the highlight yellow, last about 700 ms and not block input, not change layout and not hide digits. Under reduced motion no animation SHALL play. Red SHALL NOT be used.
+The flash SHALL be a yellow wash (the highlight amber, peaking at about 80% opacity so it shows over highlighted cells too), last about 700 ms and not block input, not change layout and not hide digits. Under reduced motion no animation SHALL play. Red SHALL NOT be used.
 
 #### Scenario: Input during a flash
 - **WHEN** the player taps a cell or a key while cells are flashing
