@@ -782,6 +782,41 @@ h2 {
   cursor: pointer;
 }
 
+/* Completion flash: a highlight-yellow wash between the cell background and its digit. */
+.cell.flash {
+  position: relative;
+  isolation: isolate;
+}
+
+.cell.flash::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--highlight-ring);
+  pointer-events: none;
+  opacity: 0;
+  animation: cell-flash 700ms ease-out;
+}
+
+@keyframes cell-flash {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cell.flash::before {
+    animation: none;
+  }
+}
+
 /* Pencil notes: a 3x3 grid of small digits at fixed positions (1 2 3 / 4 5 6 / 7 8 9). */
 .cell .notes {
   display: grid;

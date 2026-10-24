@@ -5,6 +5,7 @@ import {
   canRedo,
   canUndo,
   completedDigits,
+  completedUnits,
   createGame,
   effectiveHighlight,
   isComplete,
@@ -61,6 +62,8 @@ export interface GameEnv {
 }
 
 const TICK_MS = 250;
+/** Safety net: remove a cell's flash class if its animationend never arrives (the CSS lasts 700 ms). */
+const FLASH_FALLBACK_MS = 1000;
 /** How far outside a pad button (px) a held finger may drift before the press is cancelled. */
 const SLOP_PX = 10;
 /** The eraser's touch area reaches further outside the key (narrow key, extended hit area). */
@@ -255,6 +258,29 @@ export function gameScreen(
     paintTime();
   }
 
+  // --- completion flash --------------------------------------------------
+  const flashTimers = new Map<number, ReturnType<typeof setTimeout>>();
+  function endFlash(i: number): void {
+    cells[i]!.classList.remove('flash');
+    const t = flashTimers.get(i);
+    if (t !== undefined) clearTimeout(t);
+    flashTimers.delete(i);
+  }
+  board.addEventListener('animationend', (e) => {
+    const cell = (e.target as Element).closest<HTMLElement>('[data-i]');
+    if (cell && e.animationName === 'cell-flash') endFlash(Number(cell.dataset.i));
+  });
+  /** Play the flash on these cells; one already flashing restarts. */
+  function flash(indexes: readonly number[]): void {
+    for (const i of indexes) endFlash(i);
+    void board.offsetWidth; // reflow so re-adding the class restarts the animation
+    for (const i of indexes) {
+      const b = cells[i]!;
+      b.classList.add('flash');
+      flashTimers.set(i, setTimeout(() => endFlash(i), FLASH_FALLBACK_MS));
+    }
+  }
+
   // --- timer plumbing ----------------------------------------------------
   function startTick(): void {
     if (tick === null) tick = setInterval(paintTime, TICK_MS);
@@ -298,11 +324,13 @@ export function gameScreen(
   // --- input -------------------------------------------------------------
   const active = (): boolean => !paused && !finished && !disposed;
 
-  function apply(next: GameState): void {
+  /** `entry`: the player placed a digit (not undo/redo), so a completed group may flash. */
+  function apply(next: GameState, entry = false): void {
     if (next === state) return;
     const saveNeeded = next.cells !== state.cells || next.notes !== state.notes;
     const modeBefore = activeMode(state);
     const mistakesBefore = state.mistakes;
+    const flashing = entry ? completedUnits(state, next) : [];
     state = next;
     // Haptics only ever answer a player action (apply runs only while active, i.e. not paused).
     if (isComplete(state)) {
@@ -315,6 +343,7 @@ export function gameScreen(
       return;
     }
     render();
+    if (flashing.length > 0) flash(flashing);
     if (state.mistakes > mistakesBefore) haptics.fire('mistake');
     else if (activeMode(state) !== modeBefore) haptics.fire('mode');
     if (saveNeeded) persist();
@@ -323,7 +352,7 @@ export function gameScreen(
   board.addEventListener('click', (e) => {
     if (!active()) return;
     const target = (e.target as Element).closest<HTMLElement>('[data-i]');
-    if (target) apply(tapCell(state, Number(target.dataset.i)));
+    if (target) apply(tapCell(state, Number(target.dataset.i)), true);
   });
 
   // Pad buttons use pointer events through the long-press controller. The `click` that follows
@@ -372,8 +401,8 @@ export function gameScreen(
     const digit = k + 1;
     wireHold(
       btn,
-      () => apply(pressDigit(state, digit)),
-      () => apply(longPressDigit(state, digit)),
+      () => apply(pressDigit(state, digit), true),
+      () => apply(longPressDigit(state, digit), true),
     );
   });
   wireHold(eraserBtn, () => apply(pressEraser(state)), () => apply(longPressEraser(state)), ERASER_SLOP_PX);
@@ -425,6 +454,8 @@ export function gameScreen(
       cancelPresses();
       stopTick();
       sw.stop();
+      flashTimers.forEach((t) => clearTimeout(t));
+      flashTimers.clear();
       doc.removeEventListener('visibilitychange', onVisibility);
       win?.removeEventListener('pagehide', onPageHide);
     },
