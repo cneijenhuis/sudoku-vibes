@@ -575,7 +575,6 @@ h2 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .celebrate .digit-sticker,
   .ring,
   .spark {
     animation: none;
@@ -594,13 +593,15 @@ h2 {
  */
 :root {
   --jump-ms: 700ms; /* one full cycle: jump, landing and rest. The play screen does three. */
-  --jump-height: 18px; /* how far the sticker rises (about 24px of headroom above it in the header; the screen clips above that) */
-  --stretch-y: 1.08; /* in the air: taller ... */
-  --stretch-x: 0.95; /* ... and slightly narrower */
-  --squash-y: 0.88; /* on landing: shorter ... */
-  --squash-x: 1.1; /* ... and wider */
-  --sticker-size: 46px; /* play screen: sticker height (the pause button is 52px) */
-  --sticker-drop: 4px; /* play screen: how far the resting sticker hangs below the header row */
+  --jump-count: 3; /* play screen: how many jumps before the sticker goes (results: endless) */
+  --jump-height: 9px; /* how far the sticker rises; the header leaves little headroom above the sticker, the screen clips beyond it */
+  --stretch-y: 1.12; /* in the air: taller ... */
+  --stretch-x: 0.93; /* ... and slightly narrower */
+  --squash-y: 0.84; /* on landing: shorter ... */
+  --squash-x: 1.14; /* ... and wider */
+  --sticker-size: 50px; /* play screen: sticker height (the pause button is 52px) */
+  --sticker-drop: 0px; /* play screen: how far the resting sticker hangs below the header row */
+  --sticker-shadow: drop-shadow(0 2px 3px rgba(16, 35, 58, 0.4)); /* soft navy shadow so yellow reads on a yellow photo */
   --sticker-results-size: 96px; /* results screen: sticker height (sources are 192px tall, so 2x) */
   --jump-height-results: 26px; /* results screen: how far it rises */
 }
@@ -622,10 +623,11 @@ h2 {
   -webkit-user-drag: none;
   user-select: none;
   will-change: transform;
+  filter: var(--sticker-shadow);
 }
 
 .digit-sticker.jump .digit-sticker-img {
-  animation: digit-jump var(--jump-ms) linear 3;
+  animation: digit-jump var(--jump-ms) linear var(--jump-count);
 }
 
 .digit-sticker.jump-forever .digit-sticker-img {
@@ -679,7 +681,8 @@ h2 {
 
 @media (prefers-reduced-motion: reduce) {
   .digit-sticker.jump .digit-sticker-img,
-  .digit-sticker.jump-forever .digit-sticker-img {
+  .digit-sticker.jump-forever .digit-sticker-img,
+  .celebrate .digit-sticker {
     animation: none;
   }
 }

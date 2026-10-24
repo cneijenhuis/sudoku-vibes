@@ -40,7 +40,7 @@ results screen the same sticker, of the final digit, jumps forever. The images a
 (full-size originals, not shipped) shrunk to 192 px tall transparent WebP in `src/assets/digits/`
 (Pillow, 2x the largest use). Detection is `newlyCompletedDigits` in `src/game/state.ts`, the element
 is `digitSticker` in `src/ui/digit-sticker.ts`. **To tune the motion** change the custom properties in
-the "Digit sticker" block of `src/style.css` (cycle length, jump height, stretch, squash, sizes); the
+the "Digit sticker" block of `src/style.css` (cycle length, number of jumps on the play screen, jump height, stretch, squash, sizes, shadow); the
 shape of one cycle (the rest is its last 16%) is `@keyframes digit-jump` right below them.
 
 **Pencil notes:** the pencil button, one digit key in size, below the digit row and right-aligned under the 9 key (the free

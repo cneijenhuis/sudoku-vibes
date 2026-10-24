@@ -12,6 +12,18 @@ import { h } from './dom';
 /** Built (hashed, precached) URLs of the sticker images, index 0 = digit 1. */
 const STICKERS: readonly string[] = [digit1, digit2, digit3, digit4, digit5, digit6, digit7, digit8, digit9];
 
+/** Decode all nine images once, so a sticker's first jump never starts with an undecoded image. */
+let preloaded = false;
+export function preloadStickers(): void {
+  if (preloaded) return;
+  preloaded = true;
+  for (const src of STICKERS) {
+    const img = new Image();
+    img.src = src;
+    img.decode?.().catch(() => undefined); // best effort: the sticker still loads normally
+  }
+}
+
 /**
  * The jumping digit sticker: `.digit-sticker` is the positioned box, its `.digit-sticker-img` child
  * is the one that animates (see "Digit sticker" in src/style.css, where all tunables live). Add the

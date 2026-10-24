@@ -27,7 +27,7 @@ import {
 import { createStopwatch, formatTime } from '../game/timer';
 import type { GeneratedPuzzle } from '../generator/generate';
 import type { SavedGame } from '../storage/save';
-import { digitSticker, parseCssTime } from './digit-sticker';
+import { digitSticker, parseCssTime, preloadStickers } from './digit-sticker';
 import { h } from './dom';
 import { haptics as defaultHaptics, type Haptics } from './haptics';
 import { createLongPress, LONG_PRESS_MS, type LongPress } from './longpress';
@@ -68,8 +68,6 @@ export interface GameEnv {
 const TICK_MS = 250;
 /** Safety net: remove a cell's flash class if its animationend never arrives (the CSS lasts 700 ms). */
 const FLASH_FALLBACK_MS = 1000;
-/** A digit sticker does this many jumps on the play screen, then goes away. */
-const STICKER_JUMPS = 3;
 /** Extra time after the three jumps before the safety timer removes a sticker whose animationend never came. */
 const STICKER_SLACK_MS = 500;
 /** How far outside a pad button (px) a held finger may drift before the press is cancelled. */
@@ -95,6 +93,14 @@ function iconButton(cls: string, label: string, svg: string): HTMLButtonElement 
   const b = h('button', { class: `icon-btn glass ${cls}`, attrs: { type: 'button', 'aria-label': label } });
   b.innerHTML = svg; // static markup defined above
   return b;
+}
+
+/** The digit placed by the entry that turned `before` into `after` (the one cell that changed). */
+function finishingDigit(before: GameState, after: GameState): number {
+  for (let i = 0; i < CELLS; i++) {
+    if (after.cells[i] !== before.cells[i]) return after.cells[i] ?? 0;
+  }
+  throw new Error('the finishing entry changed no cell');
 }
 
 /** The playing screen: top bar, board and number pad, plus the pause overlay. */
@@ -309,10 +315,12 @@ export function gameScreen(
     const sticker = digitSticker(digit);
     sticker.classList.add('jump');
     stickerSlot.append(sticker);
-    const cycle = parseCssTime(win?.getComputedStyle(stickerSlot).getPropertyValue('--jump-ms') ?? '', 700);
+    const css = win?.getComputedStyle(stickerSlot);
+    const cycle = parseCssTime(css?.getPropertyValue('--jump-ms') ?? '', 700);
+    const jumps = Number.parseFloat(css?.getPropertyValue('--jump-count') ?? '') || 3;
     const still = win?.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     // Reduced motion never animates, so this timer is the only way out; otherwise it is a safety net.
-    stickerTimer = setTimeout(clearSticker, STICKER_JUMPS * cycle + (still ? 0 : STICKER_SLACK_MS));
+    stickerTimer = setTimeout(clearSticker, jumps * cycle + (still ? 0 : STICKER_SLACK_MS));
   }
   stickerSlot.addEventListener('animationend', (e) => {
     if (e.animationName === 'digit-jump') clearSticker();
@@ -368,6 +376,7 @@ export function gameScreen(
     const saveNeeded = next.cells !== state.cells || next.notes !== state.notes;
     const modeBefore = activeMode(state);
     const mistakesBefore = state.mistakes;
+    const before = state;
     const flashing = entry ? completedUnits(state, next) : [];
     const jumper = entry ? newlyCompletedDigits(state, next)[0] : undefined;
     state = next;
@@ -378,7 +387,7 @@ export function gameScreen(
       stopTick();
       render();
       haptics.fire('complete');
-      handlers.onComplete({ elapsedMs: sw.elapsed(), mistakes: state.mistakes, lastDigit: state.history[state.history.length - 1]?.value ?? 1 });
+      handlers.onComplete({ elapsedMs: sw.elapsed(), mistakes: state.mistakes, lastDigit: finishingDigit(before, state) });
       return;
     }
     render();
@@ -475,6 +484,7 @@ export function gameScreen(
   doc.addEventListener('visibilitychange', onVisibility);
   win?.addEventListener('pagehide', onPageHide);
 
+  preloadStickers();
   if (saved) {
     // Resuming opens paused with the saved time; the save on disk is already current.
     sw.start(saved.elapsedMs);
