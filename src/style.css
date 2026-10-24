@@ -25,6 +25,7 @@
   --accent: #e2533f;
   --status: #b83a28;
   --fallback-bg: #f6e9d2;
+  --sticker-shadow-color: rgba(16, 35, 58, 0.4);
   --shadow-board: 0 14px 30px rgba(40, 30, 10, 0.22);
   /* Additions beyond the handover (see design.md): error, its tint, and the selected-cell cursor. */
   --error: #a80b24;
@@ -601,7 +602,7 @@ h2 {
   --squash-x: 1.14; /* ... and wider */
   --sticker-size: 50px; /* play screen: sticker height (the pause button is 52px) */
   --sticker-drop: 0px; /* play screen: how far the resting sticker hangs below the header row */
-  --sticker-shadow: drop-shadow(0 2px 3px rgba(16, 35, 58, 0.4)); /* soft navy shadow so yellow reads on a yellow photo */
+  --sticker-shadow: drop-shadow(0 2px 3px var(--sticker-shadow-color)); /* soft navy shadow so yellow reads on a yellow photo */
   --sticker-results-size: 96px; /* results screen: sticker height (sources are 192px tall, so 2x) */
   --jump-height-results: 26px; /* results screen: how far it rises */
 }
