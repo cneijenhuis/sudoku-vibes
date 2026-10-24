@@ -831,6 +831,12 @@ h2 {
   color: var(--done-text);
 }
 
+/* The note matching the highlighted digit: board ink, extra bold, no fill. */
+.cell .notes .hl {
+  color: var(--ink);
+  font-weight: 900;
+}
+
 .cell.given {
   color: var(--ink);
   font-weight: 600;
