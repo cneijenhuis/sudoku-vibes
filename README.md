@@ -32,6 +32,17 @@ undo, redo, resuming a save and the move that finishes the puzzle flash nothing,
 turns it off. Detection is `completedUnits` in `src/game/state.ts`; the flash is a `::before`
 wash under the digit (`.cell.flash` in `src/style.css`), so it never touches layout or input.
 
+**Digit sticker:** the entry that places the ninth correct instance of a digit (not undo, redo, resume
+or the finishing entry) shows that digit's glossy sticker in the empty right slot of the play header.
+It jumps three times (stretched in the air, squashed on landing, a short rest) and goes away; a new
+completion replaces it, pausing removes it, and reduced motion shows it still for about 2 s. On the
+results screen the same sticker, of the final digit, jumps forever. The images are `digits/*.png`
+(full-size originals, not shipped) shrunk to 192 px tall transparent WebP in `src/assets/digits/`
+(Pillow, 2x the largest use). Detection is `newlyCompletedDigits` in `src/game/state.ts`, the element
+is `digitSticker` in `src/ui/digit-sticker.ts`. **To tune the motion** change the custom properties in
+the "Digit sticker" block of `src/style.css` (cycle length, jump height, stretch, squash, sizes); the
+shape of one cycle (the rest is its last 16%) is `@keyframes digit-jump` right below them.
+
 **Pencil notes:** the pencil button, one digit key in size, below the digit row and right-aligned under the 9 key (the free
 space above the board, above the digits and above the pencil is three equal gaps; in landscape a compact button under
 the keypad), toggles notes mode (yellow while on). With it on, tapping a digit with an empty cell selected adds or removes that
@@ -53,7 +64,8 @@ back, hold it again to leave. When the last visible note is gone the eraser hide
 is not part of undo (like toggling a note) and never touches placed digits. The state lives in `GameState.erasing`.
 
 Pausing (or backgrounding the page) hides the board. Finishing the puzzle shows a
-congratulations screen (a CSS-only celebration, toned down under reduced motion) with the level,
+congratulations screen (a CSS-only celebration, toned down under reduced motion; its medal is the
+sticker of the digit that finished the puzzle, jumping forever) with the level,
 time and mistakes (a flawless run gets its own message), and three actions: **Next difficulty**
 (one level harder; not offered after Almost Impossible), **Same difficulty** and **Menu**. The
 two start actions use the normal loading / Cancel / error flow. Errors offer Retry / Back to menu.

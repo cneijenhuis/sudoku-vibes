@@ -15,4 +15,4 @@
 
 ## 4. Wrap-up
 
-- [ ] 4.1 Update `README.md`; verify `npm run typecheck`, `npm test`, `npm run build`, `openspec validate --all --strict`, and that the offline reload still shows a sticker
+- [x] 4.1 Update `README.md`; verify `npm run typecheck`, `npm test`, `npm run build`, `openspec validate --all --strict`, and that the offline reload still shows a sticker
