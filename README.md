@@ -42,7 +42,8 @@ and placing a digit clears that cell's notes. Placing a correct digit also remov
 from every other cell in its row, column and 3x3 box (a wrong digit prunes nothing). Undo covers placed
 digits only (note toggles are not in the history) but brings back the notes the undone entry removed;
 an entry loaded from a save has no such record, so undoing it after a resume restores no notes.
-Notes mode starts off in every game, also after resume.
+While a digit is highlighted (selected filled cell, pressed key or number-first lock), its note in every empty cell is
+drawn dark blue and extra bold (`.cell .notes .hl`), with no fill or ring. Notes mode starts off in every game, also after resume.
 
 **Eraser:** once notes are visible on the board an eraser button appears left of the pencil (under the 8; hidden
 otherwise, nothing shifts). In cell-first mode a tap clears all notes of the selected empty cell, which stays

@@ -193,8 +193,8 @@ export function gameScreen(
       const isSel = i === sel;
       const same = !isSel && hl !== 0 && v === hl;
       const mask = v === 0 ? (state.notes[i] ?? 0) & ~doneMask : 0; // notes of a complete digit are hidden
-      const noteHl = hl !== 0 && (mask & (1 << (hl - 1))) !== 0; // this cell's notes contain the highlighted digit
-      const key = `${v}|${given ? 'g' : ''}${mistake ? 'm' : ''}${isSel ? 's' : ''}${same ? 'h' : ''}${noteHl ? 'n' : ''}|${mask}`;
+      const noteHl = hl !== 0 && (mask & (1 << (hl - 1))) !== 0 ? hl : 0; // the highlighted digit, if this cell's notes contain it
+      const key = `${v}|${given ? 'g' : ''}${mistake ? 'm' : ''}${isSel ? 's' : ''}${same ? 'h' : ''}${noteHl}|${mask}`;
       if (cache[i] === key) continue;
       cache[i] = key;
       const b = cells[i]!;
@@ -203,7 +203,7 @@ export function gameScreen(
         const grid = h('span', { class: 'notes', attrs: { 'aria-hidden': 'true' } });
         for (let d = 1; d <= 9; d++) {
           const on = (mask & (1 << (d - 1))) !== 0;
-          grid.append(h('span', { class: on && d === hl ? 'hl' : '', text: on ? String(d) : '' }));
+          grid.append(h('span', { class: on && d === noteHl ? 'hl' : '', text: on ? String(d) : '' }));
         }
         b.replaceChildren(grid);
       } else {
