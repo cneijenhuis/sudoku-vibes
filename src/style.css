@@ -586,22 +586,18 @@ h2 {
 }
 
 /*
- * Digit sticker (src/ui/digit-sticker.ts): a glossy digit that jumps in the play header's right slot
- * (three jumps, then gone) and on the results screen (forever). TUNE THE MOTION HERE: every number
+ * Digit sticker (src/ui/digit-sticker.ts): the glossy digit that finished the puzzle, jumping forever
+ * on the results screen. TUNE THE MOTION HERE: every number
  * below is a plain custom property, change it and reload. The shape of one jump (when it leaves the
  * ground, the apex, the landing) lives in `@keyframes digit-jump` below as percentages of one cycle.
  * There is no rest: the landing squash at 100% is also the crouch the next jump starts from.
  */
 :root {
-  --jump-ms: 700ms; /* one full cycle: jump and landing, flowing straight into the next. The play screen does three. */
-  --jump-count: 3; /* play screen: how many jumps before the sticker goes (results: endless) */
-  --jump-height: 9px; /* how far the sticker rises; the header leaves little headroom above the sticker, the screen clips beyond it */
+  --jump-ms: 700ms; /* one full cycle: jump and landing, flowing straight into the next. */
   --stretch-y: 1.12; /* in the air: taller ... */
   --stretch-x: 0.93; /* ... and slightly narrower */
   --squash-y: 0.84; /* on landing: shorter ... */
   --squash-x: 1.14; /* ... and wider */
-  --sticker-size: 50px; /* play screen: sticker height (the pause button is 52px) */
-  --sticker-drop: 0px; /* play screen: how far the resting sticker hangs below the header row */
   --sticker-shadow: drop-shadow(0 2px 3px var(--sticker-shadow-color)); /* soft navy shadow so yellow reads on a yellow photo */
   --sticker-results-size: 96px; /* results screen: sticker height (sources are 192px tall, so 2x) */
   --jump-height-results: 26px; /* results screen: how far it rises */
@@ -612,7 +608,6 @@ h2 {
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  height: var(--sticker-size);
   pointer-events: none;
 }
 
@@ -625,10 +620,6 @@ h2 {
   user-select: none;
   will-change: transform;
   filter: var(--sticker-shadow);
-}
-
-.digit-sticker.jump .digit-sticker-img {
-  animation: digit-jump var(--jump-ms) linear var(--jump-count);
 }
 
 .digit-sticker.jump-forever .digit-sticker-img {
@@ -653,19 +644,6 @@ h2 {
   }
 }
 
-/* Play screen: the header's third slot, same size as the pause button so the timer stays centred. */
-.sticker-slot {
-  grid-column: 3;
-  position: relative;
-  height: 52px;
-}
-
-.sticker-slot .digit-sticker {
-  position: absolute;
-  inset-inline: 0;
-  bottom: calc(var(--sticker-drop) * -1);
-}
-
 /* Results screen: the sticker replaces the medal in the middle of the burst; it never outgrows 58% of the box's height. */
 .celebrate .digit-sticker {
   --jump-height: var(--jump-height-results);
@@ -676,7 +654,6 @@ h2 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .digit-sticker.jump .digit-sticker-img,
   .digit-sticker.jump-forever .digit-sticker-img,
   .celebrate .digit-sticker {
     animation: none;
@@ -713,7 +690,7 @@ h2 {
   grid-row: 1;
 }
 
-/* Pause in the first slot, the sticker slot (or nothing) in the last, so the timer pill stays centred. */
+/* Pause in the first slot, the last slot empty, so the timer pill stays centred. */
 .topbar .clock {
   grid-column: 2;
 }

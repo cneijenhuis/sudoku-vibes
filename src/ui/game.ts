@@ -6,7 +6,6 @@ import {
   canUndo,
   completedDigits,
   completedUnits,
-  newlyCompletedDigits,
   createGame,
   effectiveHighlight,
   isComplete,
@@ -27,7 +26,7 @@ import {
 import { createStopwatch, formatTime } from '../game/timer';
 import type { GeneratedPuzzle } from '../generator/generate';
 import type { SavedGame } from '../storage/save';
-import { digitSticker, parseCssTime, preloadStickers } from './digit-sticker';
+import { preloadStickers } from './digit-sticker';
 import { h } from './dom';
 import { haptics as defaultHaptics, type Haptics } from './haptics';
 import { createLongPress, LONG_PRESS_MS, type LongPress } from './longpress';
@@ -68,8 +67,6 @@ export interface GameEnv {
 const TICK_MS = 250;
 /** Safety net: remove a cell's flash class if its animationend never arrives (the CSS lasts 700 ms). */
 const FLASH_FALLBACK_MS = 1000;
-/** Extra time after the three jumps before the safety timer removes a sticker whose animationend never came. */
-const STICKER_SLACK_MS = 500;
 /** How far outside a pad button (px) a held finger may drift before the press is cancelled. */
 const SLOP_PX = 10;
 /** The eraser's touch area reaches further outside the key (narrow key, extended hit area). */
@@ -123,14 +120,11 @@ export function gameScreen(
   pauseBtn.dataset.action = 'pause';
   const timeEl = h('span', { class: 'time', text: '0:00', attrs: { 'data-testid': 'time' } });
   const subEl = h('span', { class: 'sub', attrs: { 'data-testid': 'sub' } });
-  /** The header's right slot: holds the jumping sticker of a digit just completed. */
-  const stickerSlot = h('div', { class: 'sticker-slot', attrs: { 'aria-hidden': 'true' } });
   const bar = h(
     'header',
     { class: 'topbar' },
     pauseBtn,
     h('div', { class: 'clock glass' }, timeEl, subEl),
-    stickerSlot,
   );
 
   const cells: HTMLButtonElement[] = [];
@@ -302,30 +296,6 @@ export function gameScreen(
     }
   }
 
-  // --- digit sticker -----------------------------------------------------
-  let stickerTimer: ReturnType<typeof setTimeout> | null = null;
-  function clearSticker(): void {
-    if (stickerTimer !== null) clearTimeout(stickerTimer);
-    stickerTimer = null;
-    stickerSlot.replaceChildren();
-  }
-  /** Show the sticker of `digit` for three jumps (a sticker still there is replaced and restarts). */
-  function showSticker(digit: number): void {
-    clearSticker();
-    const sticker = digitSticker(digit);
-    sticker.classList.add('jump');
-    stickerSlot.append(sticker);
-    const css = win?.getComputedStyle(stickerSlot);
-    const cycle = parseCssTime(css?.getPropertyValue('--jump-ms') ?? '', 700);
-    const jumps = Number.parseFloat(css?.getPropertyValue('--jump-count') ?? '') || 3;
-    const still = win?.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-    // Reduced motion never animates, so this timer is the only way out; otherwise it is a safety net.
-    stickerTimer = setTimeout(clearSticker, jumps * cycle + (still ? 0 : STICKER_SLACK_MS));
-  }
-  stickerSlot.addEventListener('animationend', (e) => {
-    if (e.animationName === 'digit-jump') clearSticker();
-  });
-
   // --- timer plumbing ----------------------------------------------------
   function startTick(): void {
     if (tick === null) tick = setInterval(paintTime, TICK_MS);
@@ -349,7 +319,6 @@ export function gameScreen(
     stopTick();
     if (save) persist();
     pausedTime.textContent = formatTime(sw.elapsed());
-    clearSticker();
     el.classList.add('paused');
     overlay.hidden = false;
     render();
@@ -378,7 +347,6 @@ export function gameScreen(
     const mistakesBefore = state.mistakes;
     const before = state;
     const flashing = entry ? completedUnits(state, next) : [];
-    const jumper = entry ? newlyCompletedDigits(state, next)[0] : undefined;
     state = next;
     // Haptics only ever answer a player action (apply runs only while active, i.e. not paused).
     if (isComplete(state)) {
@@ -392,7 +360,6 @@ export function gameScreen(
     }
     render();
     if (flashing.length > 0) flash(flashing);
-    if (jumper !== undefined) showSticker(jumper);
     if (state.mistakes > mistakesBefore) haptics.fire('mistake');
     else if (activeMode(state) !== modeBefore) haptics.fire('mode');
     if (saveNeeded) persist();
@@ -484,7 +451,7 @@ export function gameScreen(
   doc.addEventListener('visibilitychange', onVisibility);
   win?.addEventListener('pagehide', onPageHide);
 
-  preloadStickers();
+  preloadStickers(); // decoded up front so the results screen's sticker never pops in half-drawn
   if (saved) {
     // Resuming opens paused with the saved time; the save on disk is already current.
     sw.start(saved.elapsedMs);
@@ -506,7 +473,6 @@ export function gameScreen(
       sw.stop();
       flashTimers.forEach((t) => clearTimeout(t));
       flashTimers.clear();
-      clearSticker();
       doc.removeEventListener('visibilitychange', onVisibility);
       win?.removeEventListener('pagehide', onPageHide);
     },

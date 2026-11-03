@@ -32,16 +32,14 @@ undo, redo, resuming a save and the move that finishes the puzzle flash nothing,
 turns it off. Detection is `completedUnits` in `src/game/state.ts`; the flash is a `::before`
 wash under the digit (`.cell.flash` in `src/style.css`), so it never touches layout or input.
 
-**Digit sticker:** the entry that places the ninth correct instance of a digit (not undo, redo, resume
-or the finishing entry) shows that digit's glossy sticker in the empty right slot of the play header.
-It jumps three times (stretched in the air, squashed on landing, straight into the next jump) and goes away; a new
-completion replaces it, pausing removes it, and reduced motion shows it still for about 2 s. On the
-results screen the same sticker, of the final digit, jumps forever. The images are `digits/*.png`
-(full-size originals, not shipped) shrunk to 192 px tall transparent WebP in `src/assets/digits/`
-(Pillow, 2x the largest use). Detection is `newlyCompletedDigits` in `src/game/state.ts`, the element
-is `digitSticker` in `src/ui/digit-sticker.ts`. **To tune the motion** change the custom properties in
-the "Digit sticker" block of `src/style.css` (cycle length, number of jumps on the play screen, jump height, stretch, squash, sizes, shadow); the
-shape of one cycle (there is no rest between jumps: the landing squash is the next jump's crouch) is `@keyframes digit-jump` right below them.
+**Digit sticker (results screen only):** the medal of the congratulations screen is the glossy sticker of
+the digit whose entry finished the puzzle, jumping forever (stretched in the air, squashed on landing, the
+landing flowing straight into the next jump); reduced motion shows it still. There is no sticker during play:
+the completion flash is enough. The images are `digits/*.png` (full-size originals, not shipped) shrunk to
+192 px tall transparent WebP in `src/assets/digits/` (Pillow, 2x the largest use); the element is `digitSticker`
+in `src/ui/digit-sticker.ts` and the final digit travels as `GameResult.lastDigit`. **To tune the motion**
+change the custom properties in the "Digit sticker" block of `src/style.css` (cycle length, jump heights,
+stretch, squash, results size, shadow); the shape of one cycle is `@keyframes digit-jump` right below them.
 
 **Pencil notes:** the pencil button, one digit key in size, below the digit row and right-aligned under the 9 key (the free
 space above the board, above the digits and above the pencil is three equal gaps; in landscape a compact button under
