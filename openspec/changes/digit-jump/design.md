@@ -1,10 +1,8 @@
 ## Context
 
-The header grid is `52px 1fr 52px` with the last slot empty. Completion detection exists: `completedDigits` and `completedUnits` in `src/game/state.ts`; `apply` in `src/ui/game.ts` already knows entry vs undo/redo and the finishing entry. The results screen draws a star `.badge` with a burst around it.
+The results screen drew a star `.badge` with a burst around it.
 
 ## Decisions
-
-**Detection is pure.** Add `newlyCompletedDigits(prev, next): number[]` next to `completedUnits` (digits complete in `next`, not in `prev`), unit-tested. Called only for entries, never for the finishing entry. One entry completes at most one digit (the entered one), so the first result is used.
 
 **The final digit** is the digit of the finishing entry. `apply` already has it from the state change (the cell whose value changed); `GameResult` gets `lastDigit` and it travels through `AppState` results to `resultsScreen`.
 
@@ -19,3 +17,7 @@ The header grid is `52px 1fr 52px` with the last slot empty. Completion detectio
 Alternatives: a Web Animations API sequence (more code, harder for the user to tune than CSS variables); sprite sheet (no benefit); SVG trace (loses the glossy look).
 
 Risks: image weight (9 small WebPs, a few KB each; check the total); the jump height near the top edge on the 320x568 viewport and in landscape, where the topbar lives in the side panel (the third slot must still exist there); iOS cannot be verified here.
+
+## Revision: results screen only
+
+The play-screen sticker (header slot, `newlyCompletedDigits`, preloading, replacement logic, the `jump`/`--jump-count` machinery) was built and then removed at the user's request: the completion flash is enough during play. Kept: the assets, `digitSticker`, the infinite jump, the final-digit plumbing (`finishingDigit`, `GameResult.lastDigit`). The flowing landing (no rest, the landing squash is the next jump's crouch) stays. The header's right slot is empty again.
