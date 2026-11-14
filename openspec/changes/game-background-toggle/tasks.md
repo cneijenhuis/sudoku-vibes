@@ -1,6 +1,6 @@
 ## 1. Logic
 
-- [ ] 1.1 Add `src/theme/scene.ts` (`Scene`, `nextScene`, `loadScene`, `saveScene`, `applyScene` incl. `theme-color` meta) and `src/theme/scene.test.ts`; verify by unit tests: cycle order, unknown/missing/throwing storage → photo, save round-trip, apply sets/removes `data-scene` and meta (restored to `#F6E9D2` for photo/null)
+- [x] 1.1 Add `src/theme/scene.ts` (`Scene`, `nextScene`, `loadScene`, `saveScene`, `applyScene` incl. `theme-color` meta) and `src/theme/scene.test.ts`; verify by unit tests: cycle order, unknown/missing/throwing storage → photo, save round-trip, apply sets/removes `data-scene` and meta (restored to `#F6E9D2` for photo/null)
 
 ## 2. Button and styling
 
