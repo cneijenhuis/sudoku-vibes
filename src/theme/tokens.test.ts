@@ -2,7 +2,11 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 
-const css = new TextDecoder().decode(readFileSync('src/style.css')); // vitest runs from the repo root
+const fullCss = new TextDecoder().decode(readFileSync('src/style.css')); // vitest runs from the repo root
+/** The game-screen background blocks (`html[data-scene...]`) hold their own colour literals and token overrides. */
+const SCENE_BLOCK = /^html\[data-scene[^{]*\{[^}]*\}\n?/gm;
+const css = fullCss.replace(SCENE_BLOCK, '');
+const sceneCss = [...fullCss.matchAll(SCENE_BLOCK)].map((m) => m[0]).join('\n');
 
 /** The values the Summer Vibes handover (and the visual-theme spec) fix for each token. */
 const TOKENS: Record<string, string> = {
@@ -54,9 +58,66 @@ describe('theme tokens', () => {
     expect(offenders).toEqual([]);
   });
 
+  it('scene overrides only redefine existing tokens (plus the scene colour)', () => {
+    const names = [...sceneCss.matchAll(/^\s*(--[a-z-]+):/gm)].map((m) => m[1]!);
+    expect(names.length).toBeGreaterThan(10);
+    for (const n of names) {
+      if (n === '--scene-bg') continue;
+      expect(css, n).toMatch(new RegExp(`^\\s*${n}:`, 'm'));
+    }
+  });
+
   it('declares the glass fallbacks', () => {
     expect(css).toContain('@supports not');
     expect(css).toContain('prefers-reduced-transparency');
     expect(css).toContain('color-scheme: light');
+  });
+
+  describe('dark scene contrast (WCAG 2.1, at least 4.5:1 on the solid surface)', () => {
+    const dark = /^html\[data-scene='dark'\]\s*\{([^}]*)\}/m.exec(fullCss)?.[1] ?? '';
+    const tok = (name: string): string => new RegExp(`${name}:\\s*([^;]+);`).exec(dark)?.[1]?.trim() ?? '';
+    type Rgb = [number, number, number];
+    const parse = (c: string): { rgb: Rgb; a: number } => {
+      const hex = /^#([0-9a-f]{6})$/i.exec(c);
+      if (hex) return { rgb: [0, 2, 4].map((i) => parseInt(hex[1]!.slice(i, i + 2), 16)) as Rgb, a: 1 };
+      const m = /^rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)$/.exec(c);
+      if (!m) throw new Error(`unparsable colour ${c}`);
+      return { rgb: [+m[1]!, +m[2]!, +m[3]!], a: +m[4]! };
+    };
+    const over = (fg: string, bg: string): Rgb => {
+      const f = parse(fg);
+      const b = parse(bg).rgb;
+      return f.rgb.map((v, i) => v * f.a + b[i]! * (1 - f.a)) as Rgb;
+    };
+    const lum = ([r, g, b]: Rgb): number => {
+      const l = [r, g, b].map((v) => {
+        const c = v / 255;
+        return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+      });
+      return 0.2126 * l[0]! + 0.7152 * l[1]! + 0.0722 * l[2]!;
+    };
+    const ratio = (a: Rgb, b: Rgb): number => {
+      const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+      return (hi! + 0.05) / (lo! + 0.05);
+    };
+    const solid = parse(tok('--surface-solid')).rgb;
+
+    for (const name of ['--ink', '--key-text', '--entry', '--status', '--done-text', '--error', '--c0', '--c1', '--c2', '--c3', '--c4', '--c5']) {
+      it(`${name} on the solid surface`, () => {
+        expect(ratio(parse(tok(name)).rgb, solid)).toBeGreaterThanOrEqual(4.5);
+      });
+    }
+    it('ink and entry on the cursor fill', () => {
+      const cursor = parse(tok('--cursor-fill')).rgb;
+      expect(ratio(parse(tok('--ink')).rgb, cursor)).toBeGreaterThanOrEqual(4.5);
+      expect(ratio(parse(tok('--entry')).rgb, cursor)).toBeGreaterThanOrEqual(4.5);
+    });
+    it('error on its tint over the solid surface', () => {
+      const tint = over(tok('--error-tint'), tok('--surface-solid'));
+      expect(ratio(parse(tok('--error')).rgb, tint)).toBeGreaterThanOrEqual(4.5);
+    });
+    it('ink on the dark page', () => {
+      expect(ratio(parse(tok('--ink')).rgb, parse(tok('--scene-bg')).rgb)).toBeGreaterThanOrEqual(4.5);
+    });
   });
 });

@@ -25,7 +25,9 @@ import {
 } from '../game/state';
 import { createStopwatch, formatTime } from '../game/timer';
 import type { GeneratedPuzzle } from '../generator/generate';
+import { localKv, type KeyValue } from '../storage/kv';
 import type { SavedGame } from '../storage/save';
+import { SCENE_ICONS, applyScene, loadScene, nextScene, saveScene, sceneLabel } from '../theme/scene';
 import { preloadStickers } from './digit-sticker';
 import { h } from './dom';
 import { haptics as defaultHaptics, type Haptics } from './haptics';
@@ -62,6 +64,8 @@ export interface GameEnv {
   now?: () => number;
   doc?: Document;
   haptics?: Haptics;
+  /** Where the background choice is stored. */
+  kv?: KeyValue;
 }
 
 const TICK_MS = 250;
@@ -109,6 +113,8 @@ export function gameScreen(
   const doc = env.doc ?? document;
   const sw = createStopwatch(env.now);
   const haptics = env.haptics ?? defaultHaptics;
+  const kv = env.kv ?? localKv;
+  let scene = loadScene(kv);
   let state: GameState = saved ? restoreGame(saved) : createGame(game.puzzle, game.solution);
   let paused = false;
   let finished = false;
@@ -120,11 +126,14 @@ export function gameScreen(
   pauseBtn.dataset.action = 'pause';
   const timeEl = h('span', { class: 'time', text: '0:00', attrs: { 'data-testid': 'time' } });
   const subEl = h('span', { class: 'sub', attrs: { 'data-testid': 'sub' } });
+  const sceneBtn = iconButton('scene', sceneLabel(scene), SCENE_ICONS[scene]);
+  sceneBtn.dataset.action = 'scene';
   const bar = h(
     'header',
     { class: 'topbar' },
     pauseBtn,
     h('div', { class: 'clock glass' }, timeEl, subEl),
+    sceneBtn,
   );
 
   const cells: HTMLButtonElement[] = [];
@@ -436,6 +445,18 @@ export function gameScreen(
     if (active()) apply(toggleNotes(state));
   });
   pauseBtn.addEventListener('click', () => pause());
+  /** Show the current scene behind the screen and on its button. */
+  function paintScene(): void {
+    applyScene(scene);
+    sceneBtn.setAttribute('aria-label', sceneLabel(scene));
+    sceneBtn.innerHTML = SCENE_ICONS[scene]; // static markup from the scene module
+  }
+  sceneBtn.addEventListener('click', () => {
+    if (disposed) return;
+    scene = nextScene(scene);
+    saveScene(kv, scene);
+    paintScene();
+  });
   resumeBtn.addEventListener('click', resume);
   quitBtn.addEventListener('click', () => {
     if (!disposed) handlers.onQuit();
@@ -462,12 +483,14 @@ export function gameScreen(
     persist(); // a fresh game replaces any older save straight away
   }
   render();
+  paintScene();
 
   return {
     el,
     dispose() {
       persist(); // leaving mid-game (Quit, Back) keeps the latest state and time
       disposed = true;
+      applyScene(null); // every other screen shows the photo
       cancelPresses();
       stopTick();
       sw.stop();

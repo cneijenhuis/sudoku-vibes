@@ -32,6 +32,8 @@
   --error-tint: rgba(168, 11, 36, 0.14);
   --cursor-fill: #ddf1f7;
   --cursor-ring: var(--line-strong);
+  /* Drop edge under raised buttons and keys; dark mode swaps it for near-black. */
+  --edge: var(--line-strong);
   --font: 'Fredoka', system-ui, sans-serif;
   --tap: 44px;
   /* Side gutter of the board and the number keys; the largest the board can be is the viewport minus two of these. */
@@ -47,6 +49,56 @@
   --c4: #a8480f;
   --c5: #8a35b0;
   --level: var(--c2);
+}
+
+/*
+ * Game-screen backgrounds (src/theme/scene.ts): `data-scene` is on <html> only while the game screen is
+ * shown and the player picked light or dark; the photo is "no attribute". The plain colour paints the
+ * root element (like the photo does), never a fixed layer, so iOS home-screen mode covers the whole canvas.
+ */
+html[data-scene] {
+  background-color: var(--scene-bg);
+  background-image: none;
+}
+
+/*
+ * Light: the iOS status bar stays white (black-translucent), so a navy strip exactly as tall as the top
+ * safe-area inset sits behind it; zero tall in browsers and on devices without a notch.
+ */
+html[data-scene='light'] {
+  --scene-bg: #f4f1ea;
+  background-image: linear-gradient(var(--line-strong), var(--line-strong));
+  background-size: 100% env(safe-area-inset-top, 0px);
+  background-position: top left;
+  background-repeat: no-repeat;
+}
+
+html[data-scene='dark'] {
+  color-scheme: dark;
+  --scene-bg: #0f151d;
+  --surface: rgba(29, 40, 54, 0.88);
+  --surface-solid: #1d2836;
+  --surface-fallback: rgba(29, 40, 54, 0.96);
+  --ink: #e9eff5;
+  --key-text: #d3e2ee;
+  --entry: #6fd3de;
+  --line-strong: #7fa6c2;
+  --line-soft: rgba(127, 166, 194, 0.36);
+  --done-text: #93a9ba;
+  --done-edge: #5f7b8f;
+  --status: #f0a57f;
+  --error: #ff7d8c;
+  --error-tint: rgba(255, 125, 140, 0.14);
+  --cursor-fill: #2a4a5d;
+  --shadow-board: 0 14px 30px rgba(0, 0, 0, 0.5);
+  --edge: #05080c;
+  /* Level colours lightened to read on the dark surface (the paused time uses them). */
+  --c0: #52cfe0;
+  --c1: #62d69d;
+  --c2: #8fb2ff;
+  --c3: #f0b550;
+  --c4: #ff9d62;
+  --c5: #d6a0ff;
 }
 
 *,
@@ -174,7 +226,7 @@ h2 {
   padding: 0 24px;
   border: 2px solid var(--line-strong);
   border-radius: 14px;
-  box-shadow: 0 3px 0 var(--line-strong);
+  box-shadow: 0 3px 0 var(--edge);
   color: var(--key-text);
   font-size: 17px;
   font-weight: 600;
@@ -183,7 +235,7 @@ h2 {
 
 .btn:active:not(:disabled) {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--line-strong);
+  box-shadow: 0 1px 0 var(--edge);
 }
 
 .btn:disabled {
@@ -247,7 +299,7 @@ h2 {
 .menu-head {
   padding: 10px 26px 12px;
   border-radius: 28px;
-  box-shadow: 0 3px 0 var(--line-strong);
+  box-shadow: 0 3px 0 var(--edge);
   text-align: center;
 }
 
@@ -283,14 +335,14 @@ h2 {
   border: 2px solid var(--line-strong);
   border-radius: 14px;
   /* The level colour is a bar down the left edge, inside the navy frame. */
-  box-shadow: inset 8px 0 0 0 var(--level), 0 3px 0 var(--line-strong);
+  box-shadow: inset 8px 0 0 0 var(--level), 0 3px 0 var(--edge);
   color: var(--ink);
   cursor: pointer;
 }
 
 .level:active:not(:disabled) {
   transform: translateY(2px);
-  box-shadow: inset 8px 0 0 0 var(--level), 0 1px 0 var(--line-strong);
+  box-shadow: inset 8px 0 0 0 var(--level), 0 1px 0 var(--edge);
 }
 
 .level:disabled {
@@ -459,7 +511,7 @@ h2 {
   padding: 12px 8px 10px;
   border: 2px solid var(--line-strong);
   border-radius: 14px;
-  box-shadow: 0 3px 0 var(--line-strong);
+  box-shadow: 0 3px 0 var(--edge);
 }
 
 .stat-label {
@@ -705,13 +757,13 @@ h2 {
   border: 0;
   border-radius: 18px;
   color: var(--ink);
-  box-shadow: 0 3px 0 var(--line-strong);
+  box-shadow: 0 3px 0 var(--edge);
   cursor: pointer;
 }
 
 .icon-btn:active:not(:disabled) {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--line-strong);
+  box-shadow: 0 1px 0 var(--edge);
 }
 
 .clock {
@@ -724,7 +776,7 @@ h2 {
   align-items: center;
   gap: 6px;
   border-radius: 20px;
-  box-shadow: 0 3px 0 var(--line-strong);
+  box-shadow: 0 3px 0 var(--edge);
 }
 
 .time {
@@ -991,7 +1043,7 @@ h2 {
   place-items: center;
   border: 2px solid var(--line-strong);
   border-radius: 14px;
-  box-shadow: 0 3px 0 var(--line-strong);
+  box-shadow: 0 3px 0 var(--edge);
   color: var(--key-text);
   cursor: pointer;
 }
@@ -1080,7 +1132,7 @@ h2 {
 
 .act-btn:active:not(:disabled) {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--line-strong);
+  box-shadow: 0 1px 0 var(--edge);
 }
 
 /* Notes mode on: the same butter yellow as the selected key (never red). */
@@ -1119,7 +1171,7 @@ h2 {
   isolation: isolate;
   border: 2px solid var(--line-strong);
   border-radius: 14px;
-  box-shadow: 0 3px 0 var(--line-strong);
+  box-shadow: 0 3px 0 var(--edge);
   color: var(--key-text);
   font-size: 28px;
   font-weight: 600;
@@ -1239,7 +1291,7 @@ h2 {
 
 .digit:active:not(:disabled):not(.active):not(.locked) {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--line-strong);
+  box-shadow: 0 1px 0 var(--edge);
 }
 
 /* All nine placed: flat glass, dashed edge, a small check. Not tappable. */
@@ -1601,14 +1653,14 @@ h2 {
   text-align: left;
   border: 2px solid var(--line-strong);
   border-radius: 14px;
-  box-shadow: 0 3px 0 var(--line-strong);
+  box-shadow: 0 3px 0 var(--edge);
   color: var(--ink);
   cursor: pointer;
 }
 
 .resume:active:not(:disabled) {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--line-strong);
+  box-shadow: 0 1px 0 var(--edge);
 }
 
 .resume:disabled {
@@ -1783,7 +1835,7 @@ h2 {
   gap: 10px;
   border: 2px solid var(--line-strong);
   border-radius: 999px;
-  box-shadow: 0 3px 0 var(--line-strong);
+  box-shadow: 0 3px 0 var(--edge);
   color: var(--key-text);
   font-size: 16px;
   font-weight: 600;
@@ -1792,7 +1844,7 @@ h2 {
 
 .toggle:active {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--line-strong);
+  box-shadow: 0 1px 0 var(--edge);
 }
 
 .toggle-state {
