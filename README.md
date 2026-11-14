@@ -103,6 +103,17 @@ surface, shadows; components never use literal colours, which `src/theme/tokens.
   and the clock sit in a panel on the right above a 3x3 keypad with a compact undo/redo/pencil row and the board takes the full
   height minus the gutter; rotation is pure CSS, so game state is untouched.
 - **Per-level colours** are small accents (bar, pips, chips) kept dark enough for the light glass.
+- **Game background toggle:** the round button at the top right of the game header cycles the game
+  screen's backdrop photo, light (plain warm off-white `#F4F1EA`), dark (near-black navy `#0F151D` with
+  dark glass surfaces and light ink), photo. Its icon shows the current mode (picture frame, sun,
+  moon). The choice is stored in `localStorage` (`sudoku-vibes:background`) and applies only while the
+  game screen is shown: `src/theme/scene.ts` (DOM-free) sets `data-scene` on `<html>` on mount and removes
+  it in `dispose()`, so menu, loading, results and error screens always show the photo. The plain colours
+  paint the root element like the photo does (no fixed layer, so iOS home-screen mode still covers the
+  whole canvas). In light mode a navy strip as tall as the top safe-area inset sits behind the white iOS
+  status-bar text. Dark tokens are overrides in `src/style.css` (`html[data-scene='dark']`); their
+  contrast (>= 4.5:1 on the dark surface) is checked in `src/theme/tokens.test.ts`. Drop edges use
+  `--edge` (the strong line, near-black in dark).
 - **Browser chrome:** `theme-color` and the manifest background are `#F6E9D2`. The iOS status bar
   is `black-translucent`, so the photo runs under the clock and the home-screen app is edge to edge.
   The app icon is the deckchair with the inflatable 7 from the photo (see the PWA section).

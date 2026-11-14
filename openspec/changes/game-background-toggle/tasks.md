@@ -10,5 +10,5 @@
 
 ## 3. Scope and docs
 
-- [ ] 3.1 Verify in Playwright: choice survives reload; menu, loading, results and error screens show the photo after a light or dark game (no `data-scene` on `<html>`); iOS standalone simulation with a top safe-area inset shows the navy strip in light mode and the plain colour covering the full canvas in light and dark
-- [ ] 3.2 Update README (feature list / background bullet); run `npm run typecheck && npm test && npm run build` and `openspec validate --all --strict`
+- [x] 3.1 Verify in Playwright: choice survives reload; menu, loading, results and error screens show the photo after a light or dark game (no `data-scene` on `<html>`); iOS standalone simulation with a top safe-area inset shows the navy strip in light mode and the plain colour covering the full canvas in light and dark
+- [x] 3.2 Update README (feature list / background bullet); run `npm run typecheck && npm test && npm run build` and `openspec validate --all --strict`
