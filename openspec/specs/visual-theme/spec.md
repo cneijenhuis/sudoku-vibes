@@ -6,7 +6,7 @@ Gives every screen a consistent "Summer Vibes" look: a beach photo background, f
 ## Requirements
 
 ### Requirement: Background photo
-Every screen SHALL show a full-screen beach photo behind all content, covering the whole screen without distortion, centred, and not scrolling with content. While the photo loads, or if it fails, the page SHALL show the plain fallback colour #F6E9D2.
+Every screen SHALL show a full-screen beach photo behind all content (except the game screen in the light or dark background mode), covering the whole screen without distortion, centred, and not scrolling with content. While the photo loads, or if it fails, the page SHALL show the plain fallback colour #F6E9D2.
 
 #### Scenario: Photo visible
 - **WHEN** any screen is shown at 390x844 or 375x667
@@ -15,6 +15,10 @@ Every screen SHALL show a full-screen beach photo behind all content, covering t
 #### Scenario: Photo fails
 - **WHEN** the photo file cannot be loaded
 - **THEN** the page background is #F6E9D2 and all text remains legible
+
+#### Scenario: Plain game background
+- **WHEN** the player has picked the light or dark background on the game screen
+- **THEN** the game screen shows that plain background instead of the photo, and every other screen still shows the photo
 
 ### Requirement: Backgrounds are configurable
 Available backgrounds SHALL be defined in a single list (identifier, image, fallback colour, focal position). Adding another SHALL require only a new image and a list entry. The app SHALL pick one at random at launch and again whenever a new game starts, avoiding the previous one when several exist. Resuming a game or returning to the menu SHALL NOT change it.
