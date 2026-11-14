@@ -176,6 +176,7 @@ npm test           # run Vitest once
 npm run build      # production build into dist/
 npm run preview    # serve dist/ locally
 npm run e2e:smoke  # browser smoke test of the built site (needs `npm run build` and Playwright, see tools/e2e)
+npm run e2e:background  # browser checks of the game background toggle (same prerequisites)
 ```
 
 ## Deployment (GitHub Pages)

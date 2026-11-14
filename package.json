@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "preview": "vite preview",
-    "e2e:smoke": "node tools/e2e/smoke.mjs"
+    "e2e:smoke": "node tools/e2e/smoke.mjs",
+    "e2e:background": "node tools/e2e/background.mjs"
   },
   "devDependencies": {
     "typescript": "^7.0.2",

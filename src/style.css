@@ -34,6 +34,8 @@
   --cursor-ring: var(--line-strong);
   /* Drop edge under raised buttons and keys; dark mode swaps it for near-black. */
   --edge: var(--line-strong);
+  /* Peak opacity of the completion-flash wash (dark mode keeps it gentle so light digits stay legible). */
+  --flash-peak: 0.8;
   --font: 'Fredoka', system-ui, sans-serif;
   --tap: 44px;
   /* Side gutter of the board and the number keys; the largest the board can be is the viewport minus two of these. */
@@ -92,6 +94,7 @@ html[data-scene='dark'] {
   --cursor-fill: #2a4a5d;
   --shadow-board: 0 14px 30px rgba(0, 0, 0, 0.5);
   --edge: #05080c;
+  --flash-peak: 0.3;
   /* Level colours lightened to read on the dark surface (the paused time uses them). */
   --c0: #52cfe0;
   --c1: #62d69d;
@@ -918,7 +921,7 @@ h2 {
     opacity: 0;
   }
   25% {
-    opacity: 0.8;
+    opacity: var(--flash-peak);
   }
   100% {
     opacity: 0;

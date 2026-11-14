@@ -5,7 +5,7 @@ description: Run browser end-to-end checks of the built Sudoku Vibes site (Playw
 
 # Browser checks (tools/e2e)
 
-Helpers live in `tools/e2e/lib.mjs`; `tools/e2e/smoke.mjs` is a working example
+Helpers live in `tools/e2e/lib.mjs`; `tools/e2e/smoke.mjs` is a working example (`tools/e2e/background.mjs`, `npm run e2e:background`, checks the game background toggle)
 (`npm run build && npm run e2e:smoke`). Playwright and Chromium are pre-installed; paths default to
 `/opt/node-tools/node_modules/playwright` and `/opt/pw-browsers/chromium-1194/chrome-linux/chrome`
 (override with `PLAYWRIGHT_MODULE`, `CHROMIUM_PATH`). Never run `playwright install`. Put throwaway
