@@ -110,3 +110,10 @@ The page height decision SHALL give the same result whether or not the reported 
 #### Scenario: No flicker
 - **WHEN** the reported viewport grows to the screen height after the page has been sized
 - **THEN** the page height does not change
+
+### Requirement: One palette for all levels
+The interface SHALL NOT use per-level colours. Elements that showed a level colour (Resume button, loading spinner, status level name, results level chip and sparks, pause time, buttons) SHALL use the shared theme tokens, identical for every level.
+
+#### Scenario: Same look at every level
+- **WHEN** the loading, game and results screens are shown for Super Easy and for Impossible
+- **THEN** their colours are identical apart from the level name text

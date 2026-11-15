@@ -1,19 +1,19 @@
 # difficulty-grading Specification
 
 ## Purpose
-Classifies a uniquely solvable puzzle into one of six difficulty levels so generated games match the level the player chose.
+Classifies a uniquely solvable puzzle into one of nine difficulty levels so generated games match the level the player chose.
 
 ## Requirements
 
 ### Requirement: Difficulty levels
-The engine SHALL define exactly six ordered difficulty levels: Super Easy, Easy, Medium, Hard, Extreme, Almost Impossible.
+The engine SHALL define exactly nine ordered difficulty levels, numbered 1 to 9: Super Easy, Easy, Gentle, Medium, Tricky, Hard, Tough, Extreme, Impossible.
 
 #### Scenario: Ordering
 - **WHEN** levels are compared
-- **THEN** Super Easy < Easy < Medium < Hard < Extreme < Almost Impossible
+- **THEN** Super Easy < Easy < Gentle < Medium < Tricky < Hard < Tough < Extreme < Impossible
 
 ### Requirement: Logical technique solving
-The engine SHALL attempt to solve a puzzle using human techniques ordered from simplest to hardest and SHALL report the hardest technique used or that logic alone is insufficient.
+The engine SHALL solve with human techniques, always applying the easiest applicable one, tried in level order: hidden single, naked single (1); locked candidates (4); naked pair (5); hidden pair, naked triple, hidden triple (6); X-Wing, naked quad, hidden quad (7); Swordfish, XY-Wing (8); Skyscraper, XYZ-Wing (9). It SHALL report every step, or that logic alone is insufficient, and SHALL accept a highest allowed level.
 
 #### Scenario: Singles-only puzzle
 - **WHEN** a puzzle solvable with only naked and hidden singles is analysed
@@ -23,28 +23,13 @@ The engine SHALL attempt to solve a puzzle using human techniques ordered from s
 - **WHEN** a puzzle that stalls all implemented techniques is analysed
 - **THEN** the result is flagged as requiring guessing
 
-### Requirement: Grade assignment
-The engine SHALL assign Super Easy to puzzles needing only singles and having 44 or more givens, Easy to puzzles needing only singles with fewer than 44 givens, Medium to those also needing locked candidates or pairs, Hard to those needing triples, quads or X-Wing, Extreme to those needing Swordfish, XY-Wing or harder, and Almost Impossible to those that defeat all implemented techniques, or that would otherwise be Extreme but have 22 or fewer givens.
+#### Scenario: Capped solver
+- **WHEN** a puzzle that needs an X-Wing is analysed with the highest allowed level set to 6
+- **THEN** the solver stalls and reports that logic alone is insufficient
 
-#### Scenario: Grade by hardest technique
-- **WHEN** a puzzle's hardest required technique is a naked pair
-- **THEN** it is graded Medium
-
-#### Scenario: Beyond implemented techniques
-- **WHEN** a uniquely solvable puzzle cannot be completed by any implemented technique
-- **THEN** it is graded Almost Impossible
-
-#### Scenario: Very sparse Extreme puzzle
-- **WHEN** a puzzle solvable at Extreme level has 22 or fewer givens
-- **THEN** it is graded Almost Impossible
-
-#### Scenario: Singles-only, many givens
-- **WHEN** a puzzle solvable with singles only has 44 givens
-- **THEN** it is graded Super Easy
-
-#### Scenario: Singles-only, fewer givens
-- **WHEN** a puzzle solvable with singles only has 36 givens
-- **THEN** it is graded Easy
+#### Scenario: New techniques
+- **WHEN** a puzzle whose only way forward is a Skyscraper, or an XYZ-Wing, is analysed
+- **THEN** the solver applies that technique and continues
 
 ### Requirement: Grading requires a valid puzzle
 The engine SHALL refuse to grade a board that has conflicts or does not have exactly one solution.
@@ -59,3 +44,51 @@ Grading the same puzzle SHALL always yield the same level.
 #### Scenario: Repeat grading
 - **WHEN** a puzzle is graded twice
 - **THEN** both results are identical
+
+### Requirement: Level assignment
+The grade SHALL be the highest of: the technique tier (level of the hardest technique used, 1 for singles), the score tier, and the open-moves tier. A puzzle that defeats all techniques SHALL grade Impossible.
+
+#### Scenario: Grade by hardest technique
+- **WHEN** a puzzle's hardest required technique is a naked pair and its score and open-moves tiers are at most 5
+- **THEN** it is graded Tricky
+
+#### Scenario: Beyond implemented techniques
+- **WHEN** a uniquely solvable puzzle cannot be completed by any implemented technique
+- **THEN** it is graded Impossible
+
+#### Scenario: Score raises the grade
+- **WHEN** a puzzle needs only singles and locked candidates but its score is in the Hard band
+- **THEN** it is graded Hard
+
+#### Scenario: Few open moves raise the grade
+- **WHEN** a singles-only puzzle has a score in the Super Easy band but averages fewer open moves than the Easy threshold
+- **THEN** it is graded Gentle
+
+### Requirement: Difficulty score
+The engine SHALL compute a score by summing a cost per solving step, a technique's first use costing more than later ones: single 100/100, locked candidates 350/200, naked pair 750/500, hidden pair 1500/1200, naked triple 2000/1400, hidden triple 2400/1600, X-Wing 2800/1600, XY-Wing and Skyscraper 4200/2100, naked quad 5000/4000, XYZ-Wing 5000/2500, hidden quad 7000/5000, Swordfish 8000/6000.
+
+#### Scenario: Singles only
+- **WHEN** a puzzle with 45 empty cells is solved by singles alone
+- **THEN** its score is 4500
+
+#### Scenario: Repeated technique
+- **WHEN** a solve uses locked candidates twice and 50 singles
+- **THEN** its score is 5000 + 350 + 200 = 5550
+
+### Requirement: Score tiers
+Score tiers SHALL use eight ascending thresholds kept in one constant (initially 4000, 4500, 5100, 5600, 6500, 8000, 10000, 13000): the tier is 1 plus the number of thresholds the score reaches.
+
+#### Scenario: Middle of the scale
+- **WHEN** a puzzle scores 7000
+- **THEN** its score tier is 6 (Hard)
+
+### Requirement: Open moves
+The engine SHALL measure open moves as the mean, over the first 25 placements of the solve (or all, if fewer), of the number of empty cells that a single could fill just before that placement. The open-moves tier SHALL be 1 at or above the Super Easy threshold, 2 at or above the Easy threshold, otherwise 3; both thresholds are one constant (initially 8 and 5).
+
+#### Scenario: Wide open puzzle
+- **WHEN** a puzzle averages 9 open moves
+- **THEN** its open-moves tier is 1
+
+#### Scenario: Bottleneck puzzle
+- **WHEN** a puzzle averages 3 open moves
+- **THEN** its open-moves tier is 3

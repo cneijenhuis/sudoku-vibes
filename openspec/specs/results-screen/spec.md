@@ -24,14 +24,14 @@ The screen SHALL offer a "Same difficulty" action that starts a new game at the 
 - **THEN** the loading screen for Hard is shown and then a new Hard game starts
 
 ### Requirement: Next difficulty
-The screen SHALL offer a "Next difficulty" action that starts a new game one level harder than the one just played, in the order Super Easy, Easy, Medium, Hard, Extreme, Almost Impossible. After Almost Impossible the action SHALL NOT be offered.
+The screen SHALL offer a "Next difficulty" action that starts a new game one level harder than the one just played, in the order Super Easy, Easy, Gentle, Medium, Tricky, Hard, Tough, Extreme, Impossible. After Impossible the action SHALL NOT be offered.
 
 #### Scenario: Step up
 - **WHEN** the player finishes an Easy game and taps "Next difficulty"
-- **THEN** the loading screen for Medium is shown and then a new Medium game starts
+- **THEN** the loading screen for Gentle is shown and then a new Gentle game starts
 
 #### Scenario: Hardest level
-- **WHEN** the player finishes an Almost Impossible game
+- **WHEN** the player finishes an Impossible game
 - **THEN** no "Next difficulty" action is shown and "Same difficulty" and "Menu" remain
 
 ### Requirement: Return to menu

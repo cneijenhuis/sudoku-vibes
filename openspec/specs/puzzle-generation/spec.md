@@ -23,19 +23,8 @@ Every generated puzzle SHALL have exactly one solution.
 The generator SHALL return a puzzle that grades exactly as the requested level whenever one is found within the time budget.
 
 #### Scenario: Each level
-- **WHEN** puzzles are generated for Super Easy, Easy, Medium, Hard, Extreme and Almost Impossible
+- **WHEN** puzzles are generated for each of the nine levels
 - **THEN** each grades as the level that was requested
-
-### Requirement: Minimum givens per level
-Puzzles for Easy, Medium, Hard and Extreme SHALL have at least 36, 32, 28 and 25 givens respectively, so lower levels are not sparse for human players. Almost Impossible has no minimum.
-
-#### Scenario: Easy is not sparse
-- **WHEN** an Easy puzzle is generated
-- **THEN** it has at least 36 givens
-
-#### Scenario: Floor and grade together
-- **WHEN** a Hard puzzle is generated
-- **THEN** it has at least 28 givens and still grades as Hard
 
 ### Requirement: Randomness
 Successive generations SHALL produce different puzzles, and the generator SHALL accept a seed so the same seed and level reproduce the same puzzle.
@@ -55,9 +44,16 @@ Generation SHALL stop after a time budget and return the closest-graded unique p
 - **WHEN** no exact-level puzzle is found before the budget expires
 - **THEN** a unique puzzle is still returned with its true difficulty and a flag indicating it differs from the request
 
-### Requirement: Super Easy givens
-A Super Easy puzzle SHALL have exactly 44 givens and SHALL be solvable using only naked and hidden singles. Easy puzzles SHALL have fewer than 44 givens.
+### Requirement: Fair puzzles only
+Every generated puzzle SHALL be solvable by the technique solver limited to the requested level's techniques, so it never needs guessing or a technique above its level.
 
-#### Scenario: Super Easy puzzle
-- **WHEN** a Super Easy puzzle is generated
-- **THEN** it has exactly 44 givens, is uniquely solvable and the engine grades it Super Easy
+#### Scenario: Within the level's techniques
+- **WHEN** a Tricky puzzle is generated
+- **THEN** the solver limited to level 5 techniques solves it completely
+
+### Requirement: Spread within the level
+The generator SHALL aim for a random score inside the requested level's score band rather than always the hardest puzzle of that level, so successive puzzles of one level differ in difficulty.
+
+#### Scenario: Not piled at the edge
+- **WHEN** 100 Gentle puzzles are generated with different seeds
+- **THEN** their scores are spread over the Gentle band and fewer than half lie in its top fifth
