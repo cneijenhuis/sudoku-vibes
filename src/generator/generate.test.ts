@@ -1,23 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { findConflicts, parse } from '../engine/board';
 import { countSolutions } from '../engine/solver';
-import { DIFFICULTY_LABELS, Difficulty, grade } from '../engine/grading';
-import { MIN_GIVENS, generatePuzzle } from './generate';
+import { analyze } from '../engine/techniques';
+import { DIFFICULTY_LABELS, Difficulty, grade, rate, scoreBand } from '../engine/grading';
+import { generatePuzzle } from './generate';
 
-const LEVELS = [
-  Difficulty.SuperEasy,
-  Difficulty.Easy,
-  Difficulty.Medium,
-  Difficulty.Hard,
-  Difficulty.Extreme,
-  Difficulty.AlmostImpossible,
-];
+const LEVELS = Object.values(Difficulty).filter((v): v is Difficulty => typeof v === 'number');
 
-describe.each(LEVELS)('generatePuzzle (%s)', (level) => {
+describe.each(LEVELS)('generatePuzzle (level %s)', (level) => {
   const label = DIFFICULTY_LABELS[level];
+  // The slow levels get fewer seeds so `npm test` stays quick.
+  const seeds = level <= Difficulty.Tricky ? [11, 12, 13, 14] : [11, 12];
 
-  it(`${label}: unique, consistent and graded as requested`, () => {
-    for (const seed of [11, 12, 13, 14]) {
+  it(`${label}: unique, consistent, graded as requested and fair`, () => {
+    for (const seed of seeds) {
       const r = generatePuzzle(level, { seed, budgetMs: 20000 });
       const puzzle = parse(r.puzzle);
       const solution = parse(r.solution);
@@ -31,16 +27,28 @@ describe.each(LEVELS)('generatePuzzle (%s)', (level) => {
       expect(grade(puzzle)).toBe(r.difficulty);
       expect(r.difficulty).toBe(level);
       expect(r.exact).toBe(true);
-      const givens = r.puzzle.replace(/0/g, '').length;
-      expect(givens).toBeGreaterThanOrEqual(MIN_GIVENS[level]);
-      if (level === Difficulty.SuperEasy) expect(givens).toBe(44);
-      if (level === Difficulty.Easy) expect(givens).toBeLessThan(44);
+      // Fair: the solver limited to the level's techniques finishes it, with no guess.
+      const capped = analyze(puzzle, level);
+      expect(capped.solved).toBe(true);
+      expect(Array.from(capped.board)).toEqual(Array.from(solution));
     }
   });
+});
 
-  it(`${label}: respects the minimum givens`, () => {
-    const floors: Record<string, number> = { 'Super Easy': 44, Easy: 36, Medium: 32, Hard: 28, Extreme: 25, 'Almost Impossible': 0 };
-    expect(MIN_GIVENS[level]).toBe(floors[label] ?? -1);
+describe('spread within the level', () => {
+  it('puts fewer than half of 100 Gentle puzzles in the top fifth of the band', () => {
+    const { lo, hi } = scoreBand(Difficulty.Gentle);
+    const top = lo + (hi - lo) * 0.8;
+    const scores: number[] = [];
+    for (let seed = 1; seed <= 100; seed++) {
+      const r = generatePuzzle(Difficulty.Gentle, { seed });
+      expect(r.difficulty).toBe(Difficulty.Gentle);
+      scores.push(rate(analyze(parse(r.puzzle))).score);
+    }
+    expect(scores.filter((s) => s >= top).length).toBeLessThan(50);
+    // And they really spread: at least three distinct score steps, none outside the band.
+    expect(new Set(scores).size).toBeGreaterThanOrEqual(3);
+    expect(scores.every((s) => s >= lo && s < hi)).toBe(true);
   });
 });
 
@@ -61,17 +69,17 @@ describe('generatePuzzle randomness', () => {
 
 describe('generatePuzzle time budget', () => {
   it('with no budget returns the first candidate: unique, truthfully graded, flagged inexact', () => {
-    const results = [1, 2, 3, 4, 5, 6].map((seed) => generatePuzzle(Difficulty.Hard, { seed, budgetMs: 0 }));
+    const results = [1, 2, 3, 4, 5, 6].map((seed) => generatePuzzle(Difficulty.Tricky, { seed, budgetMs: 0 }));
     for (const r of results) {
       const puzzle = parse(r.puzzle);
       expect(countSolutions(puzzle, 2)).toBe(1);
       expect(grade(puzzle)).toBe(r.difficulty);
-      expect(r.exact).toBe(r.difficulty === Difficulty.Hard);
+      expect(r.exact).toBe(r.difficulty === Difficulty.Tricky);
     }
     const inexact = results.filter((r) => !r.exact);
     expect(inexact.length).toBeGreaterThan(0);
     // Deterministic: the same seed gives the same fallback.
-    const again = generatePuzzle(Difficulty.Hard, { seed: 1, budgetMs: 0 });
+    const again = generatePuzzle(Difficulty.Tricky, { seed: 1, budgetMs: 0 });
     expect(again).toEqual(results[0]);
   });
 
@@ -82,9 +90,9 @@ describe('generatePuzzle time budget', () => {
 
   it('a clock that jumps past the deadline stops after the first graded candidate', () => {
     let t = 0;
-    const r = generatePuzzle(Difficulty.Extreme, { seed: 2, budgetMs: 10, now: () => (t += 1000) });
+    const r = generatePuzzle(Difficulty.Tough, { seed: 2, budgetMs: 10, now: () => (t += 1000) });
     expect(countSolutions(parse(r.puzzle), 2)).toBe(1);
-    expect(r.exact).toBe(r.difficulty === Difficulty.Extreme);
+    expect(r.exact).toBe(r.difficulty === Difficulty.Tough);
   });
 });
 

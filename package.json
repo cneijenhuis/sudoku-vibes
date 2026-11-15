@@ -10,7 +10,8 @@
     "test": "vitest run",
     "preview": "vite preview",
     "e2e:smoke": "node tools/e2e/smoke.mjs",
-    "e2e:background": "node tools/e2e/background.mjs"
+    "e2e:background": "node tools/e2e/background.mjs",
+    "calibrate": "node tools/calibrate.mjs"
   },
   "devDependencies": {
     "typescript": "^7.0.2",

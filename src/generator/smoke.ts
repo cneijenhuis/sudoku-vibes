@@ -1,6 +1,8 @@
 import { DIFFICULTY_LABELS, Difficulty } from '../engine/grading';
 import { generatePuzzleAsync } from './client';
 
+const ALL_LEVELS: Difficulty[] = Object.values(Difficulty).filter((v): v is Difficulty => typeof v === 'number');
+
 export interface SmokeReport {
   rows: { level: string; difficulty: string; exact: boolean; ms: number; puzzle: string }[];
   /** Longest gap between 50 ms main-thread timer ticks while generating (ms). */
@@ -25,14 +27,7 @@ export async function runSmoke(): Promise<SmokeReport> {
     last = now;
   }, 50);
 
-  for (const level of [
-    Difficulty.SuperEasy,
-    Difficulty.Easy,
-    Difficulty.Medium,
-    Difficulty.Hard,
-    Difficulty.Extreme,
-    Difficulty.AlmostImpossible,
-  ]) {
+  for (const level of ALL_LEVELS) {
     const t = performance.now();
     const r = await generatePuzzleAsync(level);
     const row = {

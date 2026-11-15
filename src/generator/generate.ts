@@ -1,14 +1,10 @@
 import { CELLS, serialize, type Board } from '../engine/board';
-import { countSolutions } from '../engine/solver';
 import { analyze } from '../engine/techniques';
-import { DIFFICULTY_LABELS, Difficulty, SUPER_EASY_GIVENS, countClues, difficultyOf } from '../engine/grading';
+import { DIFFICULTY_LABELS, Difficulty, OPEN_MOVES_MAX_LEVEL, rate, scoreBand } from '../engine/grading';
 import { randomFullGrid } from './grid';
 import { mulberry32, randomSeed, shuffle, type Random } from './random';
 
 export const DEFAULT_BUDGET_MS = 8000;
-
-/** Restore orders tried per minimal puzzle before digging a fresh grid. */
-const RESTORES_PER_DIG = 4;
 
 export interface GenerateOptions {
   /** 32-bit seed; the same seed and level reproduce the same puzzle (ignored if `rng` is given). */
@@ -36,74 +32,58 @@ interface Candidate {
   puzzle: Board;
   solution: Board;
   difficulty: Difficulty;
+  score: number;
 }
 
 /**
- * Minimum number of givens per level (Almost Impossible has none). Super Easy is also
- * the exact number: it digs down to this floor and never restores.
+ * Remove givens one at a time, in random order, from a full grid. A removal is kept only while the
+ * technique solver limited to `target`'s techniques still finishes the puzzle and neither the
+ * techniques it needs nor its score reach above `target`; that also proves the solution unique.
+ * (The open-moves tier is left out of this test: it is highest for nearly full grids and falls as
+ * givens go.) Digging stops once the puzzle grades as `target` with a score of at least `goal`, so
+ * puzzles land at a random point of the level's score band instead of at its hard edge. `expired`
+ * cuts digging short (the state so far is valid).
  */
-export const MIN_GIVENS: Record<Difficulty, number> = {
-  [Difficulty.SuperEasy]: SUPER_EASY_GIVENS,
-  [Difficulty.Easy]: 36,
-  [Difficulty.Medium]: 32,
-  [Difficulty.Hard]: 28,
-  [Difficulty.Extreme]: 25,
-  [Difficulty.AlmostImpossible]: 0,
-};
-
-/**
- * Remove givens in random order while the solution stays unique, stopping at `floor`
- * givens. With floor 0 this gives a minimal puzzle.
- */
-function dig(solution: Board, floor: number, rng: Random, expired: () => boolean): Board {
+function dig(solution: Board, target: Difficulty, goal: number, rng: Random, expired: () => boolean): Candidate {
   const puzzle = Uint8Array.from(solution);
-  let clues = CELLS;
+  // Open moves can only raise a level up to Gentle, so above it the (costlier) count is not needed.
+  const trackOpenMoves = target < OPEN_MOVES_MAX_LEVEL;
+  let difficulty: Difficulty = Difficulty.SuperEasy;
+  let score = 0;
   for (const cell of shuffle(Array.from({ length: CELLS }, (_, i) => i), rng)) {
-    if (expired() || clues <= floor) break;
+    if (expired()) break;
     const digit = puzzle[cell] ?? 0;
     puzzle[cell] = 0;
-    if (countSolutions(puzzle, 2) !== 1) puzzle[cell] = digit;
-    else clues--;
+    const analysis = analyze(puzzle, target, trackOpenMoves);
+    const rating = rate(analysis);
+    if (!analysis.solved || rating.tiers.technique > target || rating.tiers.score > target) {
+      puzzle[cell] = digit;
+      continue;
+    }
+    difficulty = rating.difficulty;
+    score = rating.score;
+    if (difficulty === target && score >= goal) break;
   }
-  return puzzle;
+  // The dig's own rating can miss the open-moves tier; the reported level never does.
+  if (!trackOpenMoves) {
+    const full = rate(analyze(puzzle));
+    difficulty = full.difficulty;
+    score = full.score;
+  }
+  return { puzzle, solution, difficulty, score };
 }
 
 /**
- * Put givens of `solution` back into `minimal` in random order until the technique
- * solver finishes within `target`. The first such state is returned, so it grades
- * at the target whenever it needs a target-level technique. Adding givens keeps
- * the solution unique. Restoring stops at `maxClues` givens (the puzzle is then left
- * unsolved by `target`-level techniques and the caller rejects it).
- */
-function restore(minimal: Board, solution: Board, target: Difficulty, rng: Random, maxClues: number): Board {
-  const puzzle = Uint8Array.from(minimal);
-  const empty = shuffle(
-    Array.from({ length: CELLS }, (_, i) => i).filter((i) => puzzle[i] === 0),
-    rng,
-  );
-  for (const cell of empty) {
-    if (countClues(puzzle) >= maxClues) break;
-    const a = analyze(puzzle);
-    if (a.solved && difficultyOf(a, countClues(puzzle)) <= target) break;
-    puzzle[cell] = solution[cell] ?? 0;
-  }
-  return puzzle;
-}
-
-function gradeUnique(puzzle: Board): Difficulty {
-  return difficultyOf(analyze(puzzle), countClues(puzzle));
-}
-
-/**
- * Generate a uniquely solvable puzzle for `target`. Retries with fresh grids until
- * one grades exactly as requested or the time budget runs out, in which case the
- * closest-graded puzzle found is returned with `exact: false`. At least one
- * attempt always completes, so a puzzle is always returned.
+ * Generate a uniquely solvable puzzle for `target` that the technique solver can finish with the
+ * techniques up to that level (it never needs a guess). Retries with fresh grids until one grades
+ * exactly as requested or the time budget runs out, in which case the closest puzzle found (the
+ * nearest level, easier on a tie) is returned with `exact: false`. At least one attempt always completes,
+ * so a puzzle is always returned.
  *
- * Loop exits: (1) a candidate grades exactly as `target` (returned with `exact: true`);
- * (2) the clock reaches the deadline after a candidate was graded (best candidate returned,
- * `exact: false`). With a clock that never advances only exit 1 applies, so the target must
- * be reachable; with `budgetMs <= 0` exactly one candidate is produced.
+ * Loop exits: (1) a candidate grades exactly as `target` (returned with `exact: true`); (2) the
+ * clock reaches the deadline after a candidate was graded (best candidate returned, `exact: false`).
+ * With a clock that never advances only exit 1 applies, so the target must be reachable; with
+ * `budgetMs <= 0` exactly one candidate is produced.
  */
 export function generatePuzzle(target: Difficulty, options: GenerateOptions = {}): GeneratedPuzzle {
   if (!(target in DIFFICULTY_LABELS)) throw new RangeError(`Unknown difficulty: ${String(target)}`);
@@ -111,28 +91,26 @@ export function generatePuzzle(target: Difficulty, options: GenerateOptions = {}
   const now = options.now ?? (() => Date.now());
   const deadline = now() + (options.budgetMs ?? DEFAULT_BUDGET_MS);
   const expired = () => now() >= deadline;
+  const { lo, hi } = scoreBand(target);
 
   let best: Candidate | null = null;
-  const dist = (c: Candidate) => Math.abs(c.difficulty - target);
-
   for (;;) {
-    const solution = randomFullGrid(rng);
+    const goal = lo + rng() * (hi - lo);
     // Once something is in hand, let the deadline cut digging short.
-    const minimal = dig(solution, MIN_GIVENS[target], rng, () => best !== null && expired());
-    // Super Easy and Almost Impossible keep the dug puzzle (exactly 44 givens / minimal);
-    // other levels try several restore orders, which is much cheaper than digging a fresh
-    // grid. Easy never restores up to 44 givens, as that would regrade as Super Easy.
-    const keep = target === Difficulty.AlmostImpossible || target === Difficulty.SuperEasy;
-    const maxClues = target === Difficulty.Easy ? SUPER_EASY_GIVENS - 1 : CELLS;
-    const tries = keep ? 1 : RESTORES_PER_DIG;
-    for (let k = 0; k < tries; k++) {
-      const puzzle = keep ? minimal : restore(minimal, solution, target, rng, maxClues);
-      const candidate: Candidate = { puzzle, solution, difficulty: gradeUnique(puzzle) };
-      if (candidate.difficulty === target) return finish(candidate, true);
-      if (best === null || dist(candidate) < dist(best)) best = candidate;
-      if (expired()) return finish(best, false);
-    }
+    const candidate = dig(randomFullGrid(rng), target, goal, rng, () => best !== null && expired());
+    if (candidate.difficulty === target) return finish(candidate, true);
+    if (best === null || closer(candidate, best, target)) best = candidate;
+    if (expired()) return finish(best, false);
   }
+}
+
+/** Nearer the target level wins; on a tie the easier puzzle, then the higher score. */
+function closer(a: Candidate, b: Candidate, target: Difficulty): boolean {
+  const da = Math.abs(a.difficulty - target);
+  const db = Math.abs(b.difficulty - target);
+  if (da !== db) return da < db;
+  if (a.difficulty !== b.difficulty) return a.difficulty < b.difficulty;
+  return a.score > b.score;
 }
 
 function finish(c: Candidate, exact: boolean): GeneratedPuzzle {
