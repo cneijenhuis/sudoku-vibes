@@ -3,13 +3,14 @@ import { CELLS, isComplete, restoreGame, type GameState } from '../game/state';
 import { localKv, type KeyValue } from './kv';
 
 export const SAVE_KEY = 'sudoku-vibes:game';
-export const SAVE_VERSION = 1;
+/** Version 2: nine levels. Version-1 (six-level) saves are not migrated; they fail validation and are removed. */
+export const SAVE_VERSION = 2;
 
 /** A saved game is about 1 KB; anything far bigger is not ours. */
 const MAX_JSON_CHARS = 8192;
 const MAX_MISTAKES = 1_000_000;
 /** About 115 days of play; beyond this the value is certainly bogus. */
-const MAX_ELAPSED_MS = 1e10;
+export const MAX_ELAPSED_MS = 1e10;
 
 /** A validated save: everything needed to rebuild a `GameState` and the timer. */
 export interface SavedGame {

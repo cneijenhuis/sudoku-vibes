@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Difficulty } from '../engine/grading';
 import { createGame, enter, restoreGame, select, tapCell, toggleNote, undo, canUndo, type GameState } from '../game/state';
 import { createKeyValue, type KeyValue, type StorageLike } from './kv';
-import { SAVE_KEY, createSaves, restore, serialize } from './save';
+import { SAVE_KEY, SAVE_VERSION, createSaves, restore, serialize } from './save';
 
 const SOL = '534678912672195348198342567859761423426853791713924856961537284287419635345286179';
 const EMPTY = [0, 1, 3, 4, 6, 10, 12, 19, 22, 27, 30, 33, 36, 40, 44, 50, 55, 60, 66, 72, 80];
@@ -109,8 +109,9 @@ describe('restore rejects invalid saves', () => {
     ['json number', '42'],
     ['huge string', ' '.repeat(100_000)],
     ['version missing', JSON.stringify({ ...good(), v: undefined })],
-    ['unknown version', withField('v', 2)],
-    ['version as string', withField('v', '1')],
+    ['unknown version', withField('v', 3)],
+    ['previous (six-level) version', withField('v', 1)],
+    ['version as string', withField('v', '2')],
     ['puzzle too short', withField('puzzle', PUZ.slice(1))],
     ['puzzle with letters', withField('puzzle', PUZ.replace('5', 'x'))],
     ['puzzle not a string', withField('puzzle', 5)],
@@ -120,7 +121,7 @@ describe('restore rejects invalid saves', () => {
     ['solution column conflict (swapped rows)', withField('solution', SOL.slice(9, 18) + SOL.slice(0, 9) + SOL.slice(18))],
     ['solution box conflict', withField('solution', SOL.slice(0, 9).split('').reverse().join('') + SOL.slice(9))],
     ['given disagrees with solution', withField('puzzle', PUZ.slice(0, 2) + (PUZ[2] === '4' ? '9' : '4') + PUZ.slice(3))],
-    ['difficulty out of range', withField('difficulty', 6)],
+    ['difficulty out of range', withField('difficulty', 9)],
     ['difficulty negative', withField('difficulty', -1)],
     ['difficulty fractional', withField('difficulty', 1.5)],
     ['difficulty string', withField('difficulty', 'Hard')],
@@ -213,6 +214,20 @@ describe('createSaves', () => {
     saves.clear();
     expect(data.has(SAVE_KEY)).toBe(false);
     expect(saves.load()).toBeNull();
+  });
+
+  it('drops a version-1 save without migrating it', () => {
+    const { data, storage } = fakeStorage();
+    const v1 = JSON.stringify({ ...(JSON.parse(serialize(sample(), Difficulty.Hard, 1000, 5)) as object), v: 1 });
+    data.set(SAVE_KEY, v1);
+    const saves = createSaves(createKeyValue(() => storage));
+    expect(saves.load()).toBeNull();
+    expect(data.has(SAVE_KEY)).toBe(false);
+  });
+
+  it('writes version 2', () => {
+    expect(SAVE_VERSION).toBe(2);
+    expect((JSON.parse(serialize(sample(), Difficulty.Hard, 1, 1)) as { v: number }).v).toBe(2);
   });
 
   it('removes invalid data when loading', () => {
