@@ -20,11 +20,11 @@ export interface TechniqueFixture {
 
 export const TECHNIQUE_FIXTURES: TechniqueFixture[] = [
   {
-    name: 'naked/hidden singles (Wikipedia example puzzle)',
+    name: 'singles (Wikipedia example puzzle)',
     puzzle: '530070000600195000098000060800060003400803001700020006060000280000419005000080079',
     source: 'published',
-    technique: Technique.NakedSingle,
-    hardest: Technique.NakedSingle,
+    technique: Technique.HiddenSingle,
+    hardest: Technique.HiddenSingle,
   },
   {
     name: 'locked candidates',
@@ -96,16 +96,36 @@ export const TECHNIQUE_FIXTURES: TechniqueFixture[] = [
     technique: Technique.XYWing,
     hardest: Technique.XYWing,
   },
+  {
+    name: 'Skyscraper',
+    puzzle: '000820600078000900006001020820000030000050000600000504007640009090302000000000300',
+    source: 'searched',
+    technique: Technique.Skyscraper,
+    hardest: Technique.Skyscraper,
+  },
+  {
+    name: 'XYZ-Wing',
+    puzzle: '103004800006900500040000000009340000007010304000000000080470020000080071500090000',
+    source: 'searched',
+    technique: Technique.XYZWing,
+    hardest: Technique.XYZWing,
+  },
 ];
 
-/** One fixture per difficulty level (indexes into the Difficulty enum order). */
+/** Published or searched puzzles with the level the grading rule gives them (checked by hand against the rule). */
 export const GRADE_FIXTURES = {
-  easy: '530070000600195000098000060800060003400803001700020006060000280000419005000080079',
-  medium: '000100008000030000000007020001500000030000901026910850005000002060348000019006047',
-  hard: '100000569492056108056109240009640801064010000218035604040500016905061402621000005',
-  extreme: '900000700028450900041000000030072008000000000410000030000068200800000000070523006',
+  // Singles only, 51 empty cells: score 5100, wide open.
+  medium: '530070000600195000098000060800060003400803001700020006060000280000419005000080079',
+  // Locked candidates (score 6150).
+  tricky: '000700560070000000600035098000000000100000203350001079090400600200060000860007304',
+  // Naked pair (score 6900).
+  hard: '000100008000030000000007020001500000030000901026910850005000002060348000019006047',
+  // X-Wing (score 8350).
+  tough: '100000569492056108056109240009640801064010000218035604040500016905061402621000005',
+  // Swordfish (score 16250).
+  impossible: '900000700028450900041000000030072008000000000410000030000068200800000000070523006',
   // Arto Inkala's 2012 puzzle: no technique here applies at all.
-  almostImpossible: '800000000003600000070090200050007000000045700000100030001000068008500010090000400',
+  stuck: '800000000003600000070090200050007000000045700000100030001000068008500010090000400',
   // AI Escargot: stalls the implemented techniques too.
   escargot: '1....7.9..3..2...8..96..5....53..9...1..8...26....4...3......1..4......7..7...3..',
 };
