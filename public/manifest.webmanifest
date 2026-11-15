@@ -1,7 +1,7 @@
 {
   "name": "Sudoku Vibes",
   "short_name": "Sudoku Vibes",
-  "description": "Mobile-first Sudoku with six difficulty levels.",
+  "description": "Mobile-first Sudoku with nine difficulty levels.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

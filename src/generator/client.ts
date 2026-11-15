@@ -83,7 +83,7 @@ export function createGeneratorClient(createWorker: () => WorkerLike): Generator
   return {
     generate(difficulty, seed) {
       if (pending) {
-        // Kill the stale run (it may be a slow Hard/Almost Impossible search) and respawn lazily.
+        // Kill the stale run (it may be a slow search for a hard level) and respawn lazily.
         const old = pending;
         pending = null;
         stopWorker();

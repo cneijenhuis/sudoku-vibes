@@ -42,7 +42,7 @@ tier 1 hidden single, naked single; 4 locked candidates; 5 naked pair; 6 hidden 
 hidden triple; 7 X-Wing, naked quad, hidden quad; 8 Swordfish, XY-Wing; 9 Skyscraper, XYZ-Wing.
 Hidden before naked single because people find hidden singles first (Sudoku Explainer rates them 1.2
 vs 2.3; Tatham's notes). Tier order rather than pure cost order, so a level-9 technique is never used
-where a level-7 one would do. `analyze(board, maxLevel?)` skips finders above `maxLevel`.
+where a level-7 one would do. `analyze(board, maxLevel = Impossible, trackOpenMoves = true)` skips finders above `maxLevel` (a 0-based `Difficulty` value); the generator turns open-moves counting off above Gentle, where it cannot change the level.
 - Skyscraper: for a digit, two rows (or columns) each with exactly two candidates, one pair of which
   shares a column (row); the other two ends see each other's peers: eliminate the digit from cells that
   see both ends.
@@ -74,7 +74,7 @@ open-moves tier.
 **6. Generator.** For target level L (band [lo, hi) = the score thresholds around L; lo for level 1 is
 3600, hi for level 9 is 20000): pick a goal score g uniformly in [lo, hi). Take a random full grid and a
 random removal order. For each cell: remove it; analyse with `maxLevel = L`; if the solver does not
-finish, or the level exceeds L, put it back; otherwise keep the removal, and once the level equals L and
+finish, or its technique or score tier exceeds L, put it back (the open-moves tier is left out here: nearly full grids have few open cells, so it would reject every early removal; the returned puzzle is still graded with all three tiers); otherwise keep the removal, and once the level equals L and
 score ≥ g, stop. A puzzle that ends at level L (even below g) is a hit; otherwise keep the closest and
 try a fresh grid until the budget runs out (existing fallback, `exact: false`). The capped solver
 finishing proves uniqueness (all techniques are sound), so `countSolutions` is not needed per removal;
