@@ -15,14 +15,14 @@
 ## 3. Persistence
 
 - [x] 3.1 `SAVE_VERSION` → 2; verify with a unit test that a version-1 save is rejected and removed
-- [ ] 3.2 `src/storage/best.ts` (decision 8) and recording on completion in `src/ui/app.ts`; verify with unit tests: flawless faster/slower, any mistake, invalid/garbage data, throwing storage; and in the browser (e2e) that a flawless seeded game sets the best time shown in the menu and a game with a mistake does not
+- [x] 3.2 `src/storage/best.ts` (decision 8) and recording on completion in `src/ui/app.ts`; verify with unit tests: flawless faster/slower, any mistake, invalid/garbage data, throwing storage; and in the browser (e2e) that a flawless seeded game sets the best time shown in the menu and a game with a mistake does not
 
 ## 4. Menu and colours
 
-- [ ] 4.1 New menu box (decision 10) in `src/ui/menu.ts` and `src/style.css`, names and solved state with "Best m:ss", accessible names; delete hints and pips from `src/ui/levels.ts`; verify with `tools/e2e/` screenshots (viewed) at 390x844, 375x667, 320x568, 768x1024, 844x390 and 667x375 in three states: no best times, levels 1–4 solved (seed storage), and with a Resume entry; measure every cell ≥ 44px, no scrolling, "Super Easy" on one line, box as large as fits; compare with the approved mockup `menu-final2.png` (path in the implementer prompt)
-- [ ] 4.2 Remove per-level colours (decision 11) from CSS and TS; verify `grep -n "\-\-c[0-9]\|--level\|accent-[0-9]\|level-[0-9]" src` is empty, `src/theme/tokens.test.ts` passes, and screenshots of loading, game status line, pause card and results (viewed) look right with the shared tokens
-- [ ] 4.3 Regression in the browser: start a game from the menu, replace-saved confirmation, resume, results → next difficulty across the 8→9 boundary and no "Next" after Impossible, loading/cancel
+- [x] 4.1 New menu box (decision 10) in `src/ui/menu.ts` and `src/style.css`, names and solved state with "Best m:ss", accessible names; delete hints and pips from `src/ui/levels.ts`; verify with `tools/e2e/` screenshots (viewed) at 390x844, 375x667, 320x568, 768x1024, 844x390 and 667x375 in three states: no best times, levels 1–4 solved (seed storage), and with a Resume entry; measure every cell ≥ 44px, no scrolling, "Super Easy" on one line, box as large as fits; compare with the approved mockup `menu-final2.png` (path in the implementer prompt)
+- [x] 4.2 Remove per-level colours (decision 11) from CSS and TS; verify `grep -n "\-\-c[0-9]\|--level\|accent-[0-9]\|level-[0-9]" src` is empty, `src/theme/tokens.test.ts` passes, and screenshots of loading, game status line, pause card and results (viewed) look right with the shared tokens
+- [x] 4.3 Regression in the browser: start a game from the menu, replace-saved confirmation, resume, results → next difficulty across the 8→9 boundary and no "Next" after Impossible, loading/cancel
 
 ## 5. Docs and gates
 
-- [ ] 5.1 Update README (levels, grading, menu, best times, per-level colours bullet) and `openspec/config.yaml` (level list); run `npm run typecheck && npm test && npm run build` and `openspec validate --all --strict`
+- [x] 5.1 Update README (levels, grading, menu, best times, per-level colours bullet) and `openspec/config.yaml` (level list); run `npm run typecheck && npm test && npm run build` and `openspec validate --all --strict`

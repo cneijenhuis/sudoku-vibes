@@ -4,8 +4,10 @@ Mobile-first Sudoku game in TypeScript (Vite, plain DOM). No runtime dependencie
 
 ## Screens
 
-The app opens on a start menu with the six difficulty levels (Super Easy, Easy, Medium,
-Hard, Extreme, Almost Impossible). Choosing one shows a loading screen (with Cancel) while a
+The app opens on a start menu: one 3x3 sudoku box of nine level cells, each a balloon digit 1-9 with
+the level name under it (Super Easy, Easy, Gentle, Medium, Tricky, Hard, Tough, Extreme, Impossible).
+A level you have completed without a mistake is tinted and shows "Best m:ss" instead of its name.
+Choosing a level shows a loading screen (with Cancel) while a
 puzzle is generated in a Web Worker, then the game screen: top bar (pause, timer),
 the board, a 1-9 number pad and below it an action row (undo under the 1, redo under the 2 while there is
 something to redo, an eraser under the 8 once notes exist, the pencil under the 9). Input is cell-first: tap a cell, then a digit. Tapping a digit with no empty cell selected
@@ -65,7 +67,7 @@ Pausing (or backgrounding the page) hides the board. Finishing the puzzle shows 
 congratulations screen (a CSS-only celebration, toned down under reduced motion; its medal is the
 sticker of the digit that finished the puzzle, jumping forever) with the level,
 time and mistakes (a flawless run gets its own message), and three actions: **Next difficulty**
-(one level harder; not offered after Almost Impossible), **Same difficulty** and **Menu**. The
+(one level harder; not offered after Impossible), **Same difficulty** and **Menu**. The
 two start actions use the normal loading / Cancel / error flow. Errors offer Retry / Back to menu.
 Navigation lives in `src/ui/router.ts`; DOM-free game logic (state, notes, stopwatch) lives in
 `src/game/`. In dev, `?smoke`
@@ -102,7 +104,7 @@ surface, shadows; components never use literal colours, which `src/theme/tokens.
   keeps 12px) and is at most 720px. Whenever the screen is landscape (width greater than height) pause
   and the clock sit in a panel on the right above a 3x3 keypad with a compact undo/redo/pencil row and the board takes the full
   height minus the gutter; rotation is pure CSS, so game state is untouched.
-- **Per-level colours** are small accents (bar, pips, chips) kept dark enough for the light glass.
+- **No per-level colours:** every level uses the same shared tokens; only the level name differs.
 - **Game background toggle:** the round button at the top right of the game header cycles the game
   screen's backdrop photo, light (plain warm off-white `#F4F1EA`), dark (near-black navy `#0F151D` with
   dark glass surfaces and light ink), photo. Its icon shows the current mode (picture frame, sun,
@@ -117,6 +119,25 @@ surface, shadows; components never use literal colours, which `src/theme/tokens.
 - **Browser chrome:** `theme-color` and the manifest background are `#F6E9D2`. The iOS status bar
   is `black-translucent`, so the photo runs under the clock and the home-screen app is edge to edge.
   The app icon is the deckchair with the inflatable 7 from the photo (see the PWA section).
+
+## Difficulty levels and grading
+
+Nine levels. A puzzle's level is the highest of three tiers (`src/engine/grading.ts`, constants in one
+place): the hardest technique the human-style solver needs, a summed difficulty score (Sudoku of the
+Day's per-technique costs, the first use of a technique costing more), and for singles-only play the mean
+number of cells a single could fill over the first 25 placements ("open moves", Pelanek 2014). The solver
+tries techniques in level order: hidden and naked single (1), locked candidates (4), naked pair (5),
+hidden pair and naked/hidden triple (6), X-Wing and naked/hidden quad (7), Swordfish and XY-Wing (8),
+Skyscraper and XYZ-Wing (9); a puzzle it cannot finish is never generated. Score thresholds 4000, 4500,
+5100, 5600, 6500, 8000, 10000, 13000; open moves below 8 (5) raise a puzzle to at least Easy (Gentle).
+The generator (`src/generator/generate.ts`) removes givens one at a time while a solver limited to the
+target level's techniques still finishes, and stops at a random score inside the level's band, so
+puzzles spread across the level. `npm run calibrate` generates 100 puzzles per level and prints hit
+rate, timing, givens, score and open-moves spread and technique mix (not part of `npm test`).
+
+Best times (`src/storage/best.ts`, key `sudoku-vibes:best`): the time of a completed game is recorded per
+level only when the game had no mistakes and beats the stored time. Saves from before the nine levels
+are dropped (save version 2), with no migration.
 
 ## Saving, resuming and the Back button
 

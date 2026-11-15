@@ -1,6 +1,8 @@
 import { DIFFICULTY_LABELS, type Difficulty } from '../engine/grading';
 import { formatTime } from '../game/timer';
+import type { BestTimes } from '../storage/best';
 import type { SavedGame } from '../storage/save';
+import { digitSrc } from './digit-sticker';
 import { h } from './dom';
 import type { Haptics } from './haptics';
 import { LEVELS } from './levels';
@@ -10,6 +12,8 @@ import { wordmark } from './wordmark';
 export interface MenuOptions {
   /** The valid saved game, if any; offers Resume and makes starting a new game ask first. */
   saved: SavedGame | null;
+  /** Best time per level (null = none yet); a level with one is shown as solved. */
+  best: BestTimes;
   onChoose: (d: Difficulty) => void;
   onResume: (saved: SavedGame) => void;
   /** Vibration setting; its toggle is shown only where vibration is supported. */
@@ -19,22 +23,28 @@ export interface MenuOptions {
 const PLAY_ICON =
   '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z"/></svg>';
 
-export function menuScreen({ saved, onChoose, onResume, haptics }: MenuOptions): MountedScreen<HTMLElement> {
+export function menuScreen({ saved, best, onChoose, onResume, haptics }: MenuOptions): MountedScreen<HTMLElement> {
   const lockAll = (): void => {
     for (const b of buttons) b.disabled = true;
     if (resumeBtn) resumeBtn.disabled = true;
   };
 
-  const buttons = LEVELS.map(({ difficulty, label, hint }) => {
-    const pips = h('span', { class: 'pips', attrs: { 'aria-hidden': 'true' } });
-    for (let i = 0; i < LEVELS.length; i++) {
-      pips.append(h('i', { class: i <= difficulty ? 'on' : '' }));
-    }
+  const buttons = LEVELS.map(({ difficulty, label }) => {
+    const bestMs = best[difficulty] ?? null;
+    const number = difficulty + 1;
+    const shown = bestMs === null ? label : `Best ${formatTime(bestMs)}`;
     const btn = h(
       'button',
-      { class: `level glass level-${difficulty}`, attrs: { type: 'button', 'data-difficulty': String(difficulty) } },
-      h('span', { class: 'level-text' }, h('span', { class: 'level-name', text: label }), h('span', { class: 'level-hint', text: hint })),
-      pips,
+      {
+        class: `level-cell${bestMs === null ? '' : ' solved'}`,
+        attrs: {
+          type: 'button',
+          'data-difficulty': String(difficulty),
+          'aria-label': bestMs === null ? `Level ${number}, ${label}` : `Level ${number}, ${label}, best ${formatTime(bestMs)}`,
+        },
+      },
+      h('img', { class: 'level-digit', attrs: { src: digitSrc(number), alt: '', draggable: 'false' } }),
+      h('span', { class: 'level-label', text: shown }),
     );
     btn.addEventListener('click', () => {
       if (saved) {
@@ -57,7 +67,7 @@ export function menuScreen({ saved, onChoose, onResume, haptics }: MenuOptions):
     resumeBtn = h(
       'button',
       {
-        class: `resume glass accent-${saved.difficulty}`,
+        class: 'resume glass',
         attrs: { type: 'button', 'data-action': 'resume-saved', 'aria-label': `Resume ${level} game, ${time}` },
       },
       play,
@@ -157,7 +167,7 @@ export function menuScreen({ saved, onChoose, onResume, haptics }: MenuOptions):
     { class: `screen menu-screen${saved ? ' has-saved' : ''}` },
     h('header', { class: 'menu-head glass' }, wordmark('h1'), h('p', { class: 'tagline', text: 'Choose a difficulty' })),
     ...(resumeBtn ? [resumeBtn] : []),
-    h('nav', { class: 'menu-list', attrs: { 'aria-label': 'Difficulty' } }, ...buttons),
+    h('div', { class: 'level-wrap' }, h('nav', { class: 'level-box glass', attrs: { 'aria-label': 'Difficulty' } }, ...buttons)),
     ...(foot ? [foot] : []),
     sheet,
   );

@@ -82,7 +82,7 @@ export function resultsScreen(
 
   const el = h(
     'main',
-    { class: `screen results-screen accent-${played}` },
+    { class: 'screen results-screen' },
     h(
       'section',
       { class: 'results-hero' },

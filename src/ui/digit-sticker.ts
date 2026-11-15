@@ -12,6 +12,13 @@ import { h } from './dom';
 /** Built (hashed, precached) URLs of the sticker images, index 0 = digit 1. */
 const STICKERS: readonly string[] = [digit1, digit2, digit3, digit4, digit5, digit6, digit7, digit8, digit9];
 
+/** The built URL of the balloon image of `digit` (1 to 9). */
+export function digitSrc(digit: number): string {
+  const src = STICKERS[digit - 1];
+  if (src === undefined) throw new Error(`no sticker for digit ${digit}`);
+  return src;
+}
+
 /** Decode all nine images once, so the results sticker never starts with an undecoded image. */
 let preloaded = false;
 export function preloadStickers(): void {
@@ -30,8 +37,6 @@ export function preloadStickers(): void {
  * class `jump-forever` for endless jumps; without it the sticker stands still.
  */
 export function digitSticker(digit: number): HTMLElement {
-  const src = STICKERS[digit - 1];
-  if (src === undefined) throw new Error(`no sticker for digit ${digit}`);
-  const img = h('img', { class: 'digit-sticker-img', attrs: { src, alt: '', draggable: 'false' } });
+  const img = h('img', { class: 'digit-sticker-img', attrs: { src: digitSrc(digit), alt: '', draggable: 'false' } });
   return h('span', { class: 'digit-sticker', attrs: { 'aria-hidden': 'true', 'data-digit': String(digit) } }, img);
 }

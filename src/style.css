@@ -43,14 +43,8 @@
   --board-max: 720px;
   --bg-image: none;
   --bg-position: 50% 50%;
-  /* One level colour per Difficulty value, dark enough for text on the light glass (>= 4.5:1). */
-  --c0: #0b6e7c;
-  --c1: #1a7a4c;
-  --c2: #2a58c8;
-  --c3: #8f5800;
-  --c4: #a8480f;
-  --c5: #8a35b0;
-  --level: var(--c2);
+  /* Background of a start-menu level cell that has a best time: the done edge at 30%. */
+  --solved-tint: rgba(111, 143, 163, 0.3);
 }
 
 /*
@@ -95,13 +89,6 @@ html[data-scene='dark'] {
   --shadow-board: 0 14px 30px rgba(0, 0, 0, 0.5);
   --edge: #05080c;
   --flash-peak: 0.3;
-  /* Level colours lightened to read on the dark surface (the paused time uses them). */
-  --c0: #52cfe0;
-  --c1: #62d69d;
-  --c2: #8fb2ff;
-  --c3: #f0b550;
-  --c4: #ff9d62;
-  --c5: #d6a0ff;
 }
 
 *,
@@ -200,14 +187,6 @@ button,
   touch-action: manipulation;
 }
 
-/* Accent per difficulty (decorative; labels carry the meaning). */
-.level-0, .accent-0 { --level: var(--c0); }
-.level-1, .accent-1 { --level: var(--c1); }
-.level-2, .accent-2 { --level: var(--c2); }
-.level-3, .accent-3 { --level: var(--c3); }
-.level-4, .accent-4 { --level: var(--c4); }
-.level-5, .accent-5 { --level: var(--c5); }
-
 button {
   font: inherit;
   color: inherit;
@@ -271,15 +250,6 @@ h2 {
   box-shadow: 0 1px 0 var(--error);
 }
 
-.btn.ghost {
-  border-color: var(--level);
-  box-shadow: 0 3px 0 var(--level);
-}
-
-.btn.ghost:active:not(:disabled) {
-  box-shadow: 0 1px 0 var(--level);
-}
-
 .btn.text {
   border-color: var(--done-edge);
   box-shadow: none;
@@ -317,73 +287,98 @@ h2 {
   font-size: 16px;
 }
 
-.menu-list {
+/*
+ * The nine levels are one sudoku box: a 3x3 grid in one glass card with a strong frame and soft
+ * separators. `.level-wrap` takes the height the other menu parts leave and is a size container, so
+ * the box is the largest square that fits that height and the column width (420px at most), with no
+ * script measuring anything. The box is itself a container: digit and text sizes follow its width.
+ */
+.level-wrap {
+  flex: 1 1 0;
+  min-height: calc(var(--tap) * 3 + 6px); /* never so small that a cell drops under 44px */
   width: 100%;
   max-width: 420px;
+  container-type: size;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  justify-content: center;
+  align-items: flex-start;
 }
 
-.level {
-  flex: 0 0 auto;
-  width: 100%;
-  min-height: 58px;
-  padding: 8px 16px 8px 22px;
+.level-box {
+  width: min(100cqw, 100cqh);
+  aspect-ratio: 1;
+  container-type: inline-size;
+  display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  overflow: hidden;
+  border: 3px solid var(--line-strong);
+  border-radius: 16px;
+  box-shadow: 0 4px 0 var(--edge);
+}
+
+.level-cell {
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  text-align: left;
-  border: 2px solid var(--line-strong);
-  border-radius: 14px;
-  /* The level colour is a bar down the left edge, inside the navy frame. */
-  box-shadow: inset 8px 0 0 0 var(--level), 0 3px 0 var(--edge);
-  color: var(--ink);
+  justify-content: center;
+  gap: 3px;
+  border: 0;
+  border-right: 1.5px solid var(--line-soft);
+  border-bottom: 1.5px solid var(--line-soft);
+  border-radius: 0;
+  background: none;
+  color: var(--done-text);
   cursor: pointer;
 }
 
-.level:active:not(:disabled) {
-  transform: translateY(2px);
-  box-shadow: inset 8px 0 0 0 var(--level), 0 1px 0 var(--edge);
+.level-cell:nth-child(3n) {
+  border-right: 0;
 }
 
-.level:disabled {
+.level-cell:nth-child(n + 7) {
+  border-bottom: 0;
+}
+
+.level-cell.solved {
+  background: var(--solved-tint);
+}
+
+.level-cell:disabled {
   opacity: 0.6;
   cursor: default;
 }
 
-.level-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.level-cell:focus-visible {
+  outline-offset: -5px;
 }
 
-.level-name {
-  font-size: 19px;
+.level-digit {
+  display: block;
+  height: calc(100cqw / 3 * 0.55);
+  width: auto;
+  filter: var(--sticker-shadow);
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+.level-cell.solved .level-digit {
+  height: calc(100cqw / 3 * 0.46);
+}
+
+.level-cell:active:not(:disabled) .level-digit {
+  transform: translateY(2px);
+}
+
+.level-label {
+  max-width: 100%;
+  font-size: clamp(11px, 4.4cqw, 15px);
   font-weight: 600;
-}
-
-.level-hint {
-  font-size: 14px;
-  color: var(--key-text);
-}
-
-.pips {
-  display: flex;
-  gap: 4px;
-  flex: none;
-}
-
-.pips i {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--line-soft);
-}
-
-.pips i.on {
-  background: var(--level);
+  line-height: 1.1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Loading, error, results: a glass card over the photo. */
@@ -412,10 +407,6 @@ h2 {
   margin: 6px 0 0;
   font-size: 18px;
   font-weight: 600;
-  color: var(--level);
-}
-
-.error-screen .status-level {
   color: var(--key-text);
 }
 
@@ -431,10 +422,10 @@ h2 {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  /* Solid pale-navy track on the glass disc, a thick half-ring arc in the level colour, navy outline. */
+  /* Solid pale-navy track on the glass disc, a thick half-ring arc in the highlight ring colour, navy outline. */
   border: 9px solid color-mix(in srgb, var(--line-strong) 25%, var(--surface-solid));
-  border-top-color: var(--level);
-  border-right-color: var(--level);
+  border-top-color: var(--highlight-ring);
+  border-right-color: var(--highlight-ring);
   box-shadow: 0 0 0 3px var(--line-strong), 0 4px 0 3px var(--line-strong);
   animation: spin 0.9s linear infinite;
 }
@@ -449,7 +440,7 @@ h2 {
   .spinner {
     animation-duration: 3s;
   }
-  .level:active:not(:disabled),
+  .level-cell:active:not(:disabled) .level-digit,
   .btn:active:not(:disabled) {
     transform: none;
   }
@@ -493,7 +484,7 @@ h2 {
   margin: 12px 0 0;
   padding: 5px 16px;
   border-radius: 999px;
-  border: 2px solid var(--level);
+  border: 2px solid var(--line-strong);
   background: var(--surface-solid);
   color: var(--ink);
   font-weight: 600;
@@ -580,7 +571,7 @@ h2 {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--level);
+  background: var(--highlight-ring);
   box-shadow: 0 0 0 2px var(--surface-solid);
   opacity: 0;
   animation: spark-out 1.4s cubic-bezier(0.15, 0.7, 0.3, 1) var(--delay, 0ms) both;
@@ -1364,7 +1355,7 @@ h2 {
   font-weight: 600;
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  color: var(--level);
+  color: var(--ink);
 }
 
 .overlay .actions {
@@ -1515,16 +1506,26 @@ h2 {
   }
 }
 
-/* Short landscape screens: two-column menu so it still fits */
+/*
+ * Short landscape screens: title, Resume and the vibration toggle stack on the left, the box takes
+ * the whole height on the right.
+ */
 @media (max-height: 480px) and (orientation: landscape) {
   .screen {
     padding: 8px 16px;
     gap: 10px;
   }
   .menu-screen {
-    gap: 10px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: 1fr auto auto auto 1fr;
+    column-gap: 20px;
+    row-gap: 10px;
+    justify-items: center;
   }
   .menu-head {
+    grid-column: 1;
+    grid-row: 2;
     padding: 6px 22px 8px;
   }
   .menu-head .wordmark {
@@ -1533,18 +1534,21 @@ h2 {
   .tagline {
     display: none;
   }
-  .menu-list {
-    max-width: 640px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
+  .menu-screen .resume {
+    grid-column: 1;
+    grid-row: 3;
   }
-  .level {
-    min-height: 52px;
-    padding-block: 6px;
+  .menu-screen .menu-foot {
+    grid-column: 1;
+    grid-row: 4;
   }
-  .level-hint {
-    display: none;
+  .menu-screen .level-wrap {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    align-self: stretch;
+    width: auto;
+    aspect-ratio: 1;
+    align-items: center;
   }
 }
 
@@ -1678,7 +1682,7 @@ h2 {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--level);
+  background: var(--line-strong);
   color: var(--surface-solid);
 }
 
@@ -1746,7 +1750,7 @@ h2 {
   max-width: none;
 }
 
-/* Menu: compact spacing on shorter phones so Resume card + haptics toggle still fit unscrolled */
+/* Menu: compact spacing on shorter phones so Resume card + haptics toggle + box still fit unscrolled */
 @media (max-height: 720px) and (orientation: portrait) {
   .menu-screen {
     gap: 12px;
@@ -1761,16 +1765,6 @@ h2 {
   .menu-screen .tagline {
     margin-top: 2px;
     font-size: 15px;
-  }
-  .menu-screen .menu-list {
-    gap: 9px;
-  }
-  .menu-screen .level {
-    min-height: 52px;
-    padding-block: 5px;
-  }
-  .menu-screen .level-hint {
-    font-size: 13px;
   }
   .menu-screen .resume {
     min-height: 58px;
@@ -1796,19 +1790,6 @@ h2 {
   .menu-screen .tagline {
     font-size: 14px;
     margin-top: 0;
-  }
-  .menu-screen .menu-list {
-    gap: 7px;
-  }
-  .menu-screen .level {
-    min-height: 46px;
-    padding-block: 3px;
-  }
-  .menu-screen .level-name {
-    font-size: 17px;
-  }
-  .menu-screen .level-text {
-    gap: 0;
   }
   .menu-screen .resume {
     min-height: 52px;
@@ -1877,7 +1858,7 @@ h2 {
 }
 
 .toggle[aria-checked='true'] .toggle-track {
-  background: var(--c1);
+  background: var(--entry);
 }
 
 .toggle[aria-checked='true'] .toggle-track i {

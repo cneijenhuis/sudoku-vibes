@@ -1,4 +1,5 @@
 import { generatePuzzleAsync, disposeGenerator } from '../generator/client';
+import { createBests } from '../storage/best';
 import { createSaves } from '../storage/save';
 import { applyBackgroundWhenLoaded, pickBackground, type Background } from '../theme/backgrounds';
 import { gameScreen } from './game';
@@ -10,12 +11,13 @@ import { bindScreens, createRouter, type AppState, type MountedScreen, type Rout
 import { errorScreen, loadingScreen } from './status';
 
 const saves = createSaves();
+const bests = createBests();
 
 function buildScreen(state: AppState, router: Router): MountedScreen<HTMLElement> {
   const toMenu = () => router.navigate({ screen: 'menu' });
   switch (state.screen) {
     case 'menu':
-      return menuScreen({ saved: saves.load(), onChoose: (d) => router.startGame(d), onResume: (s) => router.resumeGame(s), haptics });
+      return menuScreen({ saved: saves.load(), best: bests.load(), onChoose: (d) => router.startGame(d), onResume: (s) => router.resumeGame(s), haptics });
     case 'loading':
       return loadingScreen(state.difficulty, () => router.cancel());
     case 'error':
@@ -27,6 +29,7 @@ function buildScreen(state: AppState, router: Router): MountedScreen<HTMLElement
           onQuit: toMenu,
           onComplete: ({ elapsedMs, mistakes, lastDigit }) => {
             saves.clear(); // a finished game is never resumable
+            bests.record(state.game.difficulty, elapsedMs, mistakes); // only a flawless, faster game counts
             router.navigate({ screen: 'results', game: state.game, elapsedMs, mistakes, lastDigit });
           },
           onSave: (game, elapsedMs) => saves.save(game, state.game.difficulty, elapsedMs),

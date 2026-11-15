@@ -73,7 +73,7 @@ export function seedPuzzle(target, { puzzle, solution = SOLUTION, delayMs = 30 }
   );
 }
 
-/** Tap a start-menu level button (data-difficulty 0 = Super Easy ... 5 = Almost Impossible) and wait for the board. */
+/** Tap a start-menu level cell (data-difficulty 0 = Super Easy ... 8 = Impossible) and wait for the board. */
 export async function startGame(page, difficulty = 0) {
   await page.tap(`[data-difficulty="${difficulty}"]`);
   await page.waitForSelector('.board');

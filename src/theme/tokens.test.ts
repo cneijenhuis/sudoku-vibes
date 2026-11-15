@@ -28,6 +28,7 @@ const TOKENS: Record<string, string> = {
   '--shadow-board': '0 14px 30px rgba(40, 30, 10, 0.22)',
   '--error': '#a80b24',
   '--cursor-fill': '#ddf1f7',
+  '--solved-tint': 'rgba(111, 143, 163, 0.3)',
 };
 
 describe('theme tokens', () => {
@@ -102,7 +103,7 @@ describe('theme tokens', () => {
     };
     const solid = parse(tok('--surface-solid')).rgb;
 
-    for (const name of ['--ink', '--key-text', '--entry', '--status', '--done-text', '--error', '--c0', '--c1', '--c2', '--c3', '--c4', '--c5']) {
+    for (const name of ['--ink', '--key-text', '--entry', '--status', '--done-text', '--error']) {
       it(`${name} on the solid surface`, () => {
         expect(ratio(parse(tok(name)).rgb, solid)).toBeGreaterThanOrEqual(4.5);
       });

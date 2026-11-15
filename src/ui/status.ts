@@ -7,7 +7,7 @@ export function loadingScreen(difficulty: Difficulty, onCancel: () => void): Mou
   cancel.addEventListener('click', onCancel);
   const el = h(
     'main',
-    { class: `screen loading-screen accent-${difficulty}` },
+    { class: 'screen loading-screen' },
     h('div', { class: 'spinner glass', attrs: { 'aria-hidden': 'true' } }),
     h(
       'div',
