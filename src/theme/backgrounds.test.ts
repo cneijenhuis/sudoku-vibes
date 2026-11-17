@@ -16,7 +16,7 @@ describe('backgrounds', () => {
 
   it('ships the surfboard 5 and the volleyball 8 with the shared fallback colour', () => {
     const ids = BACKGROUNDS.map((b) => b.id);
-    expect(ids).toEqual(expect.arrayContaining(['beach-day', 'surf-five', 'beach-volleyball']));
+    expect(ids).toEqual(expect.arrayContaining(['beach-day', 'surf-five', 'beach-volleyball', 'frisbee-nine', 'hammock-two', 'dolphin-four', 'mattress-one', 'flamingo-three', 'sandcastle-six']));
     expect(new Set(ids).size).toBe(ids.length);
     for (const b of BACKGROUNDS) {
       expect(b.fallback).toBe('#F6E9D2');

@@ -1,5 +1,11 @@
 import beachDay from '../assets/backgrounds/beach-day.webp';
 import beachVolleyball from '../assets/backgrounds/beach-volleyball.webp';
+import frisbeeNine from '../assets/backgrounds/frisbee-nine.webp';
+import hammockTwo from '../assets/backgrounds/hammock-two.webp';
+import dolphinFour from '../assets/backgrounds/dolphin-four.webp';
+import mattressOne from '../assets/backgrounds/mattress-one.webp';
+import flamingoThree from '../assets/backgrounds/flamingo-three.webp';
+import sandcastleSix from '../assets/backgrounds/sandcastle-six.webp';
 import surfFive from '../assets/backgrounds/surf-five.webp';
 
 /** One selectable full-screen background. Adding another is a new image file plus an entry below. */
@@ -26,6 +32,18 @@ export const BACKGROUNDS: readonly Background[] = [
   { id: 'surf-five', image: surfFive, fallback: '#F6E9D2', position: '50% 50%' },
   // The inflatable 8 is left of centre; a portrait phone shows under half of the image's width.
   { id: 'beach-volleyball', image: beachVolleyball, fallback: '#F6E9D2', position: '38% 50%' },
+  // The inflatable 9 is left of centre.
+  { id: 'frisbee-nine', image: frisbeeNine, fallback: '#F6E9D2', position: '45% 50%' },
+  // The 2 lies in the middle of the hammock.
+  { id: 'hammock-two', image: hammockTwo, fallback: '#F6E9D2', position: '52% 50%' },
+  // The 4 rides the dolphin near the centre.
+  { id: 'dolphin-four', image: dolphinFour, fallback: '#F6E9D2', position: '50% 50%' },
+  // The 1 lies in the middle of the air mattress.
+  { id: 'mattress-one', image: mattressOne, fallback: '#F6E9D2', position: '53% 50%' },
+  // The 3 sits in the flamingo ring, just left of centre.
+  { id: 'flamingo-three', image: flamingoThree, fallback: '#F6E9D2', position: '46% 50%' },
+  // The 6 is left of centre, the castle to its right.
+  { id: 'sandcastle-six', image: sandcastleSix, fallback: '#F6E9D2', position: '44% 50%' },
 ];
 
 /**
